@@ -1,10 +1,13 @@
 [tool.ruff]
 line-length = 100
 target-version = "py313"   # ADR-006: Python 3.13, no 3.12
+
+[tool.ruff.lint]
 select = ["E", "F", "I", "N", "UP", "DJ", "B", "C4", "SIM"]
 
 [tool.ruff.lint.per-file-ignores]
 "*/migrations/*" = ["E501", "N806"]
+"config/settings/*.py" = ["F405", "I001"]  # `from .base import *` va primero a propósito
 
 [tool.pytest.ini_options]
 DJANGO_SETTINGS_MODULE = "config.settings.local"

@@ -1,0 +1,23 @@
+[
+  {"model": "masterdata.locality", "pk": 1,  "fields": {"name": "ALTAGRACIA DE ORITUCO", "state": "Guárico", "municipality": "José Tadeo Monagas"}},
+  {"model": "masterdata.locality", "pk": 2,  "fields": {"name": "CALABOZO", "state": "Guárico", "municipality": "Francisco de Miranda"}},
+  {"model": "masterdata.locality", "pk": 3,  "fields": {"name": "CAMATAGUA", "state": "Aragua", "municipality": "Camatagua"}},
+  {"model": "masterdata.locality", "pk": 4,  "fields": {"name": "CANTAGALLO", "state": "Guárico", "municipality": ""}},
+  {"model": "masterdata.locality", "pk": 5,  "fields": {"name": "DOS CAMINOS", "state": "Guárico", "municipality": ""}},
+  {"model": "masterdata.locality", "pk": 6,  "fields": {"name": "EL SOMBRERO", "state": "Guárico", "municipality": "El Socorro"}},
+  {"model": "masterdata.locality", "pk": 7,  "fields": {"name": "EL TOCO", "state": "Guárico", "municipality": "Leonardo Infante"}},
+  {"model": "masterdata.locality", "pk": 8,  "fields": {"name": "LAS MERCEDES DEL LLANO", "state": "Guárico", "municipality": "Las Mercedes"}},
+  {"model": "masterdata.locality", "pk": 9,  "fields": {"name": "LAS MINAS", "state": "Guárico", "municipality": ""}},
+  {"model": "masterdata.locality", "pk": 10, "fields": {"name": "ORTIZ", "state": "Guárico", "municipality": "Ortiz"}},
+  {"model": "masterdata.locality", "pk": 11, "fields": {"name": "PARAPARA", "state": "Guárico", "municipality": "Chaguaramas"}},
+  {"model": "masterdata.locality", "pk": 12, "fields": {"name": "PIRITU", "state": "Guárico", "municipality": "San José de Guaribe"}},
+  {"model": "masterdata.locality", "pk": 13, "fields": {"name": "SAN CASIMIRO", "state": "Aragua", "municipality": "San Casimiro"}},
+  {"model": "masterdata.locality", "pk": 14, "fields": {"name": "SAN FRANCISCO DE TIZNADOS", "state": "Guárico", "municipality": "Las Mercedes"}},
+  {"model": "masterdata.locality", "pk": 15, "fields": {"name": "SAN JOSÉ DE TIZNADOS", "state": "Guárico", "municipality": "Ortiz"}},
+  {"model": "masterdata.locality", "pk": 16, "fields": {"name": "SAN JUAN DE LOS MORROS", "state": "Guárico", "municipality": "Juan Germán Roscio"}},
+  {"model": "masterdata.locality", "pk": 17, "fields": {"name": "SAN SEBASTIÁN DE LOS REYES", "state": "Aragua", "municipality": "San Sebastián"}},
+  {"model": "masterdata.locality", "pk": 18, "fields": {"name": "TAGUAY", "state": "Aragua", "municipality": "Urdaneta"}},
+  {"model": "masterdata.locality", "pk": 19, "fields": {"name": "VALLE DE LA PASCUA", "state": "Guárico", "municipality": "Leonardo Infante"}},
+  {"model": "masterdata.locality", "pk": 20, "fields": {"name": "VALLES DE TUCUTUNEMO", "state": "Aragua", "municipality": "Zamora"}},
+  {"model": "masterdata.locality", "pk": 21, "fields": {"name": "VILLA DE CURA", "state": "Aragua", "municipality": "Zamora"}}
+]

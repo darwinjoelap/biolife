@@ -1,0 +1,107 @@
+"""
+Configuración base de Biolife. Compartida por local, staging y production.
+No se ejecuta directamente: cada entorno la importa con `from .base import *`.
+"""
+from pathlib import Path
+
+import environ
+
+BASE_DIR = Path(__file__).resolve().parent.parent.parent
+
+env = environ.Env()
+environ.Env.read_env(BASE_DIR / ".env")
+
+SECRET_KEY = env("SECRET_KEY")
+DEBUG = env.bool("DEBUG", default=False)
+ALLOWED_HOSTS = env.list("ALLOWED_HOSTS", default=[])
+BASE_DOMAIN = env("BASE_DOMAIN", default="localhost")
+
+DATABASES = {
+    "default": env.db("DATABASE_URL"),
+}
+DATABASES["default"]["ENGINE"] = "django_tenants.postgresql_backend"
+
+DATABASE_ROUTERS = ("django_tenants.routers.TenantSyncRouter",)
+
+MIDDLEWARE = [
+    "django_tenants.middleware.main.TenantMainMiddleware",   # PRIMERO, sin excepción
+    "apps.core.middleware.TenantTimezoneMiddleware",
+    "django.middleware.security.SecurityMiddleware",
+    "whitenoise.middleware.WhiteNoiseMiddleware",
+    "django.contrib.sessions.middleware.SessionMiddleware",
+    "django.middleware.common.CommonMiddleware",
+    "django.middleware.csrf.CsrfViewMiddleware",
+    "django.contrib.auth.middleware.AuthenticationMiddleware",
+    "django.contrib.messages.middleware.MessageMiddleware",
+    "django.middleware.clickjacking.XFrameOptionsMiddleware",
+]
+
+SHARED_APPS = [
+    "django_tenants",
+    "apps.tenants",
+    "apps.masterdata",
+    "django.contrib.contenttypes",
+    "django.contrib.staticfiles",
+    "django.contrib.admin",
+    "django.contrib.auth",
+    "django.contrib.sessions",
+    "django.contrib.messages",
+]
+
+TENANT_APPS = [
+    "django.contrib.contenttypes",
+    "django.contrib.auth",
+    "django.contrib.sessions",
+    "django.contrib.messages",
+    "apps.core",
+]
+
+INSTALLED_APPS = list(SHARED_APPS) + [
+    a for a in TENANT_APPS if a not in SHARED_APPS
+]
+
+TENANT_MODEL = "tenants.Tenant"
+TENANT_DOMAIN_MODEL = "tenants.Domain"
+
+PUBLIC_SCHEMA_URLCONF = "config.urls_public"
+ROOT_URLCONF = "config.urls_tenant"
+
+TEMPLATES = [
+    {
+        "BACKEND": "django.template.backends.django.DjangoTemplates",
+        "DIRS": [BASE_DIR / "templates"],
+        "APP_DIRS": True,
+        "OPTIONS": {
+            "context_processors": [
+                "django.template.context_processors.debug",
+                "django.template.context_processors.request",
+                "django.contrib.auth.context_processors.auth",
+                "django.contrib.messages.context_processors.messages",
+            ],
+        },
+    },
+]
+
+WSGI_APPLICATION = "config.wsgi.application"
+ASGI_APPLICATION = "config.asgi.application"
+
+AUTH_PASSWORD_VALIDATORS = [
+    {"NAME": "django.contrib.auth.password_validation.UserAttributeSimilarityValidator"},
+    {"NAME": "django.contrib.auth.password_validation.MinimumLengthValidator"},
+    {"NAME": "django.contrib.auth.password_validation.CommonPasswordValidator"},
+    {"NAME": "django.contrib.auth.password_validation.NumericPasswordValidator"},
+]
+
+LANGUAGE_CODE = "es-ve"
+TIME_ZONE = env("TIME_ZONE", default="America/Caracas")
+USE_TZ = True
+USE_I18N = True
+USE_L10N = True
+LOCALE_PATHS = [BASE_DIR / "locale"]
+
+STATIC_URL = "static/"
+STATIC_ROOT = BASE_DIR / "staticfiles"
+STATICFILES_DIRS = [BASE_DIR / "static"]
+STATICFILES_STORAGE = "whitenoise.storage.CompressedManifestStaticFilesStorage"
+
+DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"

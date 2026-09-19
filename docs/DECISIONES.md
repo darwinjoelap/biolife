@@ -44,7 +44,9 @@ viven todas bajo `apps/`.
 **Contexto.** `django-tenants` permite borrar el esquema automáticamente al borrar el tenant.
 
 **Decisión.** Queda en `False`. La eliminación de un esquema es un procedimiento manual
-documentado, con respaldo previo obligatorio.
+documentado, con respaldo previo obligatorio. La única excepción es código de pruebas
+explícito que llama `tenant.delete(force_drop=True)` para limpiar tenants temporales de
+test — nunca el flujo normal de la aplicación ni el admin.
 
 **Consecuencias.** Un borrado accidental desde el admin de Django deja el esquema huérfano
 en lugar de destruir historias clínicas. La limpieza de esquemas huérfanos es una tarea
@@ -96,8 +98,70 @@ adicional. `django-admin startproject` y el venv se crean con `py -3.13`.
 
 **Consecuencias.**
 - `CLAUDE.md`, sección "Stack fijo", se actualiza a Python 3.13.
-- Si durante la Fase 01 aparece algún error de compatibilidad achacable a 3.13 en
-  `django-tenants==3.7.*` o `psycopg[binary]==3.2.*`, la mitigación es instalar 3.12
-  explícitamente (`py -3.12`) y revertir este ADR con una entrada nueva que lo marque
-  `SUPERSEDIDA POR ADR-007`.
+- Verificado en la Fase 01: `django-tenants==3.7.*`, `psycopg[binary]==3.2.*` y el resto de
+  `requirements/base.txt` instalan y corren limpio en Python 3.13.7. El riesgo de
+  compatibilidad anticipado no se materializó.
 - Sin impacto conocido en PostgreSQL, Cloudinary, Railway ni el resto del stack.
+
+---
+
+## ADR-007 — `provision_tenant()` fuerza el esquema `public` internamente
+**Fecha:** 2026-09-19 · **Estado:** Aceptada
+
+**Contexto.** `django-tenants` exige crear un `Tenant` únicamente con la conexión activa en
+el esquema `public` — si se invoca desde cualquier otro esquema, `Tenant.save()` lanza
+`Exception("Can't create tenant outside the public schema")`. Esto se manifestó al escribir
+los tests de la Fase 01 (`pytest-django` no garantiza que la conexión esté en `public` al
+llamar al service), y es un riesgo real también en producción si `provision_tenant()` llega
+a invocarse alguna vez desde un contexto de request ya resuelto a un tenant.
+
+**Decisión.** `provision_tenant()` envuelve toda su lógica en
+`with schema_context(get_public_schema_name())`, sin importar el esquema activo del llamador.
+
+**Consecuencias.**
+- El service es seguro de invocar desde cualquier contexto.
+- Cualquier código que borre un tenant de prueba (`tenant.delete(force_drop=True)`) debe
+  hacer el mismo `schema_context(get_public_schema_name())` explícito — no lo hace el
+  modelo `Tenant` por sí solo.
+
+---
+
+## ADR-008 — Tests que crean/borran esquemas de tenant requieren `transaction=True`
+**Fecha:** 2026-09-19 · **Estado:** Aceptada
+
+**Contexto.** `@pytest.mark.django_db` (sin `transaction=True`) envuelve cada test en una
+transacción que `pytest-django` revierte al final. Un `DROP SCHEMA ... CASCADE` ejecutado
+dentro de esa transacción falla con `ObjectInUse: ... tiene eventos de disparador
+pendientes`, porque los triggers de FK diferidos no se han resuelto todavía.
+
+**Decisión.** Todo test que llame a `provision_tenant()` y luego borre el tenant
+(`tenant.delete(force_drop=True)`) debe usar `@pytest.mark.django_db(transaction=True)`.
+Los tests de aislamiento basados en `django_tenants.test.cases.TenantTestCase` no necesitan
+este marcador — la clase ya maneja sus propias transacciones.
+
+**Consecuencias.** Estos tests son más lentos (no hay rollback automático; cada uno limpia
+su propio esquema explícitamente) pero son los únicos que reflejan correctamente el
+comportamiento real de creación/eliminación de esquemas.
+
+---
+
+## ADR-009 — El esquema `public` necesita su propio `Tenant` + `Domain`
+**Fecha:** 2026-09-19 · **Estado:** Aceptada
+
+**Contexto.** `TenantMainMiddleware` busca un `Domain` para **cada** hostname entrante,
+incluido `localhost` quien sirve el panel SuperAdmin y el admin de Django. Sin un `Tenant`
+con `schema_name="public"` y un `Domain(domain="localhost")` asociado, cualquier request a
+`localhost` devuelve 404 ("No tenant for hostname").
+
+**Decisión.** Como parte del setup local (y del script de despliegue en Fase 17), se crea
+explícitamente:
+```python
+tenant, _ = Tenant.objects.get_or_create(schema_name="public", defaults={"name": "Biolife Plataforma"})
+Domain.objects.get_or_create(domain="localhost", tenant=tenant, defaults={"is_primary": True})
+```
+`Tenant.save()` no intenta crear el esquema `public` (ya existe) — es un caso especial que
+`django-tenants` maneja internamente.
+
+**Consecuencias.** Este paso debe repetirse (con el dominio real, no `localhost`) en cada
+entorno nuevo — staging y producción — antes de que el panel SuperAdmin sea alcanzable.
+Pendiente: automatizarlo como parte del script de despliegue de la Fase 17.
