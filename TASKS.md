@@ -10,8 +10,6 @@
 
 ## Waiting On
 
-- [ ] **Commit de Fase 06 en git** - mensaje sugerido en `docs/roadmap/06_rangos_de_referencia.md`
-- [ ] **Commit de Fase 07 en git** - después del de la Fase 06; mensaje en `commit_msg.txt`
 - [ ] **Confirmar LDH, TGO/TGP, unidad de insulina y composición de perfiles** - con el laboratorio de referencia (ADR-019)
 - [ ] **Revisar factor ×100 de URO_INDICE_PROT_CREAT** - unidad mg/g requeriría ×1000 (ADR-017), cuando Angelus confirme el parámetro
 - [ ] **No usar en un informe real los parámetros/rangos "no confirmados"** - Uroanálisis (ADR-015: proteína/creatinina en orina, índice, cristales, recuento bacteriano) y rangos de referencia (ADR-016: glicemia, úrea, creatinina, ácido úrico, bilirrubina total y directa, rango neonatal de glóbulos blancos) - hasta que Angelus confirme
@@ -38,6 +36,8 @@
 - [ ] **Tasa BCV automática y perfiles anidados** - posteriores, ADR-019
 
 ## Done
+
+- [x] ~~Commits de las Fases 06 a 08b~~ (2026-09-26) — Fase 06 `d3475eb`; Fases 07, 08 y 08b en `53655ab` (63 archivos)
 
 - [x] ~~Fase 08b — Ficha del examen (rangos)~~ (2026-09-26) — edad en años/meses/días, avisos de solapes y huecos, probador, admin por tenant (bug de bitácora), 171/171 en el entorno de Claude — verificado en la máquina de Darwin (171/171, ruff limpio)
 - [x] ~~Verificar Fase 08~~ (2026-09-26) — 149/149, ruff limpio, 15 perfiles, seed_billing OK

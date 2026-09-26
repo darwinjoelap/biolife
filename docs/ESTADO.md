@@ -18,7 +18,8 @@
 - [x] Fase 04 (commit `03a4f10`): pacientes, representantes, `internal_code` (ADR-014).
 - [x] Fase 05 (commit `c9ac6ab`): `apps.catalog`, `seed_uroanalisis()` con los 9
   `value_type`, parámetros no confirmados marcados (ADR-015).
-- [x] Fase 06 (sin commit aún): `ReferenceRange` + `resolve_reference_range()` (ADR-016).
+- [x] Fase 06 (commit `d3475eb`): `ReferenceRange` + `resolve_reference_range()` (ADR-016).
+- [x] Fases 07–08b en un solo commit `53655ab`.
 - [x] Fase 07: motor de fórmulas (AST restringido, `Decimal`, ciclos al guardar), sintaxis
   `{CODIGO}`/`{@var}`, verificada en la máquina de Darwin (107/107) (ADR-017).
 - [x] Fase 08: exámenes individuales desde los Excel, 15 perfiles, `apps.billing` multimoneda
@@ -37,10 +38,9 @@ Nada. Fase 08b cerrada y verificada.
 1. Ubicar en el roadmap la fase de **estilo visual y pantallas base** (antes de la primera
    pantalla real); ahí se hace la ficha del examen definitiva.
 2. Cargar precios reales en la lista GENERAL (admin) cuando se tengan.
-3. Commit de la Fase 06 y luego de la Fase 07 (mensajes en sus archivos de roadmap).
 3. **No usar en un informe real** ningún `ReferenceRange`/parámetro marcado "PENDIENTE DE
-   CONFIRMAR" o "NO CONFIRMADO" (ver ADR-015 y ADR-016), ni la superficie corporal/INR
-   sin confirmar Mosteller e ISI (ADR-017), hasta que Angelus responda.
+   CONFIRMAR" o "NO CONFIRMADO" (ver ADR-015 y ADR-016), ni el INR sin
+   confirmar el ISI (ADR-017/019), hasta que el laboratorio responda.
 4. Confirmar con Angelus los rangos de referencia contradictorios, los rangos
    pediátricos/neonatales reales, y el detalle geográfico de localidades sin municipio
    verificado (Cantagallo, Dos Caminos, Las Minas, Píritu).

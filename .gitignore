@@ -37,3 +37,7 @@ htmlcov/
 # Frontend
 node_modules/
 static/dist/
+
+# Archivos de trabajo de sesiones con Claude
+Claude outputs/
+commit_msg.txt
