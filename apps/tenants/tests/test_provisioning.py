@@ -9,12 +9,14 @@ from apps.tenants.services.provisioning import provision_tenant
 
 @pytest.mark.django_db(transaction=True)
 def test_provision_tenant_crea_esquema_dominio_y_suscripcion(plan_basico):
-    tenant = provision_tenant(
+    tenant, admin_password = provision_tenant(
         name="Laboratorio de Prueba",
         schema_name="lab_prueba_1",
         subdomain="labprueba1",
+        admin_email="admin@labprueba1.test",
         plan=plan_basico,
     )
+    assert admin_password  # se generó una temporal
 
     assert Tenant.objects.filter(schema_name="lab_prueba_1").exists()
     assert Domain.objects.filter(tenant=tenant, domain="labprueba1.localhost").exists()
@@ -34,15 +36,24 @@ def test_provision_tenant_crea_esquema_dominio_y_suscripcion(plan_basico):
 @pytest.mark.django_db
 def test_provision_tenant_schema_invalido_lanza_error():
     with pytest.raises(ApplicationError):
-        provision_tenant(name="X", schema_name="PUBLIC-INVALIDO!", subdomain="x")
+        provision_tenant(
+            name="X", schema_name="PUBLIC-INVALIDO!", subdomain="x",
+            admin_email="admin@x.test",
+        )
 
 
 @pytest.mark.django_db(transaction=True)
 def test_provision_tenant_schema_duplicado_no_deja_huerfano():
-    tenant = provision_tenant(name="Original", schema_name="lab_dup", subdomain="labdup")
+    tenant, _ = provision_tenant(
+        name="Original", schema_name="lab_dup", subdomain="labdup",
+        admin_email="admin@labdup.test",
+    )
 
     with pytest.raises(ApplicationError):
-        provision_tenant(name="Duplicado", schema_name="lab_dup", subdomain="labdup2")
+        provision_tenant(
+            name="Duplicado", schema_name="lab_dup", subdomain="labdup2",
+            admin_email="admin@labdup2.test",
+        )
 
     assert Tenant.objects.filter(schema_name="lab_dup").count() == 1
 

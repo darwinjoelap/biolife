@@ -1,0 +1,86 @@
+[
+  {
+    "model": "accounts.role",
+    "pk": 1,
+    "fields": {
+      "code": "ADMIN_LAB",
+      "name": "Administrador del laboratorio",
+      "permissions": {
+        "puede_validar_resultados": true,
+        "puede_gestionar_usuarios": true,
+        "puede_facturar": true
+      },
+      "is_system": true
+    }
+  },
+  {
+    "model": "accounts.role",
+    "pk": 2,
+    "fields": {
+      "code": "BIOANALISTA",
+      "name": "Bioanalista",
+      "permissions": {
+        "puede_validar_resultados": true,
+        "puede_gestionar_usuarios": false,
+        "puede_facturar": false
+      },
+      "is_system": true
+    }
+  },
+  {
+    "model": "accounts.role",
+    "pk": 3,
+    "fields": {
+      "code": "TECNICO",
+      "name": "Técnico",
+      "permissions": {
+        "puede_validar_resultados": false,
+        "puede_gestionar_usuarios": false,
+        "puede_facturar": false
+      },
+      "is_system": true
+    }
+  },
+  {
+    "model": "accounts.role",
+    "pk": 4,
+    "fields": {
+      "code": "RECEPCION",
+      "name": "Recepción",
+      "permissions": {
+        "puede_validar_resultados": false,
+        "puede_gestionar_usuarios": false,
+        "puede_facturar": false
+      },
+      "is_system": true
+    }
+  },
+  {
+    "model": "accounts.role",
+    "pk": 5,
+    "fields": {
+      "code": "FACTURACION",
+      "name": "Facturación",
+      "permissions": {
+        "puede_validar_resultados": false,
+        "puede_gestionar_usuarios": false,
+        "puede_facturar": true
+      },
+      "is_system": true
+    }
+  },
+  {
+    "model": "accounts.role",
+    "pk": 6,
+    "fields": {
+      "code": "SOLO_LECTURA",
+      "name": "Sólo lectura",
+      "permissions": {
+        "puede_validar_resultados": false,
+        "puede_gestionar_usuarios": false,
+        "puede_facturar": false
+      },
+      "is_system": true
+    }
+  }
+]

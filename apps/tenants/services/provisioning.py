@@ -6,7 +6,9 @@ from django.db import transaction
 from django.utils import timezone
 from django_tenants.utils import get_public_schema_name, schema_context
 
+from apps.accounts.services.user_management import create_initial_admin
 from apps.core.exceptions import ApplicationError
+from apps.settings_lab.services.branding import create_default_settings
 from apps.tenants.models import Plan, Subscription, Tenant
 
 _SCHEMA_NAME_RE = re.compile(r"^[a-z][a-z0-9_]{2,30}$")
@@ -18,16 +20,23 @@ def provision_tenant(
     name: str,
     schema_name: str,
     subdomain: str,
+    admin_email: str,
+    admin_password: str | None = None,
     plan: Plan | None = None,
     rif: str | None = None,
     trial_days: int = 30,
-) -> Tenant:
+) -> tuple[Tenant, str]:
     """
-    Crea el laboratorio, su esquema, su dominio primario y su suscripción de prueba.
-    Idempotente: si el schema_name ya existe, levanta ApplicationError sin tocar nada.
+    Crea el laboratorio, su esquema, su dominio primario, su suscripción de prueba
+    y su usuario ADMIN_LAB inicial. Idempotente respecto al tenant: si el
+    schema_name ya existe, levanta ApplicationError sin tocar nada.
 
-    Siempre se ejecuta en el esquema public, sin importar el esquema activo del
-    llamador — django-tenants exige crear tenants únicamente desde ahí.
+    Devuelve `(tenant, admin_password)`. `admin_password` es la contraseña dada
+    o, si no se dio ninguna, la temporal generada — el llamador decide si la
+    imprime (el comando de management sí; nunca queda en un log).
+
+    La creación del `Tenant` siempre se ejecuta en el esquema public, sin
+    importar el esquema activo del llamador — django-tenants lo exige así.
     """
     if not _SCHEMA_NAME_RE.match(schema_name) or schema_name.startswith(_RESERVED_PREFIXES):
         raise ApplicationError(
@@ -68,4 +77,11 @@ def provision_tenant(
                     current_period_end=timezone.now() + timedelta(days=trial_days),
                 )
 
-    return tenant
+    # Fuera del transaction.atomic() de public: el esquema del tenant ya existe
+    # (se creó en tenant.save()) y create_initial_admin corre dentro de su propia
+    # conexión/esquema, no tiene sentido anidarlo en la transacción de public.
+    with schema_context(schema_name):
+        _, admin_password = create_initial_admin(email=admin_email, password=admin_password)
+        create_default_settings()
+
+    return tenant, admin_password

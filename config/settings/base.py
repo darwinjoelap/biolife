@@ -25,7 +25,7 @@ DATABASE_ROUTERS = ("django_tenants.routers.TenantSyncRouter",)
 
 MIDDLEWARE = [
     "django_tenants.middleware.main.TenantMainMiddleware",   # PRIMERO, sin excepción
-    "apps.core.middleware.TenantTimezoneMiddleware",
+    "apps.settings_lab.middleware.TenantTimezoneMiddleware",
     "django.middleware.security.SecurityMiddleware",
     "whitenoise.middleware.WhiteNoiseMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
@@ -46,6 +46,7 @@ SHARED_APPS = [
     "django.contrib.auth",
     "django.contrib.sessions",
     "django.contrib.messages",
+    "apps.accounts",
 ]
 
 TENANT_APPS = [
@@ -54,6 +55,8 @@ TENANT_APPS = [
     "django.contrib.sessions",
     "django.contrib.messages",
     "apps.core",
+    "apps.accounts",
+    "apps.settings_lab",
 ]
 
 INSTALLED_APPS = list(SHARED_APPS) + [
@@ -62,6 +65,12 @@ INSTALLED_APPS = list(SHARED_APPS) + [
 
 TENANT_MODEL = "tenants.Tenant"
 TENANT_DOMAIN_MODEL = "tenants.Domain"
+
+AUTH_USER_MODEL = "accounts.User"
+
+LOGIN_URL = "accounts:login"
+LOGIN_REDIRECT_URL = "tenant-home"
+LOGOUT_REDIRECT_URL = "accounts:login"
 
 PUBLIC_SCHEMA_URLCONF = "config.urls_public"
 ROOT_URLCONF = "config.urls_tenant"
@@ -77,6 +86,7 @@ TEMPLATES = [
                 "django.template.context_processors.request",
                 "django.contrib.auth.context_processors.auth",
                 "django.contrib.messages.context_processors.messages",
+                "apps.settings_lab.context_processors.tenant_settings",
             ],
         },
     },
@@ -103,5 +113,8 @@ STATIC_URL = "static/"
 STATIC_ROOT = BASE_DIR / "staticfiles"
 STATICFILES_DIRS = [BASE_DIR / "static"]
 STATICFILES_STORAGE = "whitenoise.storage.CompressedManifestStaticFilesStorage"
+
+MEDIA_URL = "media/"
+MEDIA_ROOT = BASE_DIR / "media"
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"

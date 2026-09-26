@@ -1,0 +1,17 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>{% block title %}{{ request.tenant.name }}{% endblock %}</title>
+    <style>
+        :root {
+            --color-primary: {{ tenant_settings.color_primary|default:"#1B5FA8" }};
+            --color-secondary: {{ tenant_settings.color_secondary|default:"#1B5FA8" }};
+        }
+    </style>
+    {% block extra_head %}{% endblock %}
+</head>
+<body>
+    {% block content %}{% endblock %}
+</body>
+</html>

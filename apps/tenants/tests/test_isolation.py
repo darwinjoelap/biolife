@@ -1,7 +1,7 @@
-from django.contrib.auth.models import User
 from django_tenants.test.cases import TenantTestCase
 from django_tenants.utils import get_public_schema_name, schema_context
 
+from apps.accounts.models import User
 from apps.tenants.services.provisioning import provision_tenant
 
 
@@ -14,8 +14,9 @@ class TenantIsolationTests(TenantTestCase):
     @classmethod
     def setUpClass(cls):
         super().setUpClass()
-        cls.other_tenant = provision_tenant(
-            name="Otro Tenant de Prueba", schema_name="test_otro", subdomain="testotro"
+        cls.other_tenant, _ = provision_tenant(
+            name="Otro Tenant de Prueba", schema_name="test_otro", subdomain="testotro",
+            admin_email="admin@testotro.test",
         )
 
     @classmethod

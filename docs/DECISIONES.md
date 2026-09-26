@@ -165,3 +165,117 @@ Domain.objects.get_or_create(domain="localhost", tenant=tenant, defaults={"is_pr
 **Consecuencias.** Este paso debe repetirse (con el dominio real, no `localhost`) en cada
 entorno nuevo — staging y producción — antes de que el panel SuperAdmin sea alcanzable.
 Pendiente: automatizarlo como parte del script de despliegue de la Fase 17.
+
+
+## ADR-010 — `User` personalizado (`accounts.User`) en vez de `auth.User`
+**Fecha:** 2026-09-20 · **Estado:** Aceptada
+
+**Contexto.** `docs/02_ESTRUCTURA_PROYECTO.md` lista `User` como modelo propio dentro de
+`apps/accounts/`, pero la Fase 01 había migrado `django.contrib.auth` con su `User` por
+defecto en los tenants demo. Adoptar un modelo propio permite campos específicos del
+dominio (`phone`, `professional_license`) sin depender de un `Profile` aparte, y es
+coherente con la documentación de arquitectura.
+
+**Decisión.** `AUTH_USER_MODEL = "accounts.User"`, extendiendo `AbstractUser`. Como
+consecuencia, hubo que **recrear la base de datos local completa** (`dropdb`/`createdb`)
+porque `public`, `demo_uno` y `demo_dos` ya tenían el historial de migraciones de `auth`
+aplicado con el `User` por defecto — no hay forma limpia de cambiar `AUTH_USER_MODEL`
+sobre un historial de migraciones ya aplicado sin recrear el esquema. Al ser sólo datos
+de prueba, no hubo pérdida real.
+
+**Consecuencias.**
+- Cualquier referencia a un usuario en el código usa `"accounts.User"` (string) o
+  `django.contrib.auth.get_user_model()`, nunca `django.contrib.auth.models.User`
+  directamente — esa tabla ya no se migra.
+- `TenantBaseModel.created_by` apunta a `"accounts.User"` (Fase 02, Tarea 7).
+- Cambiar `AUTH_USER_MODEL` de nuevo en el futuro, con datos reales en producción, sería
+  una migración de datos mayor — **no se vuelve a tocar sin ADR nuevo**.
+
+---
+
+## ADR-011 — `apps.accounts` es SHARED_APP y TENANT_APP a la vez
+**Fecha:** 2026-09-20 · **Estado:** Aceptada
+
+**Contexto.** `django.contrib.admin` (SHARED_APP, vive en `public` para el panel de
+Django admin) depende de `AUTH_USER_MODEL` a través de
+`migrations.swappable_dependency(settings.AUTH_USER_MODEL)`. Con `apps.accounts` sólo en
+`TENANT_APPS`, `public` nunca migra `accounts`, y `admin.0001_initial` no puede resolver
+su dependencia — error real encontrado: `InconsistentMigrationHistory`.
+
+**Decisión.** `apps.accounts` se agrega también a `SHARED_APPS`, exactamente el mismo
+patrón que ya usan `auth`, `contenttypes`, `sessions` y `messages` en este proyecto: la
+app migra tanto en `public` como en cada esquema de tenant, cada uno con su propia tabla
+de usuarios independiente.
+
+**Consecuencias.**
+- `public` tiene su propia tabla `accounts_user`, hoy usada sólo por el superusuario de
+  `/admin/` (`darwinjoelap`). No se cruza con los usuarios de los tenants — aislamiento
+  intacto, es la misma garantía que ya vale para `auth` desde la Fase 01.
+- El `PlatformUser` de la Fase 12 (`SUPERADMIN_PLATAFORMA`) seguirá siendo un modelo
+  aparte, no reutiliza esta tabla — ver nota de alcance en
+  `docs/roadmap/02_usuarios_roles_auditoria.md`.
+- Cualquier app nueva que dependa de `AUTH_USER_MODEL` y deba ser visible desde `public`
+  (paneles de superadmin, por ejemplo) debe seguir este mismo patrón dual, no asumir que
+  "tenant app" basta.
+
+
+---
+
+## ADR-012 — `TenantTimezoneMiddleware` se muda de `apps.core` a `apps.settings_lab`
+**Fecha:** 2026-09-26 · **Estado:** Aceptada
+
+**Contexto.** El middleware necesita leer la zona horaria real del laboratorio desde
+`TenantSettings`, un modelo de `apps.settings_lab`. `CLAUDE.md` es explícito:
+*"`core/` puede ser importado por todos; `core/` no importa a nadie."* Dejarlo en
+`apps.core` habría forzado a `core` a importar `settings_lab`, rompiendo esa regla.
+
+**Decisión.** `TenantTimezoneMiddleware` vive en `apps.settings_lab.middleware`.
+`apps/core/middleware.py` queda vacío (con nota explicando la mudanza), y
+`config/settings/base.py::MIDDLEWARE` apunta al nuevo path.
+
+**Corrección real encontrada durante la implementación (no estaba en el roadmap
+original de la Fase 03).** El middleware, tal como estaba especificado, llamaba a
+`TenantSettings.get_solo()` incondicionalmente en cada request. Como `apps.settings_lab`
+es `TENANT_APP` y no `SHARED_APP`, la tabla `settings_lab_tenantsettings` **no existe**
+en el esquema `public` — el middleware habría roto con `relation does not exist` en
+*cualquier* request al dominio `localhost` (incluido `/admin/`), ya que el `MIDDLEWARE`
+corre para todos los esquemas, sin importar qué `ROOT_URLCONF`/`PUBLIC_SCHEMA_URLCONF`
+se use después. Se agregó una guarda: si `request.tenant.schema_name ==
+get_public_schema_name()`, el middleware activa `settings.TIME_ZONE` en vez de tocar
+`TenantSettings`. Verificado en navegador: `/admin/` en `localhost` sigue funcionando
+después del cambio, y cubierto por test (`test_middleware_usa_time_zone_por_defecto_en_public`).
+
+**Consecuencias.**
+- Cualquier middleware o vista que dependa de un modelo `TENANT_APP`-only debe aplicar la
+  misma guarda de esquema `public` — no asumir que el request siempre trae un tenant real.
+- El `MIDDLEWARE` en `base.py` debe actualizarse junto con cualquier mudanza futura de
+  este tipo; verificar siempre con `manage.py check` **y** una visita real a `/admin/`
+  en `localhost`, no solo al dominio de un tenant.
+
+---
+
+## ADR-013 — Cloudinary diferido a la Fase 17; storage local mientras tanto
+**Fecha:** 2026-09-26 · **Estado:** Aceptada
+
+**Contexto.** Darwin tiene credenciales de Cloudinary reutilizables de otros proyectos y
+preguntó si convenía integrarlas ahora, o incluso adelantar el despliegue a Railway antes
+de continuar con el roadmap. Se evaluaron las tres opciones (Cloudinary ahora, Railway
+ahora, seguir el roadmap sin adelantos) y **Darwin decidió no adelantar ninguna de las
+dos**: sin credenciales de producción reales ni un despliegue real donde probarlas, cablear
+Cloudinary ahora sería trabajo especulativo.
+
+**Decisión.** `TenantSettings.logo`/`banner` son `ImageField` con el storage local de
+Django (`MEDIA_ROOT`/`MEDIA_URL`, servidos en `DEBUG` desde `urls_tenant.py`). La
+integración real con Cloudinary queda para la **Fase 17** (despliegue), cuando haya
+credenciales de producción y un entorno real donde validarlas. El despliegue a Railway
+tampoco se adelanta — se sigue el orden del roadmap.
+
+**Consecuencias.**
+- Cambiar el storage de un `ImageField` más adelante no exige tocar el modelo ni generar
+  una migración nueva — sólo `DEFAULT_FILE_STORAGE`/`STORAGES` en `production.py`
+  (Fase 17).
+- Mientras tanto, los logos/banners subidos en desarrollo viven en `media/` local y no
+  sobreviven un `dropdb`/recreación de esquema del mismo modo que los datos de BD (son
+  archivos en disco, no filas) — sin impacto real hoy porque son solo datos de prueba.
+- No se instala `django-cloudinary-storage` ni se agregan sus credenciales a `.env`
+  hasta la Fase 17 — evita dependencias y configuración sin uso real.
