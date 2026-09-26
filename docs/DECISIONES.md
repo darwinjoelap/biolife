@@ -279,3 +279,44 @@ tampoco se adelanta — se sigue el orden del roadmap.
   archivos en disco, no filas) — sin impacto real hoy porque son solo datos de prueba.
 - No se instala `django-cloudinary-storage` ni se agregan sus credenciales a `.env`
   hasta la Fase 17 — evita dependencias y configuración sin uso real.
+
+
+---
+
+## ADR-014 — Formato de `internal_code`, contador con `select_for_update()` y ubicación de `lab_initials`
+**Fecha:** 2026-09-26 · **Estado:** Aceptada
+
+**Contexto.** Cada paciente necesita un código interno único, legible y corto que el
+personal de recepción pueda usar en papel/etiquetas sin depender del UUID interno. Se
+evaluaron con Darwin el formato exacto y el criterio de reinicio del correlativo.
+
+**Decisión.**
+- Formato `{YY}{iniciales_lab}{correlativo:06d}` — ej. `26LDU000001` (año con los dos
+  últimos dígitos, siglas del laboratorio, correlativo de 6 dígitos con ceros a la
+  izquierda). El correlativo **reinicia en 1 cada año** — el año va embebido en el propio
+  código, así que dos años distintos nunca chocan aunque ambos empiecen en `000001`.
+- El contador vive en `PatientCodeSequence` (`year` único + `last_value`), un modelo
+  auxiliar plano — **no** hereda `TenantBaseModel`, mismo criterio ya usado para
+  `Role`/`Membership`/`AuditLog` en `apps.accounts`: es plumbing interno, no un registro
+  de dominio con auditoría/soft-delete propios.
+- `generate_internal_code()` usa `select_for_update()` + `transaction.atomic()` sobre la
+  fila de `PatientCodeSequence` del año actual, para que dos registros de paciente
+  simultáneos (dos recepcionistas al mismo tiempo) nunca obtengan el mismo correlativo.
+- `lab_initials` vive en `TenantSettings` (config del laboratorio, `apps.settings_lab`) y
+  no en `Tenant` (`apps.tenants`, esquema `public`): las siglas son un dato operativo del
+  laboratorio que su propio personal administra desde el admin de su tenant, no un dato de
+  plataforma/facturación que gestione Biolife. Consistente con por qué `TenantSettings` no
+  tiene FK a `Tenant` (ADR de la Fase 03): ya vive aislado dentro del esquema del tenant.
+
+**Consecuencias.**
+- Un laboratorio sin `lab_initials` configurado no puede registrar pacientes:
+  `generate_internal_code()` lanza `ApplicationError` explícito en vez de generar un
+  código con siglas vacías o inventadas — obliga a completar la configuración primero.
+- Cambiar las siglas de un laboratorio ya en producción no reescribe los `internal_code`
+  ya emitidos (son inmutables, `editable=False`) — solo afecta a los pacientes nuevos.
+- El límite de 999.999 pacientes nuevos por año por laboratorio se considera no
+  alcanzable en la práctica para el tamaño de cliente objetivo; no se diseñó manejo de
+  overflow.
+- Cubierto por tests (`test_code_sequence.py`): correlativos consecutivos dentro del
+  mismo año, y aislamiento entre años (un `PatientCodeSequence` de un año anterior con
+  valor alto no afecta el correlativo del año actual).

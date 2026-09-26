@@ -57,6 +57,7 @@ TENANT_APPS = [
     "apps.core",
     "apps.accounts",
     "apps.settings_lab",
+    "apps.patients",
 ]
 
 INSTALLED_APPS = list(SHARED_APPS) + [

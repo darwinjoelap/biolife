@@ -16,6 +16,11 @@ class TenantSettings(models.Model):
         COMA = "COMA", "Coma"
         PUNTO = "PUNTO", "Punto"
 
+    # Identificación de pacientes (Fase 04)
+    lab_initials = models.CharField(
+        "Siglas del laboratorio", max_length=6, blank=True, default=""
+    )
+
     # Identidad visual
     logo = models.ImageField("Logo", upload_to="branding/", blank=True, null=True)
     banner = models.ImageField("Banner", upload_to="branding/", blank=True, null=True)

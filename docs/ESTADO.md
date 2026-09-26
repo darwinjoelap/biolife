@@ -4,7 +4,7 @@
 > Mantener bajo 100 líneas: si crece, es que hay historial que pertenece a DECISIONES.md.
 
 **Última actualización:** 2026-09-26
-**Fase actual:** 03 — Configuración del laboratorio (**completa**) → siguiente: 04 (pacientes)
+**Fase actual:** 04 — Pacientes y representantes (**completa**) → siguiente: 05 (catálogo)
 **Responsable:** Darwin
 
 ---
@@ -15,35 +15,40 @@
 - [x] Fase 01 (setup y multi-tenancy): ver detalle en el historial de este archivo / ADRs
 - [x] Fase 02 (usuarios, roles y auditoría): `User` propio (ADR-010), `apps.accounts`
   SHARED_APP+TENANT_APP (ADR-011), 6 roles de tenant, `AuditLog` append-only, login por
-  tenant, `provision_tenant()` crea el admin inicial. `pytest -q`: 18/18 · `ruff`: limpio
-- [x] Fase 03 (`docs/roadmap/03_configuracion_laboratorio.md`) completa y verificada de
-  punta a punta:
-  - `TenantSettings` singleton por tenant (`apps.settings_lab`, TENANT_APP)
-  - `provision_tenant()` crea el `TenantSettings` por defecto de cada laboratorio nuevo
-  - `TenantTimezoneMiddleware` movido a `apps.settings_lab` (ADR-012) con guarda para el
-    esquema `public` (corrección real hecha sobre el roadmap original — ver ADR-012)
-  - `base_tenant.html` + context processor de branding (`--color-primary`/`--color-secondary`)
-  - `MEDIA_ROOT`/`MEDIA_URL` con storage local; Cloudinary diferido a Fase 17 (ADR-013)
-  - Admin de `TenantSettings` como singleton; se corrigió que `/admin/` nunca estuvo
-    registrado en `urls_tenant.py` (solo existía para `public`/`localhost`)
-  - `pytest -q`: 24/24 en verde · `ruff check .`: sin errores
+  tenant, `provision_tenant()` crea el admin inicial.
+- [x] Fase 03 (`docs/roadmap/03_configuracion_laboratorio.md`) completa: `TenantSettings`
+  singleton por tenant, `provision_tenant()` lo crea por defecto, `TenantTimezoneMiddleware`
+  movido a `apps.settings_lab` con guarda de esquema `public` (ADR-012), branding con
+  `base_tenant.html`, storage local para logo/banner (Cloudinary diferido, ADR-013),
+  `/admin/` registrado en `urls_tenant.py`.
+- [x] Fase 02 + Fase 03 commiteadas en git en un solo commit combinado (`6d001d6`).
+- [x] Fase 04 (`docs/roadmap/04_pacientes_y_representantes.md`) completa, sin UI (queda
+  para Fase 09): `apps.patients` con `Patient`/`Guardian`/`PatientGuardian`
+  (`TenantBaseModel`) + `PatientCodeSequence` (auxiliar plano); `internal_code` formato
+  `{YY}{iniciales}{correlativo:06d}` (ej. `26LDU000001`), reinicia cada año,
+  `select_for_update()` evita colisiones (ADR-014); `TenantSettings.lab_initials`;
+  `services/patient_creation.py::create_patient()` — único punto que exige representante
+  para menores sin documento propio (el admin **no** re-valida esta regla);
+  `services/guardian_linking.py`; `selectors/patient_search.py`; admin con inline de
+  representantes; migraciones aplicadas en los 3 tenants demo. `pytest -q`: 33/33 en
+  verde · `ruff check .`: sin errores.
 
 ## En curso
 
-Nada. Fase 03 cerrada.
+Nada. Fase 04 cerrada.
 
 ## Pendiente inmediato
 
-1. Empezar Fase 04 (pacientes) — leer su roadmap cuando se inicie, no antes.
-2. Commit de las Fases 02 y 03 en git (ninguno hecho aún; mensajes sugeridos en cada
-   `docs/roadmap/0N_*.md` §8).
+1. Empezar Fase 05 (catálogo) — leer su roadmap cuando se inicie, no antes.
+2. Commit de la Fase 04 en git (mensaje sugerido en
+   `docs/roadmap/04_pacientes_y_representantes.md` §8).
 3. Confirmar con el laboratorio Angelus los rangos de referencia contradictorios (bloquea
    Fase 06) y el detalle geográfico del fixture de localidades (Cantagallo, Dos Caminos,
    Las Minas, Píritu sin municipio verificado).
-4. Borrar los duplicados sueltos `docs/00_INDICE.md` y `docs/01_setup_y_tenants.md`
-   (el contenido vigente está en `docs/roadmap/`) — pendiente desde el cierre de Fase 00.
-5. `demo_tres` quedó creado como parte de la verificación de la Fase 02 — decidir si se
+4. `demo_tres` quedó creado como parte de la verificación de la Fase 02 — decidir si se
    conserva como tercer tenant demo o se borra.
+5. Darwin debe borrar manualmente la carpeta suelta `Claude outputs/` en la raíz del
+   proyecto (contenido superado, no se subió a git).
 
 ## Bloqueos
 
@@ -81,6 +86,8 @@ laboratorio antes de producción.
   `INSTALLED_APPS`.
 - ADR-012 y ADR-013 (Fase 03): mudanza del middleware de zona horaria (con la guarda de
   esquema `public`) y diferir Cloudinary a la Fase 17.
+- ADR-014 (Fase 04): formato de `internal_code`, contador con `select_for_update()` y por
+  qué `lab_initials` vive en `TenantSettings` y no en `Tenant`.
 - "7 roles" del índice del roadmap = 6 roles de tenant (esta fase) + `SUPERADMIN_PLATAFORMA`
   como `PlatformUser` en `public` (Fase 12), no un séptimo `Role` de tenant.
 - **Postgres local (máquina de Darwin):** hay 3 instalaciones (16, 17, 18). La base
