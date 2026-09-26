@@ -6,6 +6,7 @@ from apps.catalog.models import (
     Method,
     Parameter,
     ParameterGroup,
+    ReferenceRange,
     Section,
     Test,
     Unit,
@@ -67,3 +68,13 @@ class ParameterAdmin(admin.ModelAdmin):
     list_display = ["code", "name", "test", "group", "value_type", "unit"]
     list_filter = ["value_type", "test"]
     search_fields = ["code", "name"]
+
+
+@admin.register(ReferenceRange)
+class ReferenceRangeAdmin(admin.ModelAdmin):
+    list_display = [
+        "parameter", "range_type", "sex", "age_min_days", "age_max_days",
+        "condition", "display_text", "priority",
+    ]
+    list_filter = ["range_type", "sex", "condition", "parameter__test"]
+    search_fields = ["parameter__code", "parameter__name", "display_text"]

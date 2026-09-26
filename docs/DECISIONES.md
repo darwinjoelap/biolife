@@ -374,3 +374,61 @@ para `NUMERIC_CALCULATED`.
   tablas tenant (`Section`/`Unit`/.../`Parameter`) son exactamente las que un mecanismo de
   copia poblaría; sólo faltaría agregar el origen `Master*` en `public` y el paso de copia
   en `provision_tenant()`.
+
+
+---
+
+## ADR-016 — Rangos de referencia: 4 exámenes mínimos nuevos, 6 parámetros pendientes de confirmar
+**Fecha:** 2026-09-26 · **Estado:** Aceptada
+
+**Contexto.** El criterio de salida de la Fase 06 exige que `ReferenceRange` demuestre
+resolución por sexo y edad en días con los 6 `range_type` del modelo de datos (`CLOSED`,
+`UPPER_BOUND`, `LOWER_BOUND`, `TOLERANCE`, `QUALITATIVE`, `INTERPRETIVE`). El Uroanálisis
+sembrado en la Fase 05 sólo tiene datos naturales para `QUALITATIVE`; los demás tipos sí
+tienen datos numéricos reales en `docs/04_HALLAZGOS_FORMATOS.md`, pero de exámenes que
+todavía no existían en el catálogo (hematología, perfil lipídico, coagulación).
+
+**Decisión — 4 exámenes nuevos, mínimos.** Se sembraron `HEM_COMP`, `PERFIL_LIPIDICO`,
+`COAGUL` y `QUIM`, cada uno **sólo con los parámetros necesarios** para colgarles un
+rango real (no la lista completa de cada examen — ver `services/seeding_reference_ranges.py`
+y `docs/roadmap/06_rangos_de_referencia.md`). `QUALITATIVE` se resolvió reutilizando
+`URO_NITRITOS` de la Fase 05, sin sembrar nada nuevo para ese tipo.
+
+**Decisión — 6 parámetros con rango contradictorio, sembrados con un valor marcado
+pendiente.** `docs/04_HALLAZGOS_FORMATOS.md` reporta GLICEMIA, ÚREA, CREATININA, ÁCIDO
+ÚRICO, BILIRRUBINA TOTAL y BILIRRUBINA DIRECTA con dos valores distintos según la hoja del
+formato. Angelus no ha confirmado cuál es el correcto (pregunta abierta, ver
+`docs/ESTADO.md`). Se sembró un valor de cada par — el clínicamente más citado, o el que
+no es un error de tipeo evidente (ácido úrico) — documentado con su justificación en
+`docs/roadmap/06_rangos_de_referencia.md`. El `display_text` de cada uno incluye
+"(PENDIENTE DE CONFIRMAR)" para que sea visible también en el admin, no sólo en el código.
+
+**Decisión — sexo y edad, cada uno con su propio ejemplo.** HEMOGLOBINA demuestra
+resolución por sexo con dos valores que el propio `04_HALLAZGOS_FORMATOS.md` documenta:
+13,0-15,0 g/dL (lo que trae el formato actual de Angelus, incorrectamente para ambos
+sexos) y 12,0-16,0 g/dL (el valor femenino que el mismo documento señala como el
+clínicamente correcto). GLÓBULOS BLANCOS demuestra resolución por edad con una fila para
+recién nacido (0-28 días) marcada explícitamente **no confirmada** (los rangos
+neonatales/pediátricos reales son otra pregunta abierta al laboratorio) y una fila para el
+resto con el valor confirmado (4.500-10.000/mm3).
+
+**Decisión — validación por `CheckConstraint`.** Igual criterio que `Parameter` en la
+Fase 05: cada `range_type` exige sus propios campos (`low`/`high` para `CLOSED`, `high`
+para `UPPER_BOUND`, `low` para `LOWER_BOUND`, `center`+`tolerance` para `TOLERANCE`,
+`expected_option` para `QUALITATIVE`, `bands` para `INTERPRETIVE`) validados con
+`CheckConstraint` de base de datos, más `age_min_days <= age_max_days`.
+
+**Consecuencias.**
+- Ningún `ReferenceRange` marcado "PENDIENTE DE CONFIRMAR" o "NO CONFIRMADO" debe usarse
+  en un informe real hasta que Angelus responda — queda explícito en `docs/ESTADO.md`.
+- Si "PERFIL LIPÍDICO" termina siendo un `Profile` que agrupa `Test`s en vez de un `Test`
+  único (decisión de la Fase 08), el `Test` `PERFIL_LIPIDICO` sembrado aquí puede
+  renombrarse o descomponerse sin perder los `ReferenceRange` — éstos cuelgan de
+  `Parameter`, no de `Test` ni `Profile`.
+- `resolve_reference_range()` (en `services/reference_resolver.py`) es, desde ahora, el
+  único punto permitido para resolver un rango — ninguna vista o service futuro debe
+  filtrar `ReferenceRange` directamente (mismo criterio que `services/`, regla 3 de
+  `docs/03_CONVENCIONES.md`: ninguna vista toca el ORM directo).
+- La resolución de `bands` (`INTERPRETIVE`) a un texto según el valor medido, y el
+  congelamiento de `reference_used`/`reference_text` en `ResultValue`, quedan para la
+  Fase 10 (captura y validación de resultados) — aquí sólo se guarda el dato.

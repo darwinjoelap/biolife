@@ -228,3 +228,122 @@ class Parameter(TenantBaseModel):
 
     def __str__(self) -> str:
         return f"{self.test.code} — {self.name}"
+
+
+# range_type que requieren low/high/etc. (usado en los CheckConstraint de
+# ReferenceRange.Meta — mismo motivo que OPTION_BASED_VALUE_TYPES arriba: una clase
+# anidada no ve los atributos de la clase que la contiene, sólo el scope del módulo).
+RANGE_TYPES_REQUIRING_LOW = ("CLOSED", "LOWER_BOUND")
+RANGE_TYPES_REQUIRING_HIGH = ("CLOSED", "UPPER_BOUND")
+
+
+class ReferenceRange(TenantBaseModel):
+    """Rango de referencia de un parámetro, resuelto por sexo + edad en días +
+    condición. Ver `services/reference_resolver.py::resolve_reference_range()`."""
+
+    class Sex(models.TextChoices):
+        M = "M", "Masculino"
+        F = "F", "Femenino"
+        ANY = "ANY", "Ambos"
+
+    class Condition(models.TextChoices):
+        NINGUNA = "NINGUNA", "Ninguna"
+        EMBARAZO = "EMBARAZO", "Embarazo"
+        AYUNO = "AYUNO", "Ayuno"
+        POST_PRANDIAL = "POST_PRANDIAL", "Post-prandial"
+
+    class RangeType(models.TextChoices):
+        CLOSED = "CLOSED", "Rango cerrado"
+        UPPER_BOUND = "UPPER_BOUND", "Límite superior"
+        LOWER_BOUND = "LOWER_BOUND", "Límite inferior"
+        TOLERANCE = "TOLERANCE", "Tolerancia"
+        QUALITATIVE = "QUALITATIVE", "Cualitativo"
+        INTERPRETIVE = "INTERPRETIVE", "Interpretativo"
+
+    parameter = models.ForeignKey(
+        Parameter, on_delete=models.CASCADE, related_name="reference_ranges"
+    )
+    sex = models.CharField("Sexo", max_length=3, choices=Sex.choices, default=Sex.ANY)
+    age_min_days = models.PositiveIntegerField("Edad mínima (días)", default=0)
+    age_max_days = models.PositiveIntegerField("Edad máxima (días)", default=54750)
+    condition = models.CharField(
+        "Condición", max_length=15, choices=Condition.choices, default=Condition.NINGUNA
+    )
+    range_type = models.CharField(
+        "Tipo de rango", max_length=15, choices=RangeType.choices
+    )
+    low = models.DecimalField(
+        "Límite inferior", max_digits=10, decimal_places=4, null=True, blank=True
+    )
+    high = models.DecimalField(
+        "Límite superior", max_digits=10, decimal_places=4, null=True, blank=True
+    )
+    center = models.DecimalField(
+        "Centro", max_digits=10, decimal_places=4, null=True, blank=True
+    )
+    tolerance = models.DecimalField(
+        "Tolerancia", max_digits=10, decimal_places=4, null=True, blank=True
+    )
+    expected_option = models.ForeignKey(
+        CodedOption, on_delete=models.PROTECT, related_name="+", null=True, blank=True
+    )
+    bands = models.JSONField("Bandas interpretativas", null=True, blank=True)
+    display_text = models.CharField("Texto a imprimir", max_length=255)
+    unit = models.ForeignKey(
+        Unit, on_delete=models.PROTECT, related_name="+", null=True, blank=True
+    )
+    priority = models.PositiveIntegerField("Prioridad (desempate)", default=0)
+
+    class Meta:
+        verbose_name = "Rango de referencia"
+        verbose_name_plural = "Rangos de referencia"
+        ordering = ["parameter", "-priority"]
+        constraints = [
+            models.CheckConstraint(
+                check=models.Q(age_min_days__lte=models.F("age_max_days")),
+                name="referencerange_age_min_lte_age_max",
+            ),
+            models.CheckConstraint(
+                check=(
+                    models.Q(range_type__in=RANGE_TYPES_REQUIRING_LOW)
+                    & models.Q(low__isnull=False)
+                )
+                | ~models.Q(range_type__in=RANGE_TYPES_REQUIRING_LOW),
+                name="referencerange_low_required",
+            ),
+            models.CheckConstraint(
+                check=(
+                    models.Q(range_type__in=RANGE_TYPES_REQUIRING_HIGH)
+                    & models.Q(high__isnull=False)
+                )
+                | ~models.Q(range_type__in=RANGE_TYPES_REQUIRING_HIGH),
+                name="referencerange_high_required",
+            ),
+            models.CheckConstraint(
+                check=(
+                    models.Q(range_type="TOLERANCE")
+                    & models.Q(center__isnull=False)
+                    & models.Q(tolerance__isnull=False)
+                )
+                | ~models.Q(range_type="TOLERANCE"),
+                name="referencerange_tolerance_requires_center_and_tolerance",
+            ),
+            models.CheckConstraint(
+                check=(
+                    models.Q(range_type="QUALITATIVE")
+                    & models.Q(expected_option__isnull=False)
+                )
+                | ~models.Q(range_type="QUALITATIVE"),
+                name="referencerange_qualitative_requires_expected_option",
+            ),
+            models.CheckConstraint(
+                check=(
+                    models.Q(range_type="INTERPRETIVE") & models.Q(bands__isnull=False)
+                )
+                | ~models.Q(range_type="INTERPRETIVE"),
+                name="referencerange_interpretive_requires_bands",
+            ),
+        ]
+
+    def __str__(self) -> str:
+        return f"{self.parameter.code} — {self.display_text}"

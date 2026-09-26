@@ -4,7 +4,7 @@
 > Mantener bajo 100 líneas: si crece, es que hay historial que pertenece a DECISIONES.md.
 
 **Última actualización:** 2026-09-26
-**Fase actual:** 05 — Catálogo: secciones, unidades, parámetros (**completa**) → siguiente: 06 (rangos de referencia)
+**Fase actual:** 06 — Rangos de referencia (**completa**) → siguiente: 07 (motor de fórmulas)
 **Responsable:** Darwin
 
 ---
@@ -26,36 +26,40 @@
   completa, sin UI: `Patient`/`Guardian`/`PatientGuardian` + `PatientCodeSequence`;
   `internal_code` `{YY}{iniciales}{correlativo:06d}` con `select_for_update()` (ADR-014);
   `create_patient()` exige representante para menores sin documento propio. 33/33 tests.
-- [x] Fase 05 (`docs/roadmap/05_catalogo_examenes.md`) completa, sin UI: `apps.catalog`
-  (`Section`/`Unit`/`Method`/`Test`/`ParameterGroup`/`Parameter`/`CodedOptionSet`/
-  `CodedOption`), catálogo sembrado directo por tenant, Master*+copia pospuesto (ADR-015);
-  `seed_uroanalisis()` — examen URO (3 grupos, 25 parámetros) cubre los 9 `value_type`,
-  con **parámetros no confirmados por Angelus** marcados explícitamente (ver advertencia
-  abajo); `Parameter` valida `option_set`/`formula` según `value_type` con
-  `CheckConstraint`. 42/42 tests.
+- [x] Fase 05 (`docs/roadmap/05_catalogo_examenes.md`, commit `c9ac6ab`) completa:
+  `apps.catalog` (`Section`/`Unit`/`Method`/`Test`/`ParameterGroup`/`Parameter`/
+  `CodedOptionSet`/`CodedOption`), sembrado directo por tenant (Master*+copia pospuesto,
+  ADR-015); `seed_uroanalisis()` cubre los 9 `value_type`, con parámetros no confirmados
+  marcados (ver advertencia abajo). 42/42 tests.
+- [x] Fase 06 (`docs/roadmap/06_rangos_de_referencia.md`) completa: `ReferenceRange` +
+  `reference_resolver.py::resolve_reference_range()` (sexo/edad-en-días/condición,
+  desempate por `priority` y rango más estrecho); 4 exámenes mínimos nuevos
+  (`HEM_COMP`/`PERFIL_LIPIDICO`/`COAGUL`/`QUIM`) cubren los 6 `range_type` (ADR-016); 6
+  parámetros con rango pendiente de confirmar + rango neonatal ilustrativo, marcados
+  explícitamente. 56/56 tests.
 
 ## En curso
 
-Nada. Fase 05 cerrada.
+Nada. Fase 06 cerrada.
 
 ## Pendiente inmediato
 
-1. Empezar Fase 06 (rangos de referencia) — leer su roadmap cuando se inicie, no antes.
-   **Bloqueada** hasta confirmar con Angelus los rangos contradictorios (ver preguntas
-   abiertas abajo).
-2. Commit de la Fase 05 en git (mensaje sugerido en `docs/roadmap/05_catalogo_examenes.md`).
-3. **No imprimir en un informe real** los parámetros de Uroanálisis marcados "NO
-   CONFIRMADO" en `services/seeding.py` hasta que Angelus los confirme (ADR-015).
-4. Confirmar con Angelus los rangos de referencia contradictorios (bloquea Fase 06) y el
-   detalle geográfico de localidades sin municipio verificado (Cantagallo, Dos Caminos,
-   Las Minas, Píritu).
+1. Empezar Fase 07 (motor de fórmulas, modelo Opus) — leer su roadmap cuando se inicie.
+2. Commit de la Fase 06 en git (mensaje sugerido en `docs/roadmap/06_rangos_de_referencia.md`).
+3. **No usar en un informe real** ningún `ReferenceRange`/parámetro marcado "PENDIENTE DE
+   CONFIRMAR" o "NO CONFIRMADO" (ver ADR-015 y ADR-016) hasta que Angelus responda.
+4. Confirmar con Angelus los rangos de referencia contradictorios, los rangos
+   pediátricos/neonatales reales, y el detalle geográfico de localidades sin municipio
+   verificado (Cantagallo, Dos Caminos, Las Minas, Píritu).
 5. Decidir el destino de `demo_tres` y borrar manualmente `Claude outputs/`.
 
 ## Bloqueos
 
-Ninguno técnico. Fase 06 bloqueada por las preguntas abiertas al laboratorio (abajo).
+Ninguno técnico. Las preguntas abiertas al laboratorio (abajo) siguen sin responder, pero
+ya no bloquean avanzar de fase — el motor y la siembra de ejemplo quedaron construidos con
+valores marcados como pendientes en vez de esperar la confirmación.
 
-## Preguntas abiertas al laboratorio (bloquean la Fase 06)
+## Preguntas abiertas al laboratorio
 
 - [ ] Rangos de referencia correctos donde los formatos se contradicen:
       glicemia, urea, creatinina, ácido úrico, bilirrubinas, TGO/TGP
@@ -91,6 +95,8 @@ laboratorio antes de producción.
   qué `lab_initials` vive en `TenantSettings` y no en `Tenant`.
 - ADR-015 (Fase 05): catálogo sembrado directo por tenant (Master*+copia pospuesto) y por
   qué el uroanálisis sembrado trae parámetros no confirmados por el laboratorio.
+- ADR-016 (Fase 06): 4 exámenes mínimos nuevos para cubrir los 6 `range_type`, y por qué
+  6 parámetros se sembraron con un valor marcado pendiente de confirmar.
 - "7 roles" del índice del roadmap = 6 roles de tenant (esta fase) + `SUPERADMIN_PLATAFORMA`
   como `PlatformUser` en `public` (Fase 12), no un séptimo `Role` de tenant.
 - **Postgres local (máquina de Darwin):** hay 3 instalaciones (16, 17, 18). La base
