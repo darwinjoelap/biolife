@@ -432,3 +432,172 @@ para `UPPER_BOUND`, `low` para `LOWER_BOUND`, `center`+`tolerance` para `TOLERAN
 - La resolución de `bands` (`INTERPRETIVE`) a un texto según el valor medido, y el
   congelamiento de `reference_used`/`reference_text` en `ResultValue`, quedan para la
   Fase 10 (captura y validación de resultados) — aquí sólo se guarda el dato.
+
+
+---
+
+## ADR-017 — Motor de fórmulas: sintaxis `{CODIGO}`/`{@var}`, AST restringido, precisión completa, Mosteller
+**Fecha:** 2026-09-26 · **Estado:** Aceptada
+
+**Contexto.** La Fase 07 implementa los parámetros `NUMERIC_CALCULATED`. `00_ARQUITECTURA.md`
+fijaba la sintaxis `{HB}` / `{@peso}`, pero las 2 fórmulas sembradas en las Fases 05/06
+(`URO_INDICE_PROT_CREAT`, `COAG_PTT_DIFERENCIA`) usaban códigos sueltos y `depends_on`
+estaba vacío. Faltaba decidir el origen del ISI (INR) y la precisión de los intermedios, y
+el criterio de salida exige reproducir los valores reales de `04_HALLAZGOS_FORMATOS.md`.
+
+**Decisión — sintaxis y seguridad.** `{CODIGO}` referencia otro parámetro del tenant y
+`{@variable}` un dato de la orden (lista cerrada `CONTEXT_VARIABLES`: `peso`, `talla`,
+`volumen_orina_24h`, `isi`). Las llaves se traducen a identificadores y la expresión se
+parsea con `ast` en modo `eval`, recorriendo una **lista blanca** de nodos (`+ - * / **`,
+signo, literales numéricos, `round/sqrt/min/max/abs`). Nunca `eval()`. Exponente acotado a
+|10|, fórmula ≤ 500 caracteres. La migración de datos `catalog.0004_formula_sintaxis_llaves`
+reescribe las fórmulas existentes y puebla `depends_on`.
+
+**Decisión — dónde viven las cosas.** `services/formula_engine.py` es puro (sin ORM): la
+Fase 10 lo llama con `{código: fórmula}`, `{código: valor}` y el contexto de la orden.
+`services/formula_validation.py::set_parameter_formula()` es el único camino para asignar
+una fórmula: valida existencia y tipo numérico de las referencias, autorreferencia y
+**ciclos al guardar** (orden topológico con `graphlib` sobre todas las fórmulas del
+tenant), y sincroniza `depends_on`. El admin usa la misma validación.
+
+**Decisión — ISI como `{@isi}`.** Angelus no ha confirmado el ISI del lote. El motor lo
+recibe como variable de contexto; dónde se persiste (TenantSettings o por lote) se decide
+en la Fase 10. Sin ISI, el INR queda vacío con motivo y el resto se calcula.
+
+**Decisión — precisión completa.** Todo en `Decimal` (precisión 28). Los calculados que
+alimentan a otros (VLDL→LDL, SC→depuración corregida) pasan sin redondear, como Excel. El
+redondeo (mitad hacia arriba, `Parameter.decimals`) es sólo para mostrar/guardar.
+
+**Decisión — superficie corporal con Mosteller.** `04_HALLAZGOS_FORMATOS.md` anotaba DuBois
+y afirmaba que reproducía la hoja `DEPURACIÓN`. No es así: DuBois da 1,6819 m² y 67,76
+mL/min; la hoja imprime 1,6857 m² y 67,61 mL/min, que es exactamente Mosteller
+(`sqrt(talla × peso / 3600)`). Se sembró Mosteller y se agregó errata al documento de
+hallazgos.
+
+**Consecuencias.**
+- Pregunta nueva a Angelus: ¿Mosteller (lo que usa su hoja) o DuBois?
+- Sólo 3 de las 16 fórmulas tienen valor impreso real para comparar (las de depuración);
+  las otras 13 se verificaron contra cálculos a mano. Validar con una orden real de
+  Angelus cuando exista (Fase 10).
+- Una fórmula inválida guardada por fuera de `set_parameter_formula()` (ORM directo) hace
+  fallar la validación de las demás, porque la detección de ciclos parsea todas.
+- `URO_INDICE_PROT_CREAT` (NO CONFIRMADO, Fase 05) multiplica por 100 con unidad `mg/g`;
+  mg/dL ÷ mg/dL → mg/g requiere ×1000. Revisar cuando Angelus confirme ese parámetro.
+
+
+---
+
+## ADR-018 — Angelus es laboratorio de referencia, no el alcance del producto
+**Fecha:** 2026-09-26 · **Estado:** Aceptada
+
+**Contexto.** Varios documentos (índice del roadmap, hallazgos, preguntas abiertas) están
+redactados como si el objetivo fuera reproducir el método de trabajo del Laboratorio
+Angelus. Darwin aclaró al cerrar la Fase 07 que no es así: Angelus facilitó sus hojas de
+trabajo como base para arrancar, y Biolife es un SaaS pensado para muchos laboratorios.
+
+**Decisión.**
+- Las hojas de Angelus (`docs/04_HALLAZGOS_FORMATOS.md`) son **material de referencia y
+  datos de prueba reales**, no una especificación cerrada ni un techo de alcance.
+- El producto busca ser **lo más completo posible**, por encima de lo que hoy usa Angelus.
+  Cada fase tiene libertad creativa para agregar exámenes, fórmulas, tipos de rango,
+  configuraciones o funciones útiles para laboratorios clínicos en general.
+- Lo que varía entre laboratorios (rangos, fórmulas alternativas, formato del informe,
+  precios, flujo de validación) se modela como **configuración por tenant**.
+- Los criterios de salida que nombran a Angelus se interpretan como *demostración con
+  datos reales*: el sistema debe poder representarlo, sin limitarse a eso.
+
+**Consecuencias.**
+- Las preguntas abiertas "al laboratorio" alimentan los datos del tenant Angelus (o de un
+  tenant demo); **no bloquean** decisiones de producto. Ejemplo: Mosteller vs DuBois
+  (ADR-017) no es "cuál usa Angelus" sino qué fórmula trae el catálogo por defecto — como
+  las fórmulas son por tenant, cada laboratorio puede usar la suya.
+- Los valores marcados "PENDIENTE DE CONFIRMAR"/"NO CONFIRMADO" siguen sin usarse en un
+  informe real: la regla de no inventar datos clínicos no cambia.
+- Futuro catálogo semilla (Master*+copia, ADR-015) puede incluir exámenes que Angelus no
+  hace.
+
+
+---
+
+## ADR-019 — Perfiles como agrupación de exámenes individuales; precios multimoneda en `apps.billing`
+**Fecha:** 2026-09-26 · **Estado:** Aceptada
+
+**Contexto.** La Fase 08 exige perfiles y lista de precios. Darwin definió que un perfil
+(Lipídico, Perfil 20…) es una agrupación nombrada de exámenes y que los precios deben poder
+ordenarse, ajustarse, tener moneda y descuentos por tenant. Las Fases 06/07 habían sembrado
+exámenes agregados (`QUIM`, `PERFIL_LIPIDICO`, `COAGUL`) que no se pueden agrupar. Darwin
+adjuntó los Excel del laboratorio de referencia, que se leyeron celda por celda.
+
+**Decisión — granularidad.** Cada analito ordenable es un `Test` propio. Los parámetros de
+las Fases 06/07 se mudan a su examen individual **conservando su código**, así que fórmulas,
+`depends_on` y rangos no cambian. Los agregados viejos se desactivan (no se borran). La
+siembra vive en una sola fuente declarativa (`seeding_base_catalog.py`).
+
+**Decisión — perfiles.** `Profile` + `ProfileTest` (orden). `set_profile_tests()` rechaza
+perfiles con parámetros calculados sin sus insumos (recorrido transitivo de `depends_on`).
+Composición de 13 hojas (14 perfiles: el glicémico tiene variante post-prandial y
+post-carga); agregados por Biolife: UROANÁLISIS en el Preeclámptico y un Perfil prenatal.
+
+**Decisión — precios.** App `apps.billing` (nombre previsto en `02_ESTRUCTURA_PROYECTO.md`):
+- `Currency` por tenant con una sola moneda base; `ExchangeRate` por fecha (1 origen = tasa
+  destino; se usa la más reciente ≤ fecha, o la inversa).
+- `PriceList` en una moneda, con vigencia, orden y una sola predeterminada.
+- `PriceListItem`: examen **o** perfil; perfil en modo `FIXED` o `SUM_WITH_DISCOUNT`
+  (suma de sus exámenes en la misma lista menos %).
+- `Discount`: % o monto fijo (con moneda), alcance orden o ítem (con exámenes/perfiles
+  destino), vigencia, acumulable o no, y `requires_authorization` (lo exige `quote()`; el rol
+  que autoriza se conecta en la Fase 09).
+- `Test.price` se elimina: una sola fuente de precio.
+- `quote()` no guarda nada: la orden (Fase 09) congela el resultado.
+
+**Reglas de cotización.** Un examen se cobra una vez (si viene suelto y en un perfil, sólo
+cuenta el perfil; si dos perfiles lo comparten, el segundo recibe crédito por su precio
+individual). Descuentos por línea y luego de orden: el mejor no acumulable + todos los
+acumulables, con tope en el monto. Precisión completa, redondeo a los decimales de la
+moneda por línea.
+
+**Decisión — Mosteller confirmado.** La celda de la hoja DEPURACIÓN es
+`=SQRT((K24*K25)/3600)`: la pregunta abierta de ADR-017 queda resuelta con el dato del
+propio laboratorio. Las 17 fórmulas (16 de `04_HALLAZGOS` + HOMA-IR) reproducen valores
+reales de las hojas.
+
+**Consecuencias.**
+- No hay precios sembrados: `seed_billing` crea USD (base), VES y la lista GENERAL vacía.
+- La hoja de Angelus calcula el INR con ISI vacío → siempre 1. Biolife no reproduce eso.
+- Rangos nuevos marcados "PENDIENTE DE CONFIRMAR": LDH por sexo (otras hojas usan 90–510),
+  TGO/TGP <40 (otras hojas <35), insulina basal (unidad "U/mL" en la hoja). HbA1c con
+  bandas ADA marcadas "PROPUESTO". Insulina post-carga sin rango.
+- Los rangos de lípidos de la Fase 06 usan condición `AYUNO`; los nuevos usan `NINGUNA`.
+  El resolver con condición por defecto no encuentra los de `AYUNO`: decidir en la Fase 10.
+- Perfiles anidados y tasa BCV automática quedan fuera.
+
+
+---
+
+## ADR-020 — Ficha del examen: rangos por edad en años/meses/días, validación de cobertura, admin por tenant
+**Fecha:** 2026-09-26 · **Estado:** Aceptada
+
+**Contexto.** Darwin pidió que cada examen tenga una ficha donde el laboratorio ajuste los
+rangos por sexo y edad. El modelo (`ReferenceRange`, ADR-004/016) ya lo soportaba, pero la
+edad se editaba en días crudos y nada avisaba de solapes o huecos. Todavía no hay estilo
+visual definido para las pantallas.
+
+**Decisión.**
+- La lógica vive en services independientes de la pantalla
+  (`reference_range_management.py`); el admin de Django es la pantalla **provisional**.
+- Edad en años/meses/días con año = 365,25 días y mes = 1/12 de año, redondeando al día
+  (`core/utils/dates.py`). En el formulario, "Desde" es inclusiva y "Hasta" **exclusiva**
+  ("0 a 1 año" = 0–364 días), para que tramos consecutivos encajen sin huecos ni solapes.
+- Solape con misma prioridad y mismo ancho = ERROR (bloquea). Solape resuelto por el
+  desempate o hueco de edad/sexo = AVISO (se guarda e informa).
+- Un rango desactivado no se resuelve nunca (ajuste a `resolve_reference_range()`).
+- `django.contrib.admin` también en `TENANT_APPS`, con la migración
+  `accounts.0004_admin_log_por_tenant` para crear `django_admin_log` en los tenants
+  existentes (sus migraciones de `admin` figuraban aplicadas sin tabla).
+
+**Consecuencias.**
+- La ficha definitiva (fase de estilo visual) reutiliza estos services sin cambios.
+- Cualquier `app` compartida cuyo modelo apunte a `accounts.User` debe revisarse con el
+  mismo criterio: si guarda datos por laboratorio, debe estar en `TENANT_APPS`.
+- El probador hace visible el pendiente de ADR-019: los rangos de lípidos con condición
+  `AYUNO` no aplican a un paciente con condición `NINGUNA`.

@@ -51,6 +51,10 @@ SHARED_APPS = [
 
 TENANT_APPS = [
     "django.contrib.contenttypes",
+    # Admin también por tenant: su bitácora (django_admin_log) apunta a accounts.User, que
+    # es por tenant. Sin esto, guardar en /admin/ de un laboratorio escribe en la bitácora
+    # de `public` con el id de un usuario que allí no existe (ADR-020).
+    "django.contrib.admin",
     "django.contrib.auth",
     "django.contrib.sessions",
     "django.contrib.messages",
@@ -59,6 +63,7 @@ TENANT_APPS = [
     "apps.settings_lab",
     "apps.patients",
     "apps.catalog",
+    "apps.billing",
 ]
 
 INSTALLED_APPS = list(SHARED_APPS) + [

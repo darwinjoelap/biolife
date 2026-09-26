@@ -130,9 +130,7 @@ class Test(TenantBaseModel):
     process_hours = models.PositiveIntegerField(
         "Horas de proceso", null=True, blank=True
     )
-    price = models.DecimalField(
-        "Precio", max_digits=10, decimal_places=2, null=True, blank=True
-    )
+    # Sin `price`: los precios viven en billing.PriceListItem (ADR-019).
     requires_fasting = models.BooleanField("Requiere ayuno", default=False)
     requires_anthropometry = models.BooleanField(
         "Requiere datos antropométricos", default=False
@@ -347,3 +345,48 @@ class ReferenceRange(TenantBaseModel):
 
     def __str__(self) -> str:
         return f"{self.parameter.code} — {self.display_text}"
+
+
+class Profile(TenantBaseModel):
+    """Perfil: agrupación nombrada de exámenes que se ordena como un paquete
+    (PERFIL LIPÍDICO, PERFIL 20, PRE-OPERATORIO...). El precio NO vive aquí sino en cada
+    lista de precios de `apps.billing` (ADR-019)."""
+
+    code = models.CharField("Código", max_length=40, unique=True)
+    name = models.CharField("Nombre", max_length=150)
+    description = models.TextField("Descripción", blank=True, default="")
+    order_index = models.PositiveIntegerField("Orden", default=0)
+    tests = models.ManyToManyField(
+        Test, through="ProfileTest", related_name="profiles", verbose_name="Exámenes"
+    )
+
+    class Meta:
+        verbose_name = "Perfil"
+        verbose_name_plural = "Perfiles"
+        ordering = ["order_index", "name"]
+
+    def __str__(self) -> str:
+        return self.name
+
+
+class ProfileTest(TenantBaseModel):
+    """Examen dentro de un perfil, con su orden de presentación."""
+
+    profile = models.ForeignKey(
+        Profile, on_delete=models.CASCADE, related_name="profile_tests"
+    )
+    test = models.ForeignKey(Test, on_delete=models.PROTECT, related_name="profile_tests")
+    order_index = models.PositiveIntegerField("Orden", default=0)
+
+    class Meta:
+        verbose_name = "Examen del perfil"
+        verbose_name_plural = "Exámenes del perfil"
+        ordering = ["profile", "order_index"]
+        constraints = [
+            models.UniqueConstraint(
+                fields=["profile", "test"], name="profiletest_unique_profile_test"
+            ),
+        ]
+
+    def __str__(self) -> str:
+        return f"{self.profile.code} — {self.test.code}"

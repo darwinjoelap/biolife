@@ -288,7 +288,7 @@ def seed_uroanalisis() -> Test:
         test=test, group=grupo_quimico, code="URO_INDICE_PROT_CREAT",
         name="ÍNDICE PROTEÍNA/CREATININA",
         value_type=Parameter.ValueType.NUMERIC_CALCULATED, unit=unit_mg_g,
-        formula="URO_PROT_ORINA / URO_CREAT_ORINA * 100", order_index=12,
+        formula="{URO_PROT_ORINA} / {URO_CREAT_ORINA} * 100", order_index=12,
     )
 
     # EXAMEN MICROSCÓPICO

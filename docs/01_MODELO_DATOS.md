@@ -282,8 +282,11 @@ exactamente lo que hacen los formatos actuales con MONOCITOS y BASÓFILOS.
 
 ### `Profile` (perfil / paquete)
 ```
-id PK · code U · name · price N · is_active
+id PK · code U · name · description · order_index · is_active
 ```
+> Fase 08 (ADR-019): **sin precio** aquí ni en `Test`. Los precios viven en `apps.billing`:
+> `Currency`, `ExchangeRate`, `PriceList`, `PriceListItem` (examen o perfil; perfil fijo o
+> suma−%), `Discount`.
 ### `ProfileTest`
 ```
 id PK · profile FK · test FK · order_index · UNIQUE(profile, test)

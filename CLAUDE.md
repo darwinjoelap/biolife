@@ -9,6 +9,20 @@ SaaS multi-tenant para laboratorios clínicos. Cada laboratorio cliente es un *t
 aislado con su propia identidad visual, catálogo de exámenes, rangos de referencia y
 usuarios. Producto de BioLife Diagnostics, Venezuela. Interfaz y datos en **español**.
 
+## Alcance del producto y papel de Angelus
+
+- **Biolife no automatiza a Angelus.** Es un producto para **muchos** laboratorios y
+  debe ser lo más completo posible — más de lo que hoy tiene Angelus.
+- Las hojas de trabajo de Angelus (`docs/04_HALLAZGOS_FORMATOS.md`) son una **base de
+  referencia** para arrancar: datos reales para sembrar ejemplos y probar el diseño, no el
+  límite del alcance ni una especificación a copiar.
+- Hay **libertad creativa**: se pueden agregar funciones, exámenes, fórmulas o
+  configuraciones que Angelus no usa si son útiles para un laboratorio clínico en general.
+  Lo que difiera entre laboratorios se modela como **configuración por tenant**, no como
+  regla fija. Ver ADR-018.
+- Las respuestas de Angelus a las preguntas abiertas alimentan **sus datos de tenant**;
+  no bloquean decisiones de producto.
+
 ## Stack fijo (no renegociar sin ADR)
 
 - Django 5.x + Python 3.13 (ver ADR-006 — originalmente 3.12, no disponible en la máquina de desarrollo)

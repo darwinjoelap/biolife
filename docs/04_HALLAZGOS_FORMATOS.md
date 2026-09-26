@@ -3,6 +3,10 @@
 Fuente: `Perfiles.xlsx` y `Formato_de_resultados_-_Angelus.xlsx` (Laboratorio Angelus,
 San Juan de los Morros, Guárico). Este documento es el insumo para sembrar el catálogo.
 
+> **Alcance (ADR-018):** Angelus es un laboratorio de **referencia**, no el cliente a
+> automatizar. Sus hojas sirven de base y de datos de prueba; el producto puede y debe
+> cubrir más de lo que aquí aparece.
+
 ## Hojas encontradas
 
 **Formato_de_resultados:** `Obs`, `TODOS`, `HC`, `QUIM`, `COAGUL`, `SEROLOG`, `SERO ESPE`,
@@ -105,6 +109,15 @@ catálogo. Ver `Order.weight_kg`, `Order.height_cm`, `Order.urine_volume_24h_ml`
 > creatinina en orina 14,9 mg/dL, volumen 5030 mL, talla 165 cm, peso 62 kg →
 > superficie corporal 1,6857 m², depuración sin corregir 65,88 mL/min, corregida 67,61 mL/min.
 > Las fórmulas de arriba reproducen esos números.
+>
+> **Errata (Fase 07, ADR-017):** la línea `SUPERFICIE_CORPORAL` de arriba (DuBois) **no**
+> reproduce esos números: da 1,6819 m² → corregida 67,76 mL/min. El 1,6857 m² de la hoja es
+> **Mosteller**: `sqrt(@talla * @peso / 3600)`, que es la fórmula sembrada.
+> **Confirmado en la Fase 08 (ADR-019):** la celda de la hoja es `=SQRT((K24*K25)/3600)`.
+>
+> **INR (Fase 08):** la hoja calcula `=RAZÓN^ISI` con la celda de ISI vacía, así que Excel
+> imprime siempre INR = 1. **HOMA-IR** (hoja P. GLICÉMICO) = glicemia × insulina basal / 405.
+> El catálogo completo leído de las hojas está en `apps/catalog/services/seeding_base_catalog.py`.
 
 ## 5. Conjuntos de opciones codificadas
 

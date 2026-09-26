@@ -27,6 +27,16 @@ que envejece antes de usarse.
 | 17 | Despliegue Railway, CI y backups | Sonnet | 11 | Staging y producción operando, backup automatizado |
 | 18 | Hardening y pruebas de carga | Sonnet | 17 | Aislamiento verificado bajo carga, 2FA, rate limiting |
 
+> **Angelus = laboratorio de referencia, no alcance máximo (ADR-018).** Los criterios de
+> salida que nombran a Angelus ("los 13 perfiles de Angelus", "reproduce el formato de
+> Angelus") se leen como *demostración con datos reales de un laboratorio*: el producto
+> debe poder representar eso **y más**, configurable por tenant. Cada fase tiene libertad
+> para ir más allá de lo que usan sus hojas.
+
+> **Fase 08b (agregada):** ficha del examen — rangos por sexo/edad/condición (lógica + admin
+> provisional). **Pendiente de ubicar:** una fase de *estilo visual y pantallas base* antes de
+> la primera pantalla real (ADR-020).
+
 ## Ruta crítica al MVP vendible
 
 ```

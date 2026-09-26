@@ -29,6 +29,7 @@ def resolve_reference_range(
             age_min_days__lte=age_days,
             age_max_days__gte=age_days,
             condition=condition,
+            is_active=True,  # un rango desactivado en la ficha del examen no aplica
         )
         .filter(Q(sex=sex) | Q(sex=ReferenceRange.Sex.ANY))
         .annotate(_age_window=F("age_max_days") - F("age_min_days"))

@@ -1,0 +1,39 @@
+{% extends "admin/base_site.html" %}
+{% load i18n admin_urls %}
+{% comment %}Probador de rangos (Fase 08b). Pantalla provisional del admin: la ficha del
+examen definitiva llega con la fase de estilo visual.{% endcomment %}
+{% block breadcrumbs %}
+<div class="breadcrumbs">
+  <a href="{% url 'admin:index' %}">Inicio</a> ›
+  <a href="{% url opts|admin_urlname:'changelist' %}">{{ opts.verbose_name_plural|capfirst }}</a> ›
+  <a href="{% url opts|admin_urlname:'change' original.pk %}">{{ original }}</a> › Probar rangos
+</div>
+{% endblock %}
+{% block content %}
+<form method="get">
+  <table>{{ form.as_table }}</table>
+  <p><input type="submit" value="Probar"></p>
+</form>
+{% if explanation %}
+  <h2>{{ explanation.summary }}</h2>
+  <table>
+    <thead><tr><th>Rango</th><th>Sexo</th><th>Edad (días)</th><th>Condición</th>
+      <th>Prioridad</th><th>Resultado</th></tr></thead>
+    <tbody>
+    {% for c in explanation.candidates %}
+      <tr{% if c.applies %} style="font-weight:bold"{% endif %}>
+        <td>{{ c.reference_range.display_text }}</td>
+        <td>{{ c.reference_range.get_sex_display }}</td>
+        <td>{{ c.reference_range.age_min_days }} – {{ c.reference_range.age_max_days }}</td>
+        <td>{{ c.reference_range.get_condition_display }}</td>
+        <td>{{ c.reference_range.priority }}</td>
+        <td>{{ c.reason }}</td>
+      </tr>
+    {% empty %}
+      <tr><td colspan="6">Este parámetro no tiene rangos.</td></tr>
+    {% endfor %}
+    </tbody>
+  </table>
+{% endif %}
+<p><a href="{% url opts|admin_urlname:'change' original.pk %}">← Volver al parámetro</a></p>
+{% endblock %}
