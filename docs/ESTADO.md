@@ -4,7 +4,7 @@
 > Mantener bajo 100 líneas: si crece, es que hay historial que pertenece a DECISIONES.md.
 
 **Última actualización:** 2026-09-26
-**Fase actual:** 04 — Pacientes y representantes (**completa**) → siguiente: 05 (catálogo)
+**Fase actual:** 05 — Catálogo: secciones, unidades, parámetros (**completa**) → siguiente: 06 (rangos de referencia)
 **Responsable:** Darwin
 
 ---
@@ -22,37 +22,38 @@
   `base_tenant.html`, storage local para logo/banner (Cloudinary diferido, ADR-013),
   `/admin/` registrado en `urls_tenant.py`.
 - [x] Fase 02 + Fase 03 commiteadas en git en un solo commit combinado (`6d001d6`).
-- [x] Fase 04 (`docs/roadmap/04_pacientes_y_representantes.md`) completa, sin UI (queda
-  para Fase 09): `apps.patients` con `Patient`/`Guardian`/`PatientGuardian`
-  (`TenantBaseModel`) + `PatientCodeSequence` (auxiliar plano); `internal_code` formato
-  `{YY}{iniciales}{correlativo:06d}` (ej. `26LDU000001`), reinicia cada año,
-  `select_for_update()` evita colisiones (ADR-014); `TenantSettings.lab_initials`;
-  `services/patient_creation.py::create_patient()` — único punto que exige representante
-  para menores sin documento propio (el admin **no** re-valida esta regla);
-  `services/guardian_linking.py`; `selectors/patient_search.py`; admin con inline de
-  representantes; migraciones aplicadas en los 3 tenants demo. `pytest -q`: 33/33 en
-  verde · `ruff check .`: sin errores.
+- [x] Fase 04 (`docs/roadmap/04_pacientes_y_representantes.md`, commit `03a4f10`)
+  completa, sin UI: `Patient`/`Guardian`/`PatientGuardian` + `PatientCodeSequence`;
+  `internal_code` `{YY}{iniciales}{correlativo:06d}` con `select_for_update()` (ADR-014);
+  `create_patient()` exige representante para menores sin documento propio. 33/33 tests.
+- [x] Fase 05 (`docs/roadmap/05_catalogo_examenes.md`) completa, sin UI: `apps.catalog`
+  (`Section`/`Unit`/`Method`/`Test`/`ParameterGroup`/`Parameter`/`CodedOptionSet`/
+  `CodedOption`), catálogo sembrado directo por tenant, Master*+copia pospuesto (ADR-015);
+  `seed_uroanalisis()` — examen URO (3 grupos, 25 parámetros) cubre los 9 `value_type`,
+  con **parámetros no confirmados por Angelus** marcados explícitamente (ver advertencia
+  abajo); `Parameter` valida `option_set`/`formula` según `value_type` con
+  `CheckConstraint`. 42/42 tests.
 
 ## En curso
 
-Nada. Fase 04 cerrada.
+Nada. Fase 05 cerrada.
 
 ## Pendiente inmediato
 
-1. Empezar Fase 05 (catálogo) — leer su roadmap cuando se inicie, no antes.
-2. Commit de la Fase 04 en git (mensaje sugerido en
-   `docs/roadmap/04_pacientes_y_representantes.md` §8).
-3. Confirmar con el laboratorio Angelus los rangos de referencia contradictorios (bloquea
-   Fase 06) y el detalle geográfico del fixture de localidades (Cantagallo, Dos Caminos,
-   Las Minas, Píritu sin municipio verificado).
-4. `demo_tres` quedó creado como parte de la verificación de la Fase 02 — decidir si se
-   conserva como tercer tenant demo o se borra.
-5. Darwin debe borrar manualmente la carpeta suelta `Claude outputs/` en la raíz del
-   proyecto (contenido superado, no se subió a git).
+1. Empezar Fase 06 (rangos de referencia) — leer su roadmap cuando se inicie, no antes.
+   **Bloqueada** hasta confirmar con Angelus los rangos contradictorios (ver preguntas
+   abiertas abajo).
+2. Commit de la Fase 05 en git (mensaje sugerido en `docs/roadmap/05_catalogo_examenes.md`).
+3. **No imprimir en un informe real** los parámetros de Uroanálisis marcados "NO
+   CONFIRMADO" en `services/seeding.py` hasta que Angelus los confirme (ADR-015).
+4. Confirmar con Angelus los rangos de referencia contradictorios (bloquea Fase 06) y el
+   detalle geográfico de localidades sin municipio verificado (Cantagallo, Dos Caminos,
+   Las Minas, Píritu).
+5. Decidir el destino de `demo_tres` y borrar manualmente `Claude outputs/`.
 
 ## Bloqueos
 
-Ninguno técnico.
+Ninguno técnico. Fase 06 bloqueada por las preguntas abiertas al laboratorio (abajo).
 
 ## Preguntas abiertas al laboratorio (bloquean la Fase 06)
 
@@ -88,6 +89,8 @@ laboratorio antes de producción.
   esquema `public`) y diferir Cloudinary a la Fase 17.
 - ADR-014 (Fase 04): formato de `internal_code`, contador con `select_for_update()` y por
   qué `lab_initials` vive en `TenantSettings` y no en `Tenant`.
+- ADR-015 (Fase 05): catálogo sembrado directo por tenant (Master*+copia pospuesto) y por
+  qué el uroanálisis sembrado trae parámetros no confirmados por el laboratorio.
 - "7 roles" del índice del roadmap = 6 roles de tenant (esta fase) + `SUPERADMIN_PLATAFORMA`
   como `PlatformUser` en `public` (Fase 12), no un séptimo `Role` de tenant.
 - **Postgres local (máquina de Darwin):** hay 3 instalaciones (16, 17, 18). La base

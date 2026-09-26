@@ -2,10 +2,12 @@
 
 ## Active
 
-- [ ] **Fase 05** - siguiente fase del roadmap (`docs/roadmap/`), aún no iniciada — leer su roadmap al empezar, no antes
+- [ ] **Fase 06** - siguiente fase del roadmap (`docs/roadmap/`), aún no iniciada — leer su roadmap al empezar, no antes. Bloqueada hasta confirmar los rangos de referencia con Angelus.
 
 ## Waiting On
 
+- [ ] **Commit de Fase 05 en git** - mensaje sugerido en `docs/roadmap/05_catalogo_examenes.md`
+- [ ] **No imprimir en un informe real los parámetros "no confirmados" del Uroanálisis** - proteína/creatinina en orina, índice proteína/creatinina, cristales en sedimento, recuento bacteriano (ver ADR-015) - hasta que Angelus los confirme
 - [ ] **Confirmar rangos de referencia contradictorios** - para el laboratorio Angelus (bloquea Fase 06): glicemia, urea, creatinina, ácido úrico, bilirrubinas, TGO/TGP
 - [ ] **Confirmar "ÁCIDO ÚRICO: 3,4 - 70 mg/dL"** - para el laboratorio Angelus, ¿es error de tipeo por 7,0?
 - [ ] **Confirmar rangos pediátricos/neonatales reales** - para el laboratorio Angelus
@@ -22,6 +24,7 @@
 ## Someday
 
 - [ ] **Automatizar creación del tenant `public` + dominio** - como parte del script de despliegue (Fase 17), ver ADR-009
+- [ ] **Mecanismo Master*+copia al aprovisionar tenant** - pospuesto en Fase 05 (ADR-015), retomar cuando haya un segundo laboratorio real
 
 ## Done
 
@@ -31,3 +34,4 @@
 - [x] ~~Fase 03 — Configuración del laboratorio~~ (2026-09-26) — TenantSettings singleton por tenant, provision_tenant() crea la config por defecto, middleware de zona horaria movido a settings_lab (con guarda para public), base_tenant.html + branding, MEDIA_ROOT/URL local (Cloudinary diferido a Fase 17), admin singleton, 24/24 tests, ruff limpio
 - [x] ~~Commit de Fases 02+03 en git~~ (2026-09-26) — commit combinado `6d001d6` (47 archivos), ver mensaje del commit para el detalle de cada fase
 - [x] ~~Fase 04 — Pacientes y representantes~~ (2026-09-26) — commit `03a4f10` — Patient/Guardian/PatientGuardian + PatientCodeSequence, internal_code con correlativo anual (select_for_update), lab_initials en TenantSettings, services create_patient()/guardian_linking, selector de búsqueda, admin con inline, migraciones en los 3 tenants, 33/33 tests, ruff limpio
+- [x] ~~Fase 05 — Catálogo: secciones, unidades, parámetros~~ (2026-09-26) — apps.catalog (Section/Unit/Method/Test/ParameterGroup/Parameter/CodedOptionSet/CodedOption), catálogo sembrado directo por tenant (Master*+copia pospuesto, ADR-015), seed_uroanalisis() cubre los 9 value_type, CheckConstraint para option_set/formula, migraciones en los 3 tenants, 42/42 tests, ruff limpio

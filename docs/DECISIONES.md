@@ -320,3 +320,57 @@ evaluaron con Darwin el formato exacto y el criterio de reinicio del correlativo
 - Cubierto por tests (`test_code_sequence.py`): correlativos consecutivos dentro del
   mismo año, y aislamiento entre años (un `PatientCodeSequence` de un año anterior con
   valor alto no afecta el correlativo del año actual).
+
+
+---
+
+## ADR-015 — Catálogo sembrado directo por tenant; Master*+copia pospuesto
+**Fecha:** 2026-09-26 · **Estado:** Aceptada
+
+**Contexto.** `docs/01_MODELO_DATOS.md` (sección A) describe catálogos maestros
+(`MasterSection`/`MasterUnit`/`MasterMethod`/`MasterAnalyte`) en el esquema `public` que se
+"copiarían" a cada tenant nuevo al aprovisionarlo, además de las tablas `Section`/`Unit`/
+`Method`/`Test`/`Parameter` propias de cada tenant. Con un solo laboratorio real (Angelus)
+por ahora, construir el mecanismo completo de maestros + copia es trabajo especulativo: no
+hay un segundo tenant real que lo necesite, y su diseño correcto (qué pasa si un tenant
+personaliza un `Test` copiado y el maestro cambia después) depende de decisiones de producto
+que no se han tomado.
+
+**Decisión.** Se implementó únicamente el lado tenant del modelo (`apps.catalog`:
+`Section`, `Unit`, `Method`, `Test`, `ParameterGroup`, `Parameter`, `CodedOptionSet`,
+`CodedOption`), sembrado directo por tenant vía `services/seeding.py` + management command
+(mismo patrón que `seed_system_roles()` en `apps.accounts`, Fase 02). El mecanismo
+`Master*` + copia al aprovisionar queda **pospuesto** para cuando se incorpore un segundo
+laboratorio real y haya un caso concreto que lo justifique.
+
+**Decisión relacionada — cobertura de los 9 `value_type` en un solo examen.** El criterio
+de salida de la fase ("Uroanálisis completo cargado con sus 9 tipos de valor") exige que
+un único `Test` ejercite los 9 valores de `Parameter.value_type`. El uroanálisis real de
+Angelus no trae de forma confirmada un parámetro `NUMERIC_CALCULATED` ni uno
+`MULTI_CATALOG` (ese tipo sólo aparece en heces/parásitos en los formatos reales). Se
+agregaron parámetros plausibles pero **no confirmados por el laboratorio** —
+`PROTEÍNA EN ORINA`/`CREATININA EN ORINA`/`ÍNDICE PROTEÍNA/CREATININA` (numérico y
+calculado) y `CRISTALES EN SEDIMENTO` (multi-catálogo), además de un `RECUENTO
+BACTERIANO (screening)` ilustrativo para `TITER` (en la práctica parte de un urocultivo, no
+del uroanálisis de rutina) — marcados explícitamente como tales en
+`docs/roadmap/05_catalogo_examenes.md` y en el docstring de `seed_uroanalisis()`.
+
+**Decisión relacionada — validación en `CheckConstraint`, no en el service.** A diferencia
+de la regla de representante legal de pacientes (Fase 04, que depende de una relación que
+aún no existe al validar), las reglas de `Parameter` sólo dependen de sus propios campos, así
+que se expresan como `CheckConstraint` de base de datos: `option_set` obligatorio para
+`CODED`/`SEMIQUANTITATIVE`/`QUALITATIVE`/`TITER`/`MULTI_CATALOG`, y `formula` obligatorio
+para `NUMERIC_CALCULATED`.
+
+**Consecuencias.**
+- Cargar el catálogo completo de un segundo laboratorio real hoy significa escribir un
+  nuevo `services/seeding.py` para ese tenant (o adaptar el de Angelus) — no hay
+  reutilización automática entre tenants todavía. Aceptable con un solo cliente.
+- Ningún parámetro marcado "no confirmado" debe imprimirse en un informe real hasta que
+  Angelus lo confirme — queda como pendiente explícito en `docs/ESTADO.md`.
+- `Parameter.depends_on` (M2M a sí mismo) se deja vacío: resolver automáticamente las
+  dependencias a partir de `formula` es trabajo de la Fase 07 (motor de fórmulas).
+- Cuando se decida construir Master*+copia, el trabajo de esta fase no se pierde: las
+  tablas tenant (`Section`/`Unit`/.../`Parameter`) son exactamente las que un mecanismo de
+  copia poblaría; sólo faltaría agregar el origen `Master*` en `public` y el paso de copia
+  en `provision_tenant()`.
