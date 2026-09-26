@@ -82,8 +82,13 @@ Darwin aplica los cambios a mano. Por lo tanto:
   (captura de resultados con cálculo en vivo).
 - Nada de build pesado de JS. La PWA necesita ser liviana: se usa en equipos viejos y
   conexiones malas.
-- CSS: Tailwind vía CLI (sin Node en producción, se compila en CI).
-- Variables CSS para el branding del tenant, inyectadas en `base_tenant.html`:
+- CSS: **un solo archivo plano, `static/css/biolife.css`, sin paso de build** (ADR-022
+  reemplaza la idea original de Tailwind vía CLI). Tokens en variables CSS; componentes con
+  clases cortas (`btn`, `card`, `form-grid`, `field`, `table`, `tag`, `flag`, `alert`).
+- Pantallas densas: formularios en `form-grid` de 12 columnas con `{% field form.x "col-3" %}`
+  (`{% load ui %}`), controles de 32 px y `actionbar` fija al pie. Íconos con `{% icon "nombre" %}`.
+- Branding del tenant: `base.html` inyecta `--brand` desde `TenantSettings.color_primary`:
   ```html
-  <style>:root{--color-primary:{{ settings.color_primary }};}</style>
+  <style>:root{--brand:{{ tenant_settings.color_primary }};}</style>
   ```
+- Referencia viva de todo lo anterior: `/estilo/` (guía de estilo, sólo staff).

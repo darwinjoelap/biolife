@@ -59,3 +59,39 @@ def test_provision_tenant_schema_duplicado_no_deja_huerfano():
 
     with schema_context(get_public_schema_name()):
         tenant.delete(force_drop=True)
+
+
+@pytest.mark.django_db(transaction=True)
+def test_provision_tenant_nace_con_catalogo_perfiles_y_monedas():
+    # ADR-021: un laboratorio nuevo queda listo para trabajar.
+    from apps.billing.models import PriceList
+    from apps.catalog.models import Profile, Test
+
+    tenant, _ = provision_tenant(
+        name="Con catálogo", schema_name="lab_catalogo", subdomain="labcatalogo",
+        admin_email="admin@labcatalogo.test",
+    )
+    try:
+        with schema_context("lab_catalogo"):
+            assert Test.objects.filter(is_active=True).count() >= 50
+            assert Profile.objects.filter(code="PERFIL_LIPIDICO").exists()
+            assert PriceList.objects.filter(code="GENERAL", is_default=True).exists()
+    finally:
+        with schema_context(get_public_schema_name()):
+            tenant.delete(force_drop=True)
+
+
+@pytest.mark.django_db(transaction=True)
+def test_provision_tenant_sin_catalogo_nace_vacio():
+    from apps.catalog.models import Test
+
+    tenant, _ = provision_tenant(
+        name="Vacío", schema_name="lab_vacio", subdomain="labvacio",
+        admin_email="admin@labvacio.test", seed_catalog=False,
+    )
+    try:
+        with schema_context("lab_vacio"):
+            assert not Test.objects.exists()
+    finally:
+        with schema_context(get_public_schema_name()):
+            tenant.delete(force_drop=True)

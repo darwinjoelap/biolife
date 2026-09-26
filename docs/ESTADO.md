@@ -11,32 +11,23 @@
 
 ## Completado
 
-- [x] Fase 00 (diseño): arquitectura, modelo de datos, convenciones, roadmap de 18 fases
-- [x] Fase 01 (setup y multi-tenancy): ver detalle en el historial de este archivo / ADRs
-- [x] Fases 02–03 (commit `6d001d6`): `User` propio, roles, `AuditLog`, login por tenant
-  (ADR-010/011); `TenantSettings`, middleware de zona horaria, branding (ADR-012/013).
-- [x] Fase 04 (commit `03a4f10`): pacientes, representantes, `internal_code` (ADR-014).
-- [x] Fase 05 (commit `c9ac6ab`): `apps.catalog`, `seed_uroanalisis()` con los 9
-  `value_type`, parámetros no confirmados marcados (ADR-015).
-- [x] Fase 06 (commit `d3475eb`): `ReferenceRange` + `resolve_reference_range()` (ADR-016).
-- [x] Fases 07–08b en un solo commit `53655ab`.
-- [x] Fase 07: motor de fórmulas (AST restringido, `Decimal`, ciclos al guardar), sintaxis
-  `{CODIGO}`/`{@var}`, verificada en la máquina de Darwin (107/107) (ADR-017).
-- [x] Fase 08: exámenes individuales desde los Excel, 15 perfiles, `apps.billing` multimoneda
-  con descuentos y `quote()` (ADR-019). Verificada en la máquina de Darwin (149/149).
-- [x] Fase 08b (`docs/roadmap/08b_ficha_del_examen_rangos.md`): ficha del examen en el admin
-  (rangos por sexo/edad en años-meses-días/condición, avisos de solapes y huecos, probador),
-  bug de bitácora del admin por tenant corregido (ADR-020). Verificada en la máquina de Darwin
-  (171/171, ruff limpio, `accounts.0004` aplicada en los 3 tenants).
+- [x] Fases 00–05 (commits hasta `c9ac6ab`): diseño, multi-tenancy, usuarios y roles,
+  configuración del laboratorio, pacientes, catálogo (ADR-001 a ADR-015).
+- [x] Fase 06 (`d3475eb`) y Fases 07–08b (`53655ab`): rangos, motor de fórmulas, perfiles,
+  precios multimoneda, ficha del examen (ADR-016 a ADR-020).
+- [x] Fase 08c: laboratorios nacen con catálogo, lípidos sin AYUNO, CI, script de
+  aislamiento reparado (ADR-021).
+- [x] Fase 08d: sistema visual (CSS plano, paleta del logo, pantallas densas), acceso, Inicio,
+  guía de estilo en `/estilo/`, admin con la marca (ADR-022). 180/180 en el entorno de Claude.
 
 ## En curso
 
-Nada. Fase 08b cerrada y verificada.
+Fases 08c y 08d escritas en disco; falta que Darwin corra `migrate_schemas`, `pytest` (180),
+`ruff` y revise `/`, `/estilo/` y el acceso con `runserver`.
 
 ## Pendiente inmediato
 
-1. Ubicar en el roadmap la fase de **estilo visual y pantallas base** (antes de la primera
-   pantalla real); ahí se hace la ficha del examen definitiva.
+1. Verificar 08c/08d. Siguiente: Fase 09 (órdenes y muestras) con el nuevo estilo.
 2. Cargar precios reales en la lista GENERAL (admin) cuando se tengan.
 3. **No usar en un informe real** ningún `ReferenceRange`/parámetro marcado "PENDIENTE DE
    CONFIRMAR" o "NO CONFIRMADO" (ver ADR-015 y ADR-016), ni el INR sin
@@ -85,27 +76,10 @@ laboratorio antes de producción.
 
 - Los formatos originales están en el proyecto de Cowork. No re-analizarlos:
   el resumen completo está en `docs/04_HALLAZGOS_FORMATOS.md`.
-- ADR-007, ADR-008 y ADR-009 (Fase 01) documentan trampas reales de `django-tenants` al
-  crear/borrar esquemas — leerlas antes de tocar `provisioning.py` o tests con schema_context.
-- ADR-010 y ADR-011 (Fase 02) documentan por qué `User` es propio y por qué `apps.accounts`
-  es SHARED_APP + TENANT_APP a la vez — leerlas antes de tocar `AUTH_USER_MODEL` o
-  `INSTALLED_APPS`.
-- ADR-012 y ADR-013 (Fase 03): mudanza del middleware de zona horaria (con la guarda de
-  esquema `public`) y diferir Cloudinary a la Fase 17.
-- ADR-014 (Fase 04): formato de `internal_code`, contador con `select_for_update()` y por
-  qué `lab_initials` vive en `TenantSettings` y no en `Tenant`.
-- ADR-015 (Fase 05): catálogo sembrado directo por tenant (Master*+copia pospuesto) y por
-  qué el uroanálisis sembrado trae parámetros no confirmados por el laboratorio.
-- ADR-016 (Fase 06): 4 exámenes mínimos nuevos para cubrir los 6 `range_type`, y por qué
-  6 parámetros se sembraron con un valor marcado pendiente de confirmar.
-- ADR-018: Angelus es referencia, no techo de alcance; libertad creativa y lo variable
-  entre laboratorios va como configuración por tenant.
-- ADR-020 (Fase 08b): edad años/meses/días con «hasta» exclusivo, ERROR/AVISO de cobertura,
-  admin también por tenant.
-- ADR-019 (Fase 08): perfiles = agrupación de exámenes individuales; `apps.billing`
-  multimoneda; reglas de cotización; Mosteller confirmado por la celda de la hoja.
-- ADR-017 (Fase 07): sintaxis de fórmulas, AST restringido, ISI como `{@isi}`, precisión
-  completa en intermedios, y por qué la superficie corporal es Mosteller y no DuBois.
+- ADRs que conviene leer antes de tocar ciertas zonas: 007–009 (esquemas en
+  django-tenants), 010–011 (`User` propio, `accounts` SHARED+TENANT), 017 (fórmulas),
+  018 (alcance: Angelus es referencia), 019 (perfiles y precios), 020 (rangos y admin por
+  tenant), 021 (provisión con catálogo, CI), 022 (sistema visual y `STORAGES`).
 - "7 roles" del índice del roadmap = 6 roles de tenant (esta fase) + `SUPERADMIN_PLATAFORMA`
   como `PlatformUser` en `public` (Fase 12), no un séptimo `Role` de tenant.
 - **Postgres local (máquina de Darwin):** hay 3 instalaciones (16, 17, 18). La base

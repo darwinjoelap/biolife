@@ -72,6 +72,8 @@ INSTALLED_APPS = list(SHARED_APPS) + [
 
 TENANT_MODEL = "tenants.Tenant"
 TENANT_DOMAIN_MODEL = "tenants.Domain"
+# El admin de django-tenants pinta de verde las apps de tenant; choca con el estilo (ADR-022).
+TENANT_COLOR_ADMIN_APPS = False
 
 AUTH_USER_MODEL = "accounts.User"
 
@@ -119,7 +121,12 @@ LOCALE_PATHS = [BASE_DIR / "locale"]
 STATIC_URL = "static/"
 STATIC_ROOT = BASE_DIR / "staticfiles"
 STATICFILES_DIRS = [BASE_DIR / "static"]
-STATICFILES_STORAGE = "whitenoise.storage.CompressedManifestStaticFilesStorage"
+# STORAGES y no STATICFILES_STORAGE: Django 5.1 eliminó ese ajuste y lo ignoraba en
+# silencio, así que WhiteNoise nunca comprimía ni versionaba los estáticos (ADR-022).
+STORAGES = {
+    "default": {"BACKEND": "django.core.files.storage.FileSystemStorage"},
+    "staticfiles": {"BACKEND": "whitenoise.storage.CompressedManifestStaticFilesStorage"},
+}
 
 MEDIA_URL = "media/"
 MEDIA_ROOT = BASE_DIR / "media"

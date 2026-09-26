@@ -7,6 +7,10 @@ from django.utils import timezone
 from django_tenants.utils import get_public_schema_name, schema_context
 
 from apps.accounts.services.user_management import create_initial_admin
+from apps.billing.services.seeding import seed_billing_defaults
+from apps.catalog.services.seeding import seed_uroanalisis
+from apps.catalog.services.seeding_profiles import seed_profiles
+from apps.catalog.services.seeding_reference_ranges import seed_reference_ranges
 from apps.core.exceptions import ApplicationError
 from apps.settings_lab.services.branding import create_default_settings
 from apps.tenants.models import Plan, Subscription, Tenant
@@ -25,6 +29,7 @@ def provision_tenant(
     plan: Plan | None = None,
     rif: str | None = None,
     trial_days: int = 30,
+    seed_catalog: bool = True,
 ) -> tuple[Tenant, str]:
     """
     Crea el laboratorio, su esquema, su dominio primario, su suscripción de prueba
@@ -37,6 +42,10 @@ def provision_tenant(
 
     La creación del `Tenant` siempre se ejecuta en el esquema public, sin
     importar el esquema activo del llamador — django-tenants lo exige así.
+
+    Con `seed_catalog=True` (por defecto) el laboratorio nace listo para trabajar:
+    catálogo base con rangos y fórmulas, perfiles, monedas y lista de precios vacía
+    (ADR-021). Todo es editable después por el propio laboratorio.
     """
     if not _SCHEMA_NAME_RE.match(schema_name) or schema_name.startswith(_RESERVED_PREFIXES):
         raise ApplicationError(
@@ -83,5 +92,10 @@ def provision_tenant(
     with schema_context(schema_name):
         _, admin_password = create_initial_admin(email=admin_email, password=admin_password)
         create_default_settings()
+        if seed_catalog:
+            seed_uroanalisis()
+            seed_reference_ranges()
+            seed_profiles()
+            seed_billing_defaults()
 
     return tenant, admin_password

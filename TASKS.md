@@ -4,7 +4,9 @@
 
 - [ ] **Correr `seed_formulas` en demo_dos/demo_tres** - opcional, sólo se corrió en demo_uno
 - [ ] **Valores críticos (pánico) en la Fase 10** - umbrales crítico bajo/alto por rango (sexo/edad) en la ficha del examen; marca CRITICO_BAJO/CRITICO_ALTO resaltada; no se valida sin confirmar el valor y registrar a quién se notificó (quién, cuándo, cómo)
-- [ ] **Ubicar en el roadmap la fase de estilo visual y pantallas base** - antes de la primera pantalla real; incluye la ficha del examen definitiva (ADR-020)
+- [ ] **Verificar Fases 08c/08d en la máquina de Darwin** - `migrate_schemas` (catalog.0006), `pytest -q` → 180, `ruff check .`, `runserver` y revisar acceso, Inicio y /estilo/
+- [ ] **Subir el repo a GitHub** (si aún no está) para que corra el CI de `.github/workflows/ci.yml`
+- [ ] **Ficha del examen definitiva con el nuevo estilo** - reemplaza al admin provisional (ADR-020/022)
 - [ ] **Cargar precios reales** en la lista GENERAL (admin → Precios y cobro)
 - [ ] **Fase 09** - Órdenes y muestras (no iniciar sin pedirlo)
 
@@ -36,6 +38,9 @@
 - [ ] **Tasa BCV automática y perfiles anidados** - posteriores, ADR-019
 
 ## Done
+
+- [x] ~~Fase 08c — Consolidación~~ (2026-09-26) — provisión con catálogo, lípidos sin AYUNO, CI, script de aislamiento reparado, avisos eliminados (ADR-021)
+- [x] ~~Fase 08d — Estilo visual y pantallas base~~ (2026-09-26) — biolife.css, base/base_tenant/base_auth, acceso, Inicio, /estilo/, admin con marca, STORAGES (ADR-022); 180/180 en el entorno de Claude
 
 - [x] ~~Commits de las Fases 06 a 08b~~ (2026-09-26) — Fase 06 `d3475eb`; Fases 07, 08 y 08b en `53655ab` (63 archivos)
 

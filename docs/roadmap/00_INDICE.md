@@ -34,8 +34,8 @@ que envejece antes de usarse.
 > para ir más allá de lo que usan sus hojas.
 
 > **Fase 08b (agregada):** ficha del examen — rangos por sexo/edad/condición (lógica + admin
-> provisional). **Pendiente de ubicar:** una fase de *estilo visual y pantallas base* antes de
-> la primera pantalla real (ADR-020).
+> provisional). **Fases 08c y 08d (agregadas):** consolidación (ADR-021) y estilo visual y
+> pantallas base (ADR-022), antes de la primera pantalla real de la Fase 09.
 
 ## Ruta crítica al MVP vendible
 

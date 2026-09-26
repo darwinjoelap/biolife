@@ -1,17 +1,79 @@
-<!DOCTYPE html>
-<html lang="es">
-<head>
-    <meta charset="UTF-8">
-    <title>{% block title %}{{ request.tenant.name }}{% endblock %}</title>
-    <style>
-        :root {
-            --color-primary: {{ tenant_settings.color_primary|default:"#1B5FA8" }};
-            --color-secondary: {{ tenant_settings.color_secondary|default:"#1B5FA8" }};
-        }
-    </style>
-    {% block extra_head %}{% endblock %}
-</head>
-<body>
-    {% block content %}{% endblock %}
-</body>
-</html>
+{% extends "base.html" %}
+{% load static ui %}
+{% comment %}
+Estructura de toda pantalla del laboratorio (Fase 08d, ADR-022): barra lateral colapsable,
+barra superior con título/acciones y contenido. Bloques: title, page_title, crumbs,
+page_actions, content. Los módulos que aún no existen se muestran como "Pronto".
+{% endcomment %}
+{% block title %}{% block page_title_text %}Inicio{% endblock %} · {{ request.tenant.name }}{% endblock %}
+{% block body %}
+<div class="app" x-data="{ collapsed: localStorage.getItem('bl-sidebar') === '1', mobile: false }"
+     :class="{ 'is-collapsed': collapsed, 'is-mobile-open': mobile }" @keydown.escape.window="mobile = false">
+  <aside class="sidebar" aria-label="Navegación principal">
+    <a class="sidebar__brand" href="{% url 'tenant-home' %}" title="Biolife">
+      <img src="{% static 'img/brand/biolife-mark-96.png' %}" alt="">
+      <span class="wordmark"><b>Bio</b><span>life</span></span>
+    </a>
+    <div class="sidebar__tenant" title="{{ request.tenant.name }}">{{ request.tenant.name }}</div>
+    <nav class="nav">
+      <a class="nav__item {% nav_active request '/' %}" href="{% url 'tenant-home' %}">{% icon "house" %}<span>Inicio</span></a>
+      <div class="nav__group">Operación</div>
+      {% if user.is_staff %}
+      <a class="nav__item {% nav_active request '/admin/patients/' %}" href="{% url 'admin:patients_patient_changelist' %}">{% icon "users" %}<span>Pacientes</span></a>
+      {% endif %}
+      <span class="nav__item is-disabled" aria-disabled="true">{% icon "clipboard-list" %}<span>Órdenes</span><em class="tag">Pronto</em></span>
+      <span class="nav__item is-disabled" aria-disabled="true">{% icon "test-tube" %}<span>Muestras</span><em class="tag">Pronto</em></span>
+      <span class="nav__item is-disabled" aria-disabled="true">{% icon "flask-conical" %}<span>Resultados</span><em class="tag">Pronto</em></span>
+      <span class="nav__item is-disabled" aria-disabled="true">{% icon "file-text" %}<span>Informes</span><em class="tag">Pronto</em></span>
+      {% if user.is_staff %}
+      <div class="nav__group">Configuración</div>
+      <a class="nav__item {% nav_active request '/admin/catalog/test/' %}" href="{% url 'admin:catalog_test_changelist' %}">{% icon "microscope" %}<span>Exámenes</span></a>
+      <a class="nav__item {% nav_active request '/admin/catalog/profile/' %}" href="{% url 'admin:catalog_profile_changelist' %}">{% icon "layers" %}<span>Perfiles</span></a>
+      <a class="nav__item {% nav_active request '/admin/billing/' %}" href="{% url 'admin:billing_pricelist_changelist' %}">{% icon "tag" %}<span>Precios</span></a>
+      <a class="nav__item {% nav_active request '/admin/settings_lab/' %}" href="{% url 'admin:settings_lab_tenantsettings_changelist' %}">{% icon "settings" %}<span>Laboratorio</span></a>
+      <a class="nav__item {% nav_active request '/estilo/' %}" href="{% url 'core:style-guide' %}">{% icon "palette" %}<span>Guía de estilo</span></a>
+      {% endif %}
+    </nav>
+    <div class="sidebar__foot">
+      <span class="avatar" title="{{ user.get_full_name|default:user.username }}">{{ user|initials }}</span>
+      <div class="who">
+        <strong>{{ user.get_full_name|default:user.username }}</strong>
+        <small>{{ user.email }}</small>
+      </div>
+      <form method="post" action="{% url 'accounts:logout' %}" class="who" style="margin-left:auto">
+        {% csrf_token %}
+        <button class="btn btn--ghost btn--icon" title="Cerrar sesión" aria-label="Cerrar sesión">{% icon "log-out" %}</button>
+      </form>
+    </div>
+  </aside>
+
+  <div class="backdrop only-mobile" x-show="mobile" x-cloak @click="mobile = false"></div>
+  <div class="main">
+    <header class="topbar">
+      <button class="btn btn--ghost btn--icon only-mobile" @click="mobile = !mobile" aria-label="Menú">{% icon "menu" %}</button>
+      <button class="btn btn--ghost btn--icon only-desktop" @click="collapsed = !collapsed; localStorage.setItem('bl-sidebar', collapsed ? '1' : '0')" aria-label="Contraer menú" title="Contraer menú">{% icon "panel-left" %}</button>
+      <div class="topbar__title">
+        <div class="crumbs">{% block crumbs %}{{ request.tenant.name }}{% endblock %}</div>
+        <h1>{% block page_title %}Inicio{% endblock %}</h1>
+      </div>
+      <label class="topbar__search">
+        <span class="sr-only">Buscar</span>
+        {% icon "search" %}
+        <input type="search" placeholder="Buscar paciente u orden…  (pronto)" disabled>
+      </label>
+      <div class="topbar__actions">{% block page_actions %}{% endblock %}</div>
+    </header>
+
+    <main class="content {% block content_class %}{% endblock %}">
+      {% if messages %}
+      <div class="messages" role="status">
+        {% for message in messages %}
+        <div class="alert alert--{% if message.tags == 'error' %}danger{% elif message.tags == 'success' %}ok{% elif message.tags == 'warning' %}warn{% else %}info{% endif %}">{{ message }}</div>
+        {% endfor %}
+      </div>
+      {% endif %}
+      {% block content %}{% endblock %}
+    </main>
+  </div>
+</div>
+{% endblock %}

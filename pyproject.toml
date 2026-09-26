@@ -13,3 +13,10 @@ select = ["E", "F", "I", "N", "UP", "DJ", "B", "C4", "SIM"]
 DJANGO_SETTINGS_MODULE = "config.settings.local"
 python_files = ["test_*.py", "*_test.py"]
 testpaths = ["apps"]
+# "Test?*" y no "Test*": el modelo del catálogo se llama `Test` y pytest intentaba
+# recolectarlo como clase de pruebas en cada módulo que lo importa.
+python_classes = ["Test?*", "*Tests"]
+filterwarnings = [
+    # WhiteNoise avisa que STATIC_ROOT no existe hasta correr collectstatic (sólo tests).
+    "ignore:No directory at:UserWarning",
+]

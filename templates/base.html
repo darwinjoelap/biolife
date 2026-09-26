@@ -1,0 +1,25 @@
+{% load static %}<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% block title %}Biolife{% endblock %}</title>
+  <meta name="theme-color" content="#0b2e63">
+  <link rel="icon" href="{% static 'img/brand/favicon.ico' %}" sizes="any">
+  <link rel="icon" type="image/png" href="{% static 'img/brand/favicon-32.png' %}">
+  <link rel="apple-touch-icon" href="{% static 'img/brand/apple-touch-icon.png' %}">
+  <link rel="preload" href="{% static 'fonts/inter-latin-wght-normal.woff2' %}" as="font" type="font/woff2" crossorigin>
+  <link rel="stylesheet" href="{% static 'css/biolife.css' %}">
+  {% if tenant_settings.color_primary %}
+  {# Color del laboratorio (Configuración del laboratorio → Color primario) #}
+  <style>:root{--brand:{{ tenant_settings.color_primary }};}</style>
+  {% endif %}
+  <script src="{% static 'vendor/htmx-2.0.11.min.js' %}" defer></script>
+  <script src="{% static 'vendor/alpine-3.17.4.min.js' %}" defer></script>
+  {% block extra_head %}{% endblock %}
+</head>
+<body class="{% block body_class %}{% endblock %}" hx-headers='{"X-CSRFToken": "{{ csrf_token }}"}'>
+  {% include "components/icons.html" %}
+  {% block body %}{% endblock %}
+</body>
+</html>

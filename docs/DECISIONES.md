@@ -601,3 +601,54 @@ visual definido para las pantallas.
   mismo criterio: si guarda datos por laboratorio, debe estar en `TENANT_APPS`.
 - El probador hace visible el pendiente de ADR-019: los rangos de lípidos con condición
   `AYUNO` no aplican a un paciente con condición `NINGUNA`.
+
+
+---
+
+## ADR-021 — Consolidación: laboratorios nacen con catálogo, lípidos sin condición AYUNO, CI
+**Fecha:** 2026-09-26 · **Estado:** Aceptada
+
+**Contexto.** Revisión de estado antes de la Fase 09: un laboratorio nuevo nacía vacío (4
+comandos manuales), los rangos de lípidos con condición AYUNO no aplicaban a ningún paciente,
+los tests sólo corrían a mano y el script de aislamiento estaba roto desde la Fase 02.
+
+**Decisión.**
+- `provision_tenant(..., seed_catalog=True)` siembra catálogo base, perfiles, monedas y la
+  lista GENERAL vacía. Todo es editable por el laboratorio; `--sin-catalogo` lo omite.
+- El ayuno es un requisito del examen (`Test.requires_fasting`), no un rango distinto: los
+  rangos de lípidos pasan a condición NINGUNA (migración `catalog.0006`). La condición AYUNO
+  queda para parámetros cuyo valor de referencia realmente cambia con el ayuno.
+- GitHub Actions corre ruff, migraciones, pytest y el script de aislamiento en cada push.
+
+**Consecuencias.** Crear un laboratorio tarda unos segundos más. Los tests de provisión
+también. Si el laboratorio no usa GitHub, el workflow simplemente no corre.
+
+---
+
+## ADR-022 — Sistema visual: CSS plano sin build, denso, con la paleta del logo
+**Fecha:** 2026-09-26 · **Estado:** Aceptada (reemplaza "Tailwind vía CLI" de 03_CONVENCIONES)
+
+**Contexto.** Antes de la primera pantalla real (Fase 09) hacía falta un estilo. Darwin pidió
+algo moderno y minimalista, sin tener que desplazarse para ver todos los campos, con el logo
+de Biolife. Las convenciones preveían Tailwind compilado por CLI.
+
+**Decisión.**
+- Un solo `static/css/biolife.css` con tokens en variables CSS y componentes de clases
+  cortas. Sin Tailwind ni Node: nada que compilar en Windows ni en CI, un archivo cacheable,
+  y la PWA (Fase 13) lo sirve offline.
+- Paleta tomada del logo (navy `#0b2e63`, azul `#0d6dc9`, teal `#11ad9b`); `--brand` es el
+  color primario de cada laboratorio (`TenantSettings.color_primary`).
+- Densidad por diseño: controles de 32 px, texto de 13,5 px, grilla de formulario de 12
+  columnas, tablas compactas, barra de acciones fija al pie.
+- Inter autoalojada, íconos Lucide en sprite SVG, htmx y Alpine en `static/vendor/`: sin
+  dependencias de CDN.
+- Guía de estilo viva en `/estilo/` como referencia para las fases siguientes.
+- `STORAGES` en lugar de `STATICFILES_STORAGE` (eliminado en Django 5.1: WhiteNoise estaba
+  inactivo sin aviso). `TENANT_COLOR_ADMIN_APPS = False` y el admin con la identidad de Biolife.
+
+**Consecuencias.**
+- Las pantallas de las Fases 09+ usan `base_tenant.html`, `{% field %}` y los componentes de
+  la guía; un componente nuevo se agrega primero a la guía.
+- `color-mix()` exige navegadores de 2023 en adelante; en los más viejos sólo se pierden los
+  fondos suaves del color del laboratorio.
+- Sin modo oscuro por ahora.

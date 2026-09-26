@@ -1,0 +1,1 @@
+Alpine.js 3.17.4 — MIT License, (c) 2019-present Caleb Porzio and contributors. https://github.com/alpinejs/alpine

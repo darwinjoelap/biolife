@@ -211,7 +211,7 @@ class Parameter(TenantBaseModel):
         ordering = ["test", "group__order_index", "order_index"]
         constraints = [
             models.CheckConstraint(
-                check=(
+                condition=(
                     models.Q(value_type__in=OPTION_BASED_VALUE_TYPES)
                     & models.Q(option_set__isnull=False)
                 )
@@ -219,7 +219,7 @@ class Parameter(TenantBaseModel):
                 name="parameter_option_set_required_for_coded_types",
             ),
             models.CheckConstraint(
-                check=~models.Q(value_type="NUMERIC_CALCULATED") | ~models.Q(formula=""),
+                condition=~models.Q(value_type="NUMERIC_CALCULATED") | ~models.Q(formula=""),
                 name="parameter_formula_required_when_calculated",
             ),
         ]
@@ -298,11 +298,11 @@ class ReferenceRange(TenantBaseModel):
         ordering = ["parameter", "-priority"]
         constraints = [
             models.CheckConstraint(
-                check=models.Q(age_min_days__lte=models.F("age_max_days")),
+                condition=models.Q(age_min_days__lte=models.F("age_max_days")),
                 name="referencerange_age_min_lte_age_max",
             ),
             models.CheckConstraint(
-                check=(
+                condition=(
                     models.Q(range_type__in=RANGE_TYPES_REQUIRING_LOW)
                     & models.Q(low__isnull=False)
                 )
@@ -310,7 +310,7 @@ class ReferenceRange(TenantBaseModel):
                 name="referencerange_low_required",
             ),
             models.CheckConstraint(
-                check=(
+                condition=(
                     models.Q(range_type__in=RANGE_TYPES_REQUIRING_HIGH)
                     & models.Q(high__isnull=False)
                 )
@@ -318,7 +318,7 @@ class ReferenceRange(TenantBaseModel):
                 name="referencerange_high_required",
             ),
             models.CheckConstraint(
-                check=(
+                condition=(
                     models.Q(range_type="TOLERANCE")
                     & models.Q(center__isnull=False)
                     & models.Q(tolerance__isnull=False)
@@ -327,7 +327,7 @@ class ReferenceRange(TenantBaseModel):
                 name="referencerange_tolerance_requires_center_and_tolerance",
             ),
             models.CheckConstraint(
-                check=(
+                condition=(
                     models.Q(range_type="QUALITATIVE")
                     & models.Q(expected_option__isnull=False)
                 )
@@ -335,7 +335,7 @@ class ReferenceRange(TenantBaseModel):
                 name="referencerange_qualitative_requires_expected_option",
             ),
             models.CheckConstraint(
-                check=(
+                condition=(
                     models.Q(range_type="INTERPRETIVE") & models.Q(bands__isnull=False)
                 )
                 | ~models.Q(range_type="INTERPRETIVE"),

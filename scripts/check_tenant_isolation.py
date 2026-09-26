@@ -1,6 +1,7 @@
 """
 Prueba de humo de aislamiento entre tenants. Crea dos laboratorios, inserta un registro
-de prueba en cada uno usando un modelo que vive POR TENANT (auth.User, vía TENANT_APPS)
+de prueba en cada uno usando un modelo que vive POR TENANT (el User propio de
+apps.accounts, ADR-010/011)
 y verifica que ninguna consulta cruce entre esquemas.
 
 Importante: no usar aquí ningún modelo de SHARED_APPS (como apps.masterdata.Locality)
@@ -22,11 +23,13 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 os.environ.setdefault("DJANGO_SETTINGS_MODULE", "config.settings.local")
 django.setup()
 
-from django.contrib.auth.models import User  # noqa: E402
+from django.contrib.auth import get_user_model  # noqa: E402
 from django_tenants.utils import schema_context  # noqa: E402
 
 from apps.core.exceptions import ApplicationError  # noqa: E402
 from apps.tenants.services.provisioning import provision_tenant  # noqa: E402
+
+User = get_user_model()
 
 
 def _unique_schema(prefix: str) -> str:
@@ -39,11 +42,14 @@ def main() -> int:
     marker_username = f"usuario_solo_en_{schema_a}"
 
     try:
-        tenant_a = provision_tenant(
-            name="Check Isolation A", schema_name=schema_a, subdomain=schema_a
+        # Fase 08c: provision_tenant exige admin_email y devuelve (tenant, password).
+        tenant_a, _ = provision_tenant(
+            name="Check Isolation A", schema_name=schema_a, subdomain=schema_a,
+            admin_email=f"admin@{schema_a}.test", seed_catalog=False,
         )
-        tenant_b = provision_tenant(
-            name="Check Isolation B", schema_name=schema_b, subdomain=schema_b
+        tenant_b, _ = provision_tenant(
+            name="Check Isolation B", schema_name=schema_b, subdomain=schema_b,
+            admin_email=f"admin@{schema_b}.test", seed_catalog=False,
         )
     except ApplicationError as exc:
         print(f"FALLÓ: no se pudieron crear los tenants de prueba: {exc.message}")
@@ -57,8 +63,8 @@ def main() -> int:
             visible_desde_b = User.objects.filter(username=marker_username).exists()
 
         with schema_context("public"):
-            # auth no está en SHARED_APPS, así que ni siquiera debería existir la tabla
-            # en public bajo un enrutamiento correcto; se consulta igual por completitud.
+            # accounts es SHARED y TENANT a la vez (ADR-011): public tiene su propia tabla
+            # de usuarios, que no debe ver el usuario creado en el tenant A.
             try:
                 visible_desde_public = User.objects.filter(
                     username=marker_username

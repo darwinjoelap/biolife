@@ -1,0 +1,141 @@
+{% extends "base_tenant.html" %}
+{% load ui %}
+{% comment %}
+Guía de estilo viva (Fase 08d, ADR-022). Cada bloque es un patrón para las pantallas de
+las fases siguientes. Los datos son de ejemplo: nada se guarda.
+{% endcomment %}
+{% block page_title_text %}Guía de estilo{% endblock %}
+{% block crumbs %}Configuración{% endblock %}
+{% block page_title %}Guía de estilo{% endblock %}
+{% block page_actions %}
+  <a class="btn" href="#formulario">Formulario</a>
+  <a class="btn" href="#resultados">Resultados</a>
+{% endblock %}
+{% block content %}
+
+<section class="card">
+  <div class="card__head"><h2>Color</h2><span class="spacer"></span><span class="muted small">El primario del laboratorio reemplaza a «brand».</span></div>
+  <div class="card__body swatches">
+    <div class="swatch"><i style="background:var(--brand)"></i><div><b>brand</b><br>primario del laboratorio</div></div>
+    <div class="swatch"><i style="background:var(--bl-navy)"></i><div><b>navy</b> #0b2e63</div></div>
+    <div class="swatch"><i style="background:var(--bl-blue)"></i><div><b>blue</b> #0d6dc9</div></div>
+    <div class="swatch"><i style="background:var(--bl-teal)"></i><div><b>teal</b> #11ad9b</div></div>
+    <div class="swatch"><i style="background:var(--ink)"></i><div><b>ink</b> texto</div></div>
+    <div class="swatch"><i style="background:var(--canvas)"></i><div><b>canvas</b> fondo</div></div>
+    <div class="swatch"><i style="background:var(--danger)"></i><div><b>danger</b> alto / crítico</div></div>
+    <div class="swatch"><i style="background:var(--info)"></i><div><b>info</b> bajo</div></div>
+  </div>
+</section>
+
+<section class="grid grid-2">
+  <div class="card">
+    <div class="card__head"><h2>Botones y etiquetas</h2></div>
+    <div class="card__body" style="display:flex;flex-wrap:wrap;gap:8px;align-items:center">
+      <button class="btn btn--primary">{% icon "save" %} Guardar</button>
+      <button class="btn">{% icon "printer" %} Imprimir</button>
+      <button class="btn btn--ghost">Cancelar</button>
+      <button class="btn btn--danger">Anular</button>
+      <button class="btn btn--sm">Pequeño</button>
+      <button class="btn btn--icon" aria-label="Agregar">{% icon "plus" %}</button>
+      <hr style="width:100%;margin:4px 0">
+      <span class="tag">Registrada</span>
+      <span class="tag tag--brand">En proceso</span>
+      <span class="tag tag--warn">Por validar</span>
+      <span class="tag tag--ok">Validada</span>
+      <span class="tag tag--danger">Anulada</span>
+      <span class="tag tag--info">Urgente</span>
+    </div>
+  </div>
+  <div class="card">
+    <div class="card__head"><h2>Avisos</h2></div>
+    <div class="card__body grid" style="gap:8px">
+      <div class="alert alert--info">{% icon "info" %}<span>La orden se guardó como borrador.</span></div>
+      <div class="alert alert--ok">{% icon "circle-check" %}<span>Resultados validados y congelados.</span></div>
+      <div class="alert alert--warn">{% icon "triangle-alert" %}<span>Sin rango de referencia para esta edad: el informe lo imprimirá vacío.</span></div>
+      <div class="alert alert--danger">{% icon "triangle-alert" %}<span><b>Valor crítico:</b> POTASIO 6,8 mEq/L. Confirme y registre a quién notificó antes de validar.</span></div>
+    </div>
+  </div>
+</section>
+
+<section class="card" id="formulario">
+  <div class="card__head">
+    <h2>Formulario denso — registro de paciente</h2><span class="spacer"></span>
+    <span class="muted small">12 campos sin desplazar: grilla de 12 columnas, controles de 32 px</span>
+  </div>
+  <form method="get" novalidate>
+    <div class="card__body form-grid">
+      <div class="fieldset-title">Identificación</div>
+      {% field form.document_type "col-2" %}
+      {% field form.document_number "col-2" %}
+      {% field form.first_name "col-4" %}
+      {% field form.last_name "col-4" %}
+      {% field form.sex "col-2" %}
+      {% field form.birth_date "col-2" %}
+      {% field form.phone "col-4" %}
+      {% field form.email "col-4" %}
+      <div class="fieldset-title">Dirección y orden</div>
+      {% field form.locality "col-3" %}
+      {% field form.address "col-5" %}
+      {% field form.requested_by "col-2" %}
+      {% field form.priority "col-2" %}
+    </div>
+    <div class="actionbar">
+      <span class="kbd">Ctrl</span><span class="kbd">Enter</span><span class="muted small">guardar</span>
+      <span class="spacer"></span>
+      <a class="btn btn--ghost" href="{% url 'core:style-guide' %}">Cancelar</a>
+      <button class="btn btn--primary" type="submit">{% icon "save" %} Validar ejemplo</button>
+    </div>
+  </form>
+</section>
+
+<section class="card" id="resultados">
+  <div class="card__head">
+    <h2>Captura de resultados</h2>
+    <span class="tag tag--info">Urgente</span>
+    <span class="spacer"></span>
+    <span class="muted small">Orden 000123 · María Pérez · F · 34 años</span>
+  </div>
+  <div class="card__body card__body--flush table-wrap">
+    <table class="table">
+      <thead><tr><th style="width:34%">Parámetro</th><th class="num">Resultado</th><th>Unidad</th><th>Marca</th><th>Referencia</th></tr></thead>
+      <tbody>
+        <tr class="group-row"><td colspan="5">Hematología completa · Serie roja</td></tr>
+        <tr><td>Hemoglobina</td><td class="num"><input class="result-input" value="13,4"></td><td>g/dL</td><td></td><td class="muted">12,0 - 16,0 g/dL</td></tr>
+        <tr><td>Hematocrito</td><td class="num"><input class="result-input" value="40"></td><td>%</td><td><span class="flag flag--bajo">↓ BAJO</span></td><td class="muted">41 - 50 %</td></tr>
+        <tr><td>CHCM <span class="tag">calculado</span></td><td class="num"><input class="result-input" value="33,5" readonly></td><td>%</td><td><span class="flag flag--alto">↑ ALTO</span></td><td class="muted">31 - 33 %</td></tr>
+        <tr class="group-row"><td colspan="5">Electrolitos séricos</td></tr>
+        <tr class="row-critical"><td><b>Potasio (K+)</b></td><td class="num"><input class="result-input value-critico" value="6,8"></td><td>mEq/L</td><td><span class="flag flag--critico">CRÍTICO ↑</span></td><td class="muted">3,4 - 5,3 mEq/L</td></tr>
+        <tr><td>Sodio (Na+)</td><td class="num"><input class="result-input" value="141"></td><td>mEq/L</td><td></td><td class="muted">135 - 155 mEq/L</td></tr>
+        <tr class="group-row"><td colspan="5">Uroanálisis · Examen químico</td></tr>
+        <tr><td>Nitritos</td><td class="num"><select style="width:140px"><option>NEGATIVO</option><option>POSITIVO</option></select></td><td></td><td></td><td class="muted">NEGATIVO</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <div class="actionbar">
+    <span class="tag tag--danger">1 crítico sin notificar</span>
+    <span class="spacer"></span>
+    <button class="btn">{% icon "save" %} Guardar</button>
+    <button class="btn btn--primary" disabled>{% icon "shield-check" %} Validar</button>
+  </div>
+</section>
+
+<section class="grid grid-2">
+  <div class="card">
+    <div class="card__head"><h2>Lista de trabajo</h2><span class="spacer"></span><button class="btn btn--sm">{% icon "plus" %} Nueva</button></div>
+    <div class="card__body card__body--flush table-wrap">
+      <table class="table">
+        <thead><tr><th>N.º</th><th>Paciente</th><th>Exámenes</th><th>Estado</th></tr></thead>
+        <tbody>
+          <tr><td class="num">000123</td><td>María Pérez</td><td>HC, Electrolitos, URO</td><td><span class="tag tag--warn">Por validar</span></td></tr>
+          <tr><td class="num">000124</td><td>RN Sutil <span class="muted small">(repr. Ana Sutil)</span></td><td>Perfil pediátrico</td><td><span class="tag tag--brand">En proceso</span></td></tr>
+          <tr><td class="num">000125</td><td>José Cedeño</td><td>Perfil lipídico</td><td><span class="tag tag--ok">Validada</span></td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+  <div class="card">
+    <div class="card__head"><h2>Estado vacío</h2></div>
+    <div class="empty">{% icon "clipboard-list" %}<h3>Sin órdenes pendientes</h3><p class="small">Cuando registres una orden aparecerá aquí.</p></div>
+  </div>
+</section>
+{% endblock %}

@@ -1,26 +1,32 @@
-{% extends "base_tenant.html" %}
+{% extends "base_auth.html" %}
+{% load static ui %}
 
-{% block title %}Iniciar sesión — {{ request.tenant.name }}{% endblock %}
+{% block title %}Iniciar sesión · {{ request.tenant.name }}{% endblock %}
 
 {% block content %}
-    <h1>{{ request.tenant.name }}</h1>
-    <h2>Iniciar sesión</h2>
+<div class="auth__logo">
+  <img src="{% static 'img/brand/biolife-mark-96.png' %}" alt="Biolife">
+  <span class="wordmark"><b>Bio</b><span>life</span></span>
+  <span class="muted small">{{ request.tenant.name }}</span>
+</div>
 
-    {% if form.errors %}
-        <p style="color:red;">Usuario o contraseña incorrectos.</p>
-    {% endif %}
+{% if form.errors %}
+<div class="alert alert--danger" role="alert">{% icon "triangle-alert" %}<span>Usuario o contraseña incorrectos.</span></div>
+{% endif %}
 
-    <form method="post">
-        {% csrf_token %}
-        <p>
-            <label for="id_username">Usuario</label>
-            {{ form.username }}
-        </p>
-        <p>
-            <label for="id_password">Contraseña</label>
-            {{ form.password }}
-        </p>
-        <button type="submit">Entrar</button>
-        <input type="hidden" name="next" value="{{ next }}">
-    </form>
+<form method="post" novalidate>
+  {% csrf_token %}
+  <div class="field">
+    <label for="id_username">Usuario</label>
+    <input type="text" name="username" id="id_username" autocomplete="username" autofocus required
+           value="{{ form.username.value|default:'' }}">
+  </div>
+  <div class="field">
+    <label for="id_password">Contraseña</label>
+    <input type="password" name="password" id="id_password" autocomplete="current-password" required>
+  </div>
+  <input type="hidden" name="next" value="{{ next }}">
+  <button type="submit" class="btn btn--primary">Entrar</button>
+</form>
+<p class="auth__foot">Biolife · Sistema de gestión de laboratorio</p>
 {% endblock %}

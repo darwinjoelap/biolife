@@ -66,7 +66,7 @@ class Patient(TenantBaseModel):
                 name="uniq_patient_document",
             ),
             models.CheckConstraint(
-                check=models.Q(birth_date__isnull=False)
+                condition=models.Q(birth_date__isnull=False)
                 | models.Q(declared_age_value__isnull=False),
                 name="patient_has_birth_date_or_declared_age",
             ),

@@ -5,3 +5,4 @@ class SettingsLabConfig(AppConfig):
     default_auto_field = "django.db.models.BigAutoField"
     name = "apps.settings_lab"
     label = "settings_lab"
+    verbose_name = "Configuración del laboratorio"

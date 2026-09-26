@@ -1,0 +1,9 @@
+{% extends "base.html" %}
+{% comment %}Pantallas sin sesión (acceso, recuperar contraseña).{% endcomment %}
+{% block body %}
+<main class="auth">
+  <div class="card auth__card">
+    {% block content %}{% endblock %}
+  </div>
+</main>
+{% endblock %}

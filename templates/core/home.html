@@ -1,0 +1,27 @@
+{% extends "base_tenant.html" %}
+{% load ui %}
+{% block page_title_text %}Inicio{% endblock %}
+{% block page_title %}Hola, {{ user.first_name|default:user.username }}{% endblock %}
+{% block page_actions %}
+  <span class="btn btn--primary is-disabled" title="Disponible en la Fase 09">{% icon "plus" %} Nueva orden</span>
+{% endblock %}
+{% block content %}
+<section class="grid grid-4" aria-label="Indicadores del día">
+  <div class="card kpi"><div class="kpi__label">{% icon "clipboard-list" %} Órdenes de hoy</div><div class="kpi__value">—</div><div class="kpi__note">Disponible con Órdenes (Fase 09)</div></div>
+  <div class="card kpi"><div class="kpi__label">{% icon "test-tube" %} Muestras pendientes</div><div class="kpi__value">—</div><div class="kpi__note">Disponible con Órdenes (Fase 09)</div></div>
+  <div class="card kpi"><div class="kpi__label">{% icon "shield-check" %} Por validar</div><div class="kpi__value">—</div><div class="kpi__note">Disponible con Resultados (Fase 10)</div></div>
+  <div class="card kpi"><div class="kpi__label">{% icon "triangle-alert" %} Valores críticos</div><div class="kpi__value">—</div><div class="kpi__note">Disponible con Resultados (Fase 10)</div></div>
+</section>
+
+{% if user.is_staff %}
+<section class="card">
+  <div class="card__head"><h2>Configuración del laboratorio</h2></div>
+  <div class="card__body grid grid-4">
+    <a class="btn" href="{% url 'admin:catalog_test_changelist' %}">{% icon "microscope" %} Exámenes y rangos</a>
+    <a class="btn" href="{% url 'admin:catalog_profile_changelist' %}">{% icon "layers" %} Perfiles</a>
+    <a class="btn" href="{% url 'admin:billing_pricelist_changelist' %}">{% icon "tag" %} Listas de precios</a>
+    <a class="btn" href="{% url 'admin:settings_lab_tenantsettings_changelist' %}">{% icon "settings" %} Datos y colores del laboratorio</a>
+  </div>
+</section>
+{% endif %}
+{% endblock %}

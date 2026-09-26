@@ -352,20 +352,21 @@ TESTS: list[T] = [
     )),
     T("COLESTEROL_TOTAL", "COLESTEROL TOTAL", "QUIMICA_SANGUINEA", ST.SUERO, fasting=True,
       params=(
-          # Condición AYUNO heredada de la Fase 06 (ver pendiente en ADR-019).
+          # Condición NINGUNA (antes AYUNO, ADR-021): el ayuno es requisito del examen
+          # (requires_fasting), no un rango distinto.
           P("LIP_COLESTEROL_TOTAL", "COLESTEROL TOTAL", unit="mg/dL", dec=0, ranges=(
-              upper("MENOR A 200 mg/dL", "200", condition=ReferenceRange.Condition.AYUNO),
+              upper("MENOR A 200 mg/dL", "200"),
           )),
       )),
     T("TRIGLICERIDOS", "TRIGLICÉRIDOS", "QUIMICA_SANGUINEA", ST.SUERO, fasting=True,
       params=(
           P("LIP_TRIGLICERIDOS", "TRIGLICÉRIDOS", unit="mg/dL", dec=0, ranges=(
-              upper("MENOR A 150 mg/dL", "150", condition=ReferenceRange.Condition.AYUNO),
+              upper("MENOR A 150 mg/dL", "150"),
           )),
       )),
     T("HDL", "HDL-c", "QUIMICA_SANGUINEA", ST.SUERO, fasting=True, params=(
         P("LIP_HDL", "HDL-c", unit="mg/dL", dec=1, ranges=(
-            lower("MAYOR 40 mg/dL", "40", condition=ReferenceRange.Condition.AYUNO),
+            lower("MAYOR 40 mg/dL", "40"),
         )),
     )),
     T("LDL_VLDL", "LDL-c y VLDL-c (Friedewald)", "QUIMICA_SANGUINEA", ST.SUERO, fasting=True,

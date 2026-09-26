@@ -1,0 +1,7 @@
+{% comment %}Campo de formulario denso. Uso: {% field form.campo "col-3" %}{% endcomment %}
+<div class="field {{ col }}{% if field.errors %} has-error{% endif %}">
+  <label for="{{ field.id_for_label }}">{{ field.label }}{% if field.field.required %} <span class="req" aria-hidden="true">*</span>{% endif %}</label>
+  {{ field }}
+  {% if field.errors %}<span class="error">{{ field.errors|join:" " }}</span>
+  {% elif field.help_text %}<span class="help">{{ field.help_text }}</span>{% endif %}
+</div>

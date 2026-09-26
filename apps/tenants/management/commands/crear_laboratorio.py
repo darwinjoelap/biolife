@@ -15,6 +15,10 @@ class Command(BaseCommand):
         parser.add_argument("--admin-password", default=None)
         parser.add_argument("--rif", default=None)
         parser.add_argument("--trial-dias", type=int, default=30)
+        parser.add_argument(
+            "--sin-catalogo", action="store_true",
+            help="No sembrar catálogo, perfiles ni monedas (el laboratorio nace vacío).",
+        )
 
     def handle(self, *args, **options):
         try:
@@ -26,6 +30,7 @@ class Command(BaseCommand):
                 admin_password=options["admin_password"],
                 rif=options["rif"],
                 trial_days=options["trial_dias"],
+                seed_catalog=not options["sin_catalogo"],
             )
         except ApplicationError as exc:
             raise CommandError(exc.message) from exc

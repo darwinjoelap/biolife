@@ -1,0 +1,33 @@
+{% extends "admin/base.html" %}
+{% load static %}
+{% comment %}Admin con la identidad de Biolife (Fase 08d). Es la pantalla provisional de
+configuración hasta que cada módulo tenga su pantalla propia.{% endcomment %}
+{% block title %}{% if subtitle %}{{ subtitle }} | {% endif %}{{ title }} | Biolife{% endblock %}
+{% block extrahead %}
+  {{ block.super }}
+  <link rel="icon" href="{% static 'img/brand/favicon.ico' %}" sizes="any">
+  <style>
+    :root, html[data-theme="light"] {
+      --primary: #0b2e63; --secondary: #0d6dc9; --accent: #11ad9b;
+      --header-bg: #0b2e63; --header-link-color: #ffffff; --breadcrumbs-bg: #0a3d75;
+      --link-fg: #0d6dc9; --link-hover-color: #0b2e63; --link-selected-fg: #0b7f72;
+      --button-bg: #0d6dc9; --button-hover-bg: #0b2e63;
+      --default-button-bg: #0b2e63; --default-button-hover-bg: #0d6dc9;
+      --selected-row: #e8f3fb;
+      --font-family-primary: "Inter", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+    }
+    @font-face { font-family: "Inter"; font-weight: 100 900; font-display: swap;
+      src: url("{% static 'fonts/inter-latin-wght-normal.woff2' %}") format("woff2"); }
+    #branding h1 { display: flex; align-items: center; gap: 10px; }
+    #site-name a, #site-name a:visited { color: #fff; }
+    #branding img { width: 28px; height: 28px; background: #fff; border-radius: 6px; padding: 2px; }
+  </style>
+{% endblock %}
+{% block branding %}
+<div id="site-name">
+  <h1><a href="{% url 'admin:index' %}"><img src="{% static 'img/brand/biolife-mark-96.png' %}" alt="">Biolife{% if request.tenant %} · {{ request.tenant.name }}{% endif %}</a></h1>
+</div>
+{% if user.is_anonymous %}{% include "admin/color_theme_toggle.html" %}{% endif %}
+{% endblock %}
+{% block userlinks %}<a href="{% url 'tenant-home' %}">Ir a la aplicación</a> / {{ block.super }}{% endblock %}
+{% block nav-global %}{% endblock %}
