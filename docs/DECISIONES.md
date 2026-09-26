@@ -652,3 +652,27 @@ de Biolife. Las convenciones preveían Tailwind compilado por CLI.
 - `color-mix()` exige navegadores de 2023 en adelante; en los más viejos sólo se pierden los
   fondos suaves del color del laboratorio.
 - Sin modo oscuro por ahora.
+
+---
+
+## ADR-023 — Baja de laboratorios de demostración; un solo tenant demo
+**Fecha:** 2026-09-26 · **Estado:** Aceptada
+
+**Contexto.** Quedaban tres tenants de prueba (`demo_uno`, `demo_dos`, `demo_tres`). Sólo
+`demo_uno` se usa para trabajar (usuario de Darwin, catálogo, precios). El aislamiento entre
+laboratorios ya lo cubren las pruebas y `scripts/check_tenant_isolation.py`, que crean y
+borran sus propios tenants. `Tenant.auto_drop_schema = False` (ADR-003) impide borrar un
+esquema con un `delete()` común, y así debe seguir.
+
+**Decisión.**
+- `services/decommission.py::delete_demo_tenant()` y el comando
+  `eliminar_laboratorio_demo --schema X --confirmar X`: única vía para borrar un esquema.
+  Sólo acepta laboratorios en estado **DEMO**, exige repetir el esquema y rechaza `public`.
+- Un laboratorio real (ACTIVO, SUSPENDIDO, MOROSO, CANCELADO) nunca se borra físicamente:
+  se cancela.
+- Se borran `demo_dos` y `demo_tres`; `demo_uno` (`demo1.localhost`) queda como único
+  laboratorio de trabajo local.
+
+**Consecuencias.** `migrate_schemas` corre más rápido. Si se necesita probar a mano el
+aislamiento en el navegador, se crea un segundo laboratorio con `crear_laboratorio` y se
+borra después con este comando.

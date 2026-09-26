@@ -2,10 +2,7 @@
 
 ## Active
 
-- [ ] **Correr `seed_formulas` en demo_dos/demo_tres** - opcional, sólo se corrió en demo_uno
 - [ ] **Valores críticos (pánico) en la Fase 10** - umbrales crítico bajo/alto por rango (sexo/edad) en la ficha del examen; marca CRITICO_BAJO/CRITICO_ALTO resaltada; no se valida sin confirmar el valor y registrar a quién se notificó (quién, cuándo, cómo)
-- [ ] **Verificar Fases 08c/08d en la máquina de Darwin** - `migrate_schemas` (catalog.0006), `pytest -q` → 180, `ruff check .`, `runserver` y revisar acceso, Inicio y /estilo/
-- [ ] **Subir el repo a GitHub** (si aún no está) para que corra el CI de `.github/workflows/ci.yml`
 - [ ] **Ficha del examen definitiva con el nuevo estilo** - reemplaza al admin provisional (ADR-020/022)
 - [ ] **Cargar precios reales** en la lista GENERAL (admin → Precios y cobro)
 - [ ] **Fase 09** - Órdenes y muestras (no iniciar sin pedirlo)
@@ -25,8 +22,6 @@
 - [ ] **Confirmar marca y modelo de los analizadores** - para el laboratorio Angelus
 - [ ] **Confirmar precios de exámenes y perfiles** - para el laboratorio Angelus
 - [ ] **Confirmar estado/municipio de localidades sin certeza** - Cantagallo, Dos Caminos, Las Minas, Píritu (`apps/masterdata/fixtures/localidades.json`)
-- [ ] **Decidir si se conserva o se borra el tenant `demo_tres`** - quedó creado al verificar `provision_tenant()` con el admin inicial
-- [ ] **Borrar carpeta suelta `Claude outputs/`** - scratch file de una sesión anterior, no está trackeado por git, seguro de borrar manualmente
 
 ## Someday
 
@@ -39,8 +34,10 @@
 
 ## Done
 
+- [x] ~~Verificar Fases 08c/08d~~ (2026-09-26) — 180 passed, ruff limpio, pantallas revisadas en demo1.localhost; commit `39a4491`
+- [x] ~~Borrar tenants demo_dos y demo_tres~~ (2026-09-26) — comando `eliminar_laboratorio_demo` (ADR-023); queda demo_uno; carpeta `Claude outputs/` borrada
 - [x] ~~Fase 08c — Consolidación~~ (2026-09-26) — provisión con catálogo, lípidos sin AYUNO, CI, script de aislamiento reparado, avisos eliminados (ADR-021)
-- [x] ~~Fase 08d — Estilo visual y pantallas base~~ (2026-09-26) — biolife.css, base/base_tenant/base_auth, acceso, Inicio, /estilo/, admin con marca, STORAGES (ADR-022); 180/180 en el entorno de Claude
+- [x] ~~Fase 08d — Estilo visual y pantallas base~~ (2026-09-26) — biolife.css, base/base_tenant/base_auth, acceso, Inicio, /estilo/, admin con marca, STORAGES (ADR-022); 180/180 en el entorno de Claude — verificado en la máquina de Darwin
 
 - [x] ~~Commits de las Fases 06 a 08b~~ (2026-09-26) — Fase 06 `d3475eb`; Fases 07, 08 y 08b en `53655ab` (63 archivos)
 

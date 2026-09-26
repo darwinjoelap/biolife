@@ -4,7 +4,7 @@
 > Mantener bajo 100 líneas: si crece, es que hay historial que pertenece a DECISIONES.md.
 
 **Última actualización:** 2026-09-26
-**Fase actual:** 08b — Ficha del examen (rangos) (**completa y verificada**) → siguiente: 09 (órdenes y muestras)
+**Fase actual:** 08d — Estilo visual (**completa y verificada**, `39a4491`) → siguiente: 09 (órdenes y muestras)
 **Responsable:** Darwin
 
 ---
@@ -15,19 +15,21 @@
   configuración del laboratorio, pacientes, catálogo (ADR-001 a ADR-015).
 - [x] Fase 06 (`d3475eb`) y Fases 07–08b (`53655ab`): rangos, motor de fórmulas, perfiles,
   precios multimoneda, ficha del examen (ADR-016 a ADR-020).
-- [x] Fase 08c: laboratorios nacen con catálogo, lípidos sin AYUNO, CI, script de
-  aislamiento reparado (ADR-021).
-- [x] Fase 08d: sistema visual (CSS plano, paleta del logo, pantallas densas), acceso, Inicio,
-  guía de estilo en `/estilo/`, admin con la marca (ADR-022). 180/180 en el entorno de Claude.
+- [x] Fases 08c y 08d (`39a4491`): laboratorios nacen con catálogo, lípidos sin AYUNO, CI,
+  script de aislamiento reparado (ADR-021); sistema visual (CSS plano, paleta del logo,
+  pantallas densas), acceso, Inicio, guía en `/estilo/`, admin con la marca (ADR-022).
+  Verificado por Darwin: 180 passed, ruff limpio, pantallas revisadas en `demo1.localhost`.
+- [x] Limpieza: comando `eliminar_laboratorio_demo` (sólo estado DEMO); se borran
+  `demo_dos` y `demo_tres`, queda `demo_uno` como único laboratorio local (ADR-023).
+  183/183 en el entorno de Claude.
 
 ## En curso
 
-Fases 08c y 08d escritas en disco; falta que Darwin corra `migrate_schemas`, `pytest` (180),
-`ruff` y revise `/`, `/estilo/` y el acceso con `runserver`.
+Nada en curso.
 
 ## Pendiente inmediato
 
-1. Verificar 08c/08d. Siguiente: Fase 09 (órdenes y muestras) con el nuevo estilo.
+1. Siguiente: Fase 09 (órdenes y muestras) con el nuevo estilo.
 2. Cargar precios reales en la lista GENERAL (admin) cuando se tengan.
 3. **No usar en un informe real** ningún `ReferenceRange`/parámetro marcado "PENDIENTE DE
    CONFIRMAR" o "NO CONFIRMADO" (ver ADR-015 y ADR-016), ni el INR sin
@@ -35,7 +37,6 @@ Fases 08c y 08d escritas en disco; falta que Darwin corra `migrate_schemas`, `py
 4. Confirmar con Angelus los rangos de referencia contradictorios, los rangos
    pediátricos/neonatales reales, y el detalle geográfico de localidades sin municipio
    verificado (Cantagallo, Dos Caminos, Las Minas, Píritu).
-5. Decidir el destino de `demo_tres` y borrar manualmente `Claude outputs/`.
 
 ## Bloqueos
 
@@ -79,7 +80,8 @@ laboratorio antes de producción.
 - ADRs que conviene leer antes de tocar ciertas zonas: 007–009 (esquemas en
   django-tenants), 010–011 (`User` propio, `accounts` SHARED+TENANT), 017 (fórmulas),
   018 (alcance: Angelus es referencia), 019 (perfiles y precios), 020 (rangos y admin por
-  tenant), 021 (provisión con catálogo, CI), 022 (sistema visual y `STORAGES`).
+  tenant), 021 (provisión con catálogo, CI), 022 (sistema visual y `STORAGES`), 023 (baja de
+  laboratorios demo).
 - "7 roles" del índice del roadmap = 6 roles de tenant (esta fase) + `SUPERADMIN_PLATAFORMA`
   como `PlatformUser` en `public` (Fase 12), no un séptimo `Role` de tenant.
 - **Postgres local (máquina de Darwin):** hay 3 instalaciones (16, 17, 18). La base
