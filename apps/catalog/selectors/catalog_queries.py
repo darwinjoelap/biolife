@@ -2,9 +2,16 @@
 aquí, no importando modelos de `apps.catalog` directamente (CLAUDE.md, regla 3)."""
 from collections.abc import Iterable
 
-from django.db.models import Prefetch
+from django.db.models import Prefetch, Q, QuerySet
 
-from apps.catalog.models import Parameter, Profile, ProfileTest, Test
+from apps.catalog.models import (
+    ContainerType,
+    Parameter,
+    Profile,
+    ProfileTest,
+    SampleRequirement,
+    Test,
+)
 
 
 def active_profiles() -> list[Profile]:
@@ -64,3 +71,52 @@ def calculation_input_tests(*, tests: Iterable[Test]) -> set[Test]:
                     Parameter.objects.prefetch_related("depends_on").get(pk=dependency.pk)
                 )
     return set(Test.objects.filter(id__in=missing_test_ids))
+
+
+def sample_requirements_by_test(*, tests: Iterable[Test]) -> dict:
+    """{test_id: [SampleRequirement...]} con su tubo precargado (Fase 09)."""
+    result: dict = {}
+    requirements = (
+        SampleRequirement.objects.filter(
+            test_id__in=[t.id for t in tests], is_active=True,
+            container_type__is_active=True,
+        )
+        .select_related("container_type")
+        .order_by("order_index")
+    )
+    for requirement in requirements:
+        result.setdefault(requirement.test_id, []).append(requirement)
+    return result
+
+
+def container_types() -> list[ContainerType]:
+    return list(ContainerType.objects.filter(is_active=True))
+
+
+def search_orderables(*, query: str, limit: int = 12) -> tuple[list[Profile], list[Test]]:
+    """Perfiles y exámenes activos cuyo código o nombre contiene `query`."""
+    query = query.strip()
+    if not query:
+        return [], []
+    match = Q(code__icontains=query) | Q(name__icontains=query)
+    profiles = list(Profile.objects.filter(match, is_active=True)[:limit])
+    tests = list(
+        Test.objects.filter(match, is_active=True).select_related("section")[:limit]
+    )
+    return profiles, tests
+
+
+def active_tests_by_ids(*, ids: Iterable) -> list[Test]:
+    return list(Test.objects.filter(id__in=list(ids), is_active=True))
+
+
+def active_profiles_by_ids(*, ids: Iterable) -> list[Profile]:
+    return list(Profile.objects.filter(id__in=list(ids), is_active=True))
+
+
+def orderable_tests() -> QuerySet[Test]:
+    return Test.objects.filter(is_active=True)
+
+
+def orderable_profiles() -> QuerySet[Profile]:
+    return Profile.objects.filter(is_active=True)

@@ -1,0 +1,63 @@
+{% extends "base_tenant.html" %}
+{% load ui orders_ui %}
+{% block page_title_text %}Órdenes{% endblock %}
+{% block crumbs %}Recepción{% endblock %}
+{% block page_title %}{% if pending_only %}Muestras por tomar{% elif query %}Búsqueda: «{{ query }}»{% else %}Órdenes del {{ day|date:"d/m/Y" }}{% endif %}{% endblock %}
+{% block page_actions %}
+  <a class="btn btn--primary" href="{% url 'orders:new' %}">{% icon "plus" %} Nueva orden</a>
+{% endblock %}
+{% block content %}
+{% if not query and not pending_only %}
+<section class="grid grid-4" aria-label="Resumen del día">
+  <div class="card kpi"><div class="kpi__label">{% icon "clipboard-list" %} Órdenes</div><div class="kpi__value">{{ summary.orders }}</div></div>
+  <a class="card kpi" href="?pendientes=1" style="color:inherit"><div class="kpi__label">{% icon "test-tube" %} Muestras por tomar</div><div class="kpi__value">{{ summary.pending_samples }}</div></a>
+  <div class="card kpi"><div class="kpi__label">{% icon "triangle-alert" %} Urgentes</div><div class="kpi__value">{{ summary.urgent }}</div></div>
+  <div class="card kpi"><div class="kpi__label">{% icon "banknote" %} Por cobrar</div><div class="kpi__value">{{ summary.unpaid }}</div></div>
+</section>
+{% endif %}
+
+<section class="card">
+  <form method="get" class="card__head row" role="search">
+    {% if not query and not pending_only %}
+    <a class="btn btn--icon btn--ghost" href="?dia={{ prev_day|date:'Y-m-d' }}" aria-label="Día anterior">{% icon "chevron-left" %}</a>
+    <input type="date" name="dia" value="{{ day|date:'Y-m-d' }}" onchange="this.form.submit()" style="width:150px">
+    <a class="btn btn--icon btn--ghost" href="?dia={{ next_day|date:'Y-m-d' }}" aria-label="Día siguiente" style="transform:scaleX(-1)">{% icon "chevron-left" %}</a>
+    {% endif %}
+    <select name="estado" onchange="this.form.submit()" style="width:170px" aria-label="Estado">
+      <option value="">Todos los estados</option>
+      {% for value, label in statuses %}<option value="{{ value }}"{% if value == status %} selected{% endif %}>{{ label }}</option>{% endfor %}
+    </select>
+    {% if pending_only %}<input type="hidden" name="pendientes" value="1">{% endif %}
+    <span class="spacer"></span>
+    <label class="picker__input" style="width:min(360px,100%)">
+      <span class="sr-only">Buscar</span>{% icon "scan-line" %}
+      <input type="search" name="q" value="{{ query }}" placeholder="Escanee el tubo o busque orden, cédula, nombre…">
+    </label>
+    {% if query or pending_only %}<a class="btn btn--ghost" href="{% url 'orders:list' %}">Ver hoy</a>{% else %}<a class="btn" href="?pendientes=1">{% icon "test-tube" %} Por tomar</a>{% endif %}
+  </form>
+  <div class="card__body card__body--flush table-wrap">
+    {% if orders %}
+    <table class="table">
+      <thead><tr><th>N.º</th><th>Hora</th><th>Paciente</th><th class="num">Exámenes</th><th>Estado</th><th class="num">Por tomar</th><th class="num">Total</th><th>Pago</th></tr></thead>
+      <tbody>
+        {% for o in orders %}
+        <tr style="cursor:pointer" onclick="location.href='{% url 'orders:detail' o.pk %}'">
+          <td class="num"><a href="{% url 'orders:detail' o.pk %}"><b>{{ o.number }}</b></a>{% if o.priority == "URGENTE" %} <span class="tag tag--info">Urgente</span>{% endif %}</td>
+          <td class="num">{% if query or pending_only %}{{ o.ordered_at|date:"d/m" }} {% endif %}{{ o.ordered_at|date:"h:i A" }}</td>
+          <td>{{ o.patient.last_name }}, {{ o.patient.first_name }} <span class="muted small">{% if o.patient.document_number %}{{ o.patient.document_type }}-{{ o.patient.document_number }}{% endif %}</span></td>
+          <td class="num">{{ o.item_count }}</td>
+          <td><span class="tag {{ o.status|status_tag }}">{{ o.get_status_display }}</span></td>
+          <td class="num">{% if o.pending_samples %}<b>{{ o.pending_samples }}</b>{% else %}<span class="muted">—</span>{% endif %}</td>
+          <td class="num">{% if o.total is not None %}{{ o.total|floatformat:"2g" }} <span class="muted small">{{ o.currency_code }}</span>{% else %}<span class="muted">pendiente</span>{% endif %}</td>
+          <td>{% if o.is_paid %}<span class="tag tag--ok">Pagada</span>{% elif o.status != "ANULADA" %}<span class="tag tag--warn">Por cobrar</span>{% endif %}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+    {% else %}
+    <div class="empty">{% icon "clipboard-list" %}<h3>{% if query %}Sin resultados{% elif pending_only %}No hay muestras por tomar{% else %}Sin órdenes este día{% endif %}</h3>
+      <p class="small">{% if not query %}<a href="{% url 'orders:new' %}">Registrar una orden</a>{% endif %}</p></div>
+    {% endif %}
+  </div>
+</section>
+{% endblock %}

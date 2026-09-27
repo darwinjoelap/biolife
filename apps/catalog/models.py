@@ -124,9 +124,6 @@ class Test(TenantBaseModel):
     sample_type = models.CharField(
         "Tipo de muestra", max_length=15, choices=SampleType.choices
     )
-    container = models.CharField(
-        "Contenedor", max_length=100, blank=True, default=""
-    )
     process_hours = models.PositiveIntegerField(
         "Horas de proceso", null=True, blank=True
     )
@@ -390,3 +387,82 @@ class ProfileTest(TenantBaseModel):
 
     def __str__(self) -> str:
         return f"{self.profile.code} — {self.test.code}"
+
+
+class ContainerType(TenantBaseModel):
+    """Tubo o envase de toma (Fase 09, ADR-024). Lo define el aditivo: azul citrato, rojo
+    seco, morado EDTA... Cada laboratorio ajusta los suyos; `draw_order` es el orden de
+    extracción (CLSI GP41) que se muestra al flebotomista."""
+
+    class Additive(models.TextChoices):
+        CITRATO = "CITRATO", "Citrato de sodio"
+        NINGUNO = "NINGUNO", "Sin aditivo / activador"
+        GEL = "GEL", "Gel separador"
+        HEPARINA = "HEPARINA", "Heparina"
+        EDTA = "EDTA", "EDTA"
+        FLUORURO = "FLUORURO", "Fluoruro / oxalato"
+        NO_APLICA = "NO_APLICA", "No aplica (envase)"
+
+    code = models.CharField("Código", max_length=30, unique=True)
+    name = models.CharField("Nombre", max_length=80)
+    short_name = models.CharField(
+        "Nombre corto (etiqueta)", max_length=12,
+        help_text="Lo que se imprime en la etiqueta: AZUL, ROJO, ORINA…",
+    )
+    color = models.CharField("Color", max_length=7, default="#94a3b8",
+                             help_text="Hexadecimal, p. ej. #2563eb")
+    additive = models.CharField("Aditivo", max_length=12, choices=Additive.choices)
+    sample_type = models.CharField("Tipo de muestra", max_length=15,
+                                   choices=Test.SampleType.choices)
+    volume_ml = models.DecimalField("Volumen (mL)", max_digits=6, decimal_places=1,
+                                    null=True, blank=True)
+    draw_order = models.PositiveSmallIntegerField("Orden de extracción", default=50)
+    max_tests = models.PositiveSmallIntegerField(
+        "Máx. exámenes por tubo", default=0, help_text="0 = sin límite."
+    )
+
+    class Meta:
+        verbose_name = "Tubo / envase"
+        verbose_name_plural = "Tubos y envases"
+        ordering = ["draw_order", "name"]
+
+    def __str__(self) -> str:
+        return self.name
+
+
+class SampleRequirement(TenantBaseModel):
+    """Qué tubo(s) necesita un examen. Casi siempre uno; la depuración de creatinina lleva
+    envase de 24 h + tubo rojo, y una curva lleva una toma por tiempo (`collection_label`).
+
+    Al planificar los tubos de una orden, los requisitos con el mismo tubo y la misma
+    `collection_label` comparten tubo, salvo `own_container` (envío externo, hielo, otra
+    área) o si el tubo llega a `ContainerType.max_tests`."""
+
+    test = models.ForeignKey(Test, on_delete=models.CASCADE,
+                             related_name="sample_requirements")
+    container_type = models.ForeignKey(ContainerType, on_delete=models.PROTECT,
+                                       related_name="requirements", verbose_name="Tubo")
+    collection_label = models.CharField(
+        "Toma", max_length=30, blank=True, default="",
+        help_text="Sólo para tomas por tiempo: «Basal», «2 horas post-carga»…",
+    )
+    own_container = models.BooleanField(
+        "Tubo propio", default=False,
+        help_text="No compartir el tubo con otros exámenes.",
+    )
+    order_index = models.PositiveSmallIntegerField("Orden", default=0)
+
+    class Meta:
+        verbose_name = "Tubo requerido"
+        verbose_name_plural = "Tubos requeridos"
+        ordering = ["test", "order_index"]
+        constraints = [
+            models.UniqueConstraint(
+                fields=["test", "container_type", "collection_label"],
+                name="samplerequirement_unique",
+            ),
+        ]
+
+    def __str__(self) -> str:
+        label = f" ({self.collection_label})" if self.collection_label else ""
+        return f"{self.test.code} → {self.container_type.short_name}{label}"

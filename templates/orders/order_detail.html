@@ -1,0 +1,143 @@
+{% extends "base_tenant.html" %}
+{% load ui orders_ui %}
+{% block page_title_text %}Orden {{ order.number }}{% endblock %}
+{% block crumbs %}<a href="{% url 'orders:list' %}">Órdenes</a> / {{ order.ordered_at|date:"d/m/Y h:i A" }}{% endblock %}
+{% block page_title %}Orden {{ order.number }} <span class="tag {{ order.status|status_tag }}" style="vertical-align:middle">{{ order.get_status_display }}</span>{% if order.priority == "URGENTE" %} <span class="tag tag--info" style="vertical-align:middle">Urgente</span>{% endif %}{% endblock %}
+{% block page_actions %}
+  {% if active_samples %}<a class="btn btn--primary" href="{% url 'orders:labels' order.pk %}" target="_blank" rel="noopener">{% icon "printer" %} Imprimir etiquetas ({{ active_samples|length }})</a>{% endif %}
+  {% if editable %}<a class="btn" href="{% url 'orders:add' order.pk %}">{% icon "plus" %} Agregar exámenes</a>{% endif %}
+{% endblock %}
+{% block content %}
+<div class="row only-mobile" style="margin-bottom:var(--s3)">
+  {% if active_samples %}<a class="btn btn--primary" href="{% url 'orders:labels' order.pk %}" target="_blank" rel="noopener">{% icon "printer" %} Etiquetas ({{ active_samples|length }})</a>{% endif %}
+  {% if editable %}<a class="btn" href="{% url 'orders:add' order.pk %}">{% icon "plus" %} Agregar</a>{% endif %}
+</div>
+{% if order.is_cancelled %}
+<div class="alert alert--danger">{% icon "ban" %}<span><b>Orden anulada</b> el {{ order.cancelled_at|date:"d/m/Y h:i A" }} por {{ order.cancelled_by|default:"—" }}: {{ order.cancel_reason }}</span></div>
+{% endif %}
+<div class="layout-side">
+  <div class="stack">
+    <section class="card">
+      <div class="card__head"><h2>{% icon "test-tube" %} Tubos</h2>
+        <span class="muted small">en orden de extracción · {{ pending }} por tomar</span><span class="spacer"></span>
+        {% if pending and editable %}
+        <form method="post" action="{% url 'orders:collect' order.pk %}">{% csrf_token %}
+          <button class="btn btn--sm">{% icon "check" %} Marcar todas tomadas</button></form>
+        {% endif %}
+      </div>
+      <div class="card__body tubes">
+        {% for s in samples %}
+        <div class="tube {% if s.status == 'TOMADA' %}is-taken{% elif s.status == 'RECHAZADA' %}is-rejected{% endif %}" style="--tube: {{ s.container_type.color }}" x-data="{ rejecting: false }">
+          <span class="tube-dot" title="{{ s.container_type.name }}"></span>
+          <div>
+            <div class="tube__name"><span class="tube__label">{{ s.number }} · {{ s.container_type.name }}{% if s.collection_label %} · {{ s.collection_label }}{% endif %}</span>
+              <span class="tag {{ s.status|status_tag }}">{{ s.get_status_display }}</span></div>
+            <div class="tube__tests">{% for i in s.order_items.all %}{{ i.test.name }}{% if not forloop.last %} · {% endif %}{% endfor %}</div>
+            {% if s.status == "TOMADA" %}<div class="tube__tests">Tomada {{ s.collected_at|date:"d/m h:i A" }} por {{ s.collected_by|default:"—" }}</div>{% endif %}
+            {% if s.status == "RECHAZADA" %}<div class="tube__tests" style="text-decoration:none">Rechazada: {{ s.rejection_reason }}{% if s.replaced_by %} → reemplazo {{ s.replaced_by.number }}{% endif %}</div>{% endif %}
+            {% if s.replaces %}<div class="tube__tests">Reemplaza a {{ s.replaces.number }}</div>{% endif %}
+          </div>
+          <div class="row" style="justify-content:flex-end">
+            {% if s.status != "RECHAZADA" %}
+            <a class="btn btn--sm btn--ghost" href="{% url 'orders:labels' order.pk %}?muestra={{ s.pk }}" target="_blank" rel="noopener" title="Imprimir esta etiqueta">{% icon "printer" %}</a>
+            {% endif %}
+            {% if editable and s.status == "PENDIENTE" %}
+            <form method="post" action="{% url 'orders:collect' order.pk %}">{% csrf_token %}<input type="hidden" name="muestra" value="{{ s.pk }}">
+              <button class="btn btn--sm">{% icon "check" %} Tomada</button></form>
+            {% endif %}
+            {% if editable and s.status != "RECHAZADA" %}
+            <button type="button" class="btn btn--sm btn--ghost" @click="rejecting = !rejecting" x-show="!rejecting">Rechazar</button>
+            <form method="post" action="{% url 'orders:reject' order.pk s.pk %}" class="inline-form" x-show="rejecting" x-cloak>{% csrf_token %}
+              <input name="reason" placeholder="Motivo (hemólisis, insuficiente…)" required>
+              <button class="btn btn--sm btn--danger">Rechazar</button>
+              <button type="button" class="btn btn--sm btn--ghost" @click="rejecting = false" aria-label="Cancelar">{% icon "x" %}</button>
+            </form>
+            {% endif %}
+          </div>
+        </div>
+        {% empty %}<p class="muted small">La orden no tiene tubos: revise la asignación de tubos de sus exámenes en el catálogo.</p>{% endfor %}
+      </div>
+    </section>
+
+    <section class="card">
+      <div class="card__head"><h2>{% icon "microscope" %} Exámenes</h2><span class="muted small">{{ order.items.all|length }}</span></div>
+      <div class="card__body card__body--flush table-wrap">
+        <table class="table">
+          <thead><tr><th>Examen</th><th>Sección</th><th>Perfil</th><th>Tubo(s)</th><th>Estado</th></tr></thead>
+          <tbody>
+            {% for i in order.items.all %}
+            <tr><td>{{ i.test.name }} <span class="muted small">{{ i.test.code }}</span></td>
+              <td class="muted">{{ i.test.section.name|title }}</td>
+              <td>{% if i.profile %}<span class="tag tag--brand">{{ i.profile.name }}</span>{% endif %}</td>
+              <td class="num small">{% for s in samples %}{% if i in s.order_items.all and s.status != "RECHAZADA" %}<span class="tube-dot" style="--tube: {{ s.container_type.color }};width:9px;height:9px"></span> {{ s.number|slice:"-2:" }} {% endif %}{% endfor %}</td>
+              <td><span class="tag">{{ i.get_status_display }}</span></td></tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </section>
+  </div>
+
+  <aside class="stack">
+    <section class="card">
+      <div class="card__head"><h2>{% icon "user" %} Paciente</h2></div>
+      <div class="card__body">
+        <div class="patient-card" style="margin-bottom:var(--s3)"><span class="avatar">{% icon "user" %}</span>
+          <div><strong>{{ order.patient.first_name }} {{ order.patient.last_name }}</strong>
+            <small>{% if order.patient.document_number %}{{ order.patient.document_type }}-{{ order.patient.document_number }}{% else %}Sin documento{% endif %} · {{ order.patient.internal_code }}</small></div></div>
+        <dl class="dl">
+          <dt>Edad</dt><dd>{{ patient_age }}</dd>
+          <dt>Sexo</dt><dd>{{ order.patient.get_sex_display }}</dd>
+          {% if order.patient.phone %}<dt>Teléfono</dt><dd>{{ order.patient.phone }}</dd>{% endif %}
+        </dl>
+      </div>
+    </section>
+
+    <section class="card">
+      <div class="card__head"><h2>{% icon "banknote" %} Cobro</h2><span class="spacer"></span>
+        {% if order.is_paid %}<span class="tag tag--ok">Pagada</span>{% elif not order.is_cancelled %}<span class="tag tag--warn">Por cobrar</span>{% endif %}</div>
+      <div class="card__body stack" style="gap:var(--s3)">
+        {% if order.pricing_pending %}
+        <div class="alert alert--warn">{% icon "triangle-alert" %}<span>Monto pendiente: faltaban precios ({{ order.quote_snapshot.missing_prices|join:", " }}).</span></div>
+        {% else %}
+        <table class="lines">{% for line in order.quote_snapshot.lines %}
+          <tr><td>{{ line.name }}</td><td class="num">{{ line.amount|floatformat:"2g" }}</td></tr>{% endfor %}</table>
+        <div class="totals">
+          {% if order.discount_total %}<div style="color:var(--ok)"><span>Descuentos</span><span class="num">− {{ order.discount_total|floatformat:"2g" }}</span></div>{% endif %}
+          <div class="total"><span>Total</span><span class="num">{{ order.total|floatformat:"2g" }} {{ order.currency_code }}</span></div>
+          {% if order.converted_total is not None %}<div class="muted"><span>En {{ order.converted_currency_code }}</span><span class="num">{{ order.converted_total|floatformat:"2g" }}</span></div>{% endif %}
+        </div>
+        {% endif %}
+        {% if order.is_paid %}<p class="muted small">Cobrada {{ order.paid_at|date:"d/m/Y h:i A" }} por {{ order.paid_by|default:"—" }}.</p>
+        {% elif not order.is_cancelled and not order.pricing_pending %}
+        <form method="post" action="{% url 'orders:pay' order.pk %}">{% csrf_token %}<button class="btn" style="width:100%">{% icon "check" %} Marcar como pagada</button></form>
+        {% endif %}
+      </div>
+    </section>
+
+    <section class="card">
+      <div class="card__head"><h2>{% icon "clipboard-list" %} Datos</h2></div>
+      <div class="card__body">
+        <dl class="dl">
+          <dt>Registrada</dt><dd>{{ order.ordered_at|date:"d/m/Y h:i A" }} · {{ order.created_by|default:"—" }}</dd>
+          <dt>Prioridad</dt><dd>{{ order.get_priority_display }}</dd>
+          {% if order.requested_by %}<dt>Médico</dt><dd>{{ order.requested_by }}</dd>{% endif %}
+          {% if order.weight_kg %}<dt>Peso / talla</dt><dd>{{ order.weight_kg }} kg · {{ order.height_cm|default:"—" }} cm</dd>{% endif %}
+          {% if order.urine_volume_24h_ml %}<dt>Orina 24 h</dt><dd>{{ order.urine_volume_24h_ml }} mL</dd>{% endif %}
+          {% if order.notes %}<dt>Notas</dt><dd>{{ order.notes }}</dd>{% endif %}
+        </dl>
+        {% if editable %}
+        <div x-data="{ open: false }" style="margin-top:var(--s3)">
+          <button type="button" class="btn btn--sm btn--danger" @click="open = true" x-show="!open">{% icon "ban" %} Anular orden</button>
+          <form method="post" action="{% url 'orders:cancel' order.pk %}" class="inline-form" x-show="open" x-cloak>{% csrf_token %}
+            <input name="reason" placeholder="Motivo de la anulación" required>
+            <button class="btn btn--sm btn--danger">Anular</button>
+            <button type="button" class="btn btn--sm btn--ghost" @click="open = false" aria-label="Cancelar">{% icon "x" %}</button>
+          </form>
+        </div>
+        {% endif %}
+      </div>
+    </section>
+  </aside>
+</div>
+{% endblock %}

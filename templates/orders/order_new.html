@@ -1,0 +1,86 @@
+{% extends "base_tenant.html" %}
+{% load ui %}
+{% block page_title_text %}Nueva orden{% endblock %}
+{% block crumbs %}Recepción{% endblock %}
+{% block page_title %}Nueva orden{% endblock %}
+{% block page_actions %}
+  <a class="btn btn--ghost" href="{% url 'orders:list' %}">{% icon "chevron-left" %} Órdenes</a>
+{% endblock %}
+{% block content %}
+{% include "orders/_picker_js.html" %}
+{{ selected|json_script:"selected-items" }}
+<form method="post" novalidate id="order-form"
+      x-data="orderPicker({ items: JSON.parse(document.getElementById('selected-items').textContent),
+                            patient: {% if patient %}{ id: '{{ patient.pk }}', name: '{{ patient.first_name|escapejs }} {{ patient.last_name|escapejs }}', meta: '{% if patient.document_number %}{{ patient.document_type }}-{{ patient.document_number }}{% else %}Sin documento{% endif %} · {{ patient.get_sex_display }} · {{ patient_age|escapejs }}' }{% else %}null{% endif %} })"
+      hx-post="{% url 'orders:preview' %}" hx-trigger="load, change delay:250ms, items-changed"
+      hx-target="#summary" hx-sync="this:replace">
+  {% csrf_token %}
+  <input type="hidden" name="patient" :value="patient ? patient.id : ''">
+  {% if form.non_field_errors %}
+  <div class="alert alert--danger" style="margin-bottom:var(--s4)">{% icon "triangle-alert" %}<span>{{ form.non_field_errors|join:" " }}</span></div>
+  {% endif %}
+  <div class="layout-side">
+    <div class="stack">
+      <section class="card">
+        <div class="card__head"><h2>{% icon "user" %} Paciente</h2><span class="spacer"></span>
+          <a class="btn btn--sm" href="{% url 'patients:create' %}?next={% url 'orders:new' %}">{% icon "user-plus" %} Registrar paciente</a>
+        </div>
+        <div class="card__body">
+          <template x-if="patient">
+            <div class="patient-card">
+              <span class="avatar">{% icon "user" %}</span>
+              <div><strong x-text="patient.name"></strong><small x-text="patient.meta"></small></div>
+              <span class="spacer" style="flex:1"></span>
+              <button type="button" class="btn btn--sm btn--ghost" @click="patient = null">Cambiar</button>
+            </div>
+          </template>
+          <div x-show="!patient" class="picker">
+            <label class="picker__input">
+              <span class="sr-only">Buscar paciente</span>{% icon "search" %}
+              <input type="search" name="pq" placeholder="Cédula, nombre, apellido o código del paciente…" autocomplete="off"
+                     hx-get="{% url 'orders:search-patients' %}" hx-trigger="input changed delay:250ms, search"
+                     hx-target="#patient-results" hx-include="this" @keydown.enter.prevent>
+            </label>
+            <div id="patient-results" class="picker__results"></div>
+            {% if form.patient.errors %}<p class="small" style="color:var(--danger);margin-top:6px">{{ form.patient.errors|join:" " }}</p>{% endif %}
+          </div>
+        </div>
+      </section>
+
+      <section class="card">
+        <div class="card__head"><h2>{% icon "microscope" %} Exámenes y perfiles</h2><span class="spacer"></span>
+          <span class="muted small" x-text="items.length ? items.length + ' elegido(s)' : ''"></span></div>
+        <div class="card__body">{% include "orders/_picker.html" %}</div>
+      </section>
+
+      <section class="card">
+        <div class="card__head"><h2>{% icon "clipboard-list" %} Datos de la orden</h2></div>
+        <div class="card__body form-grid">
+          {% field form.priority "col-2" %}
+          {% field form.requested_by "col-4" %}
+          {% field form.price_list "col-3" %}
+          {% field form.reference_currency "col-3" %}
+          {% field form.weight_kg "col-2" %}
+          {% field form.height_cm "col-2" %}
+          {% field form.urine_volume_24h_ml "col-2" %}
+          {% field form.notes "col-6" %}
+          {% if form.discounts.field.queryset %}
+          <div class="field col-12 checks"><label>{{ form.discounts.label }}</label>{{ form.discounts }}
+            <label>{{ form.authorized }} {{ form.authorized.label }}</label></div>
+          {% endif %}
+        </div>
+      </section>
+    </div>
+
+    <aside class="card sticky" aria-live="polite">
+      <div class="card__head"><h2>Resumen</h2><span class="spacer"></span><span class="htmx-indicator muted small">calculando…</span></div>
+      <div id="summary" class="card__body"><p class="muted small">Agregue exámenes para ver el monto y los tubos.</p></div>
+      <div class="actionbar" style="position:static">
+        <span class="spacer"></span>
+        <button class="btn btn--primary" type="submit"
+                :disabled="!patient || !items.length">{% icon "save" %} Registrar orden</button>
+      </div>
+    </aside>
+  </div>
+</form>
+{% endblock %}

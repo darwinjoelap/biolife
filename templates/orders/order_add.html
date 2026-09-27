@@ -1,0 +1,21 @@
+{% extends "base_tenant.html" %}
+{% load ui %}
+{% block page_title_text %}Agregar exámenes · {{ order.number }}{% endblock %}
+{% block crumbs %}<a href="{% url 'orders:list' %}">Órdenes</a> / <a href="{% url 'orders:detail' order.pk %}">{{ order.number }}</a>{% endblock %}
+{% block page_title %}Agregar exámenes a la orden {{ order.number }}{% endblock %}
+{% block content %}
+{% include "orders/_picker_js.html" %}
+<form method="post" class="card" x-data="orderPicker({ items: [] })">
+  {% csrf_token %}
+  {% if form.non_field_errors %}<div class="card__body"><div class="alert alert--danger">{% icon "triangle-alert" %}<span>{{ form.non_field_errors|join:" " }}</span></div></div>{% endif %}
+  <div class="card__body">
+    <p class="muted small" style="margin-bottom:var(--s3)">{{ order.patient.first_name }} {{ order.patient.last_name }} · ya tiene {{ order.items.all|length }} examen(es). Los nuevos entran en un tubo por tomar compatible o en uno nuevo; la orden se recotiza.</p>
+    {% include "orders/_picker.html" %}
+  </div>
+  <div class="actionbar">
+    <span class="spacer"></span>
+    <a class="btn btn--ghost" href="{% url 'orders:detail' order.pk %}">Cancelar</a>
+    <button class="btn btn--primary" type="submit" :disabled="!items.length">{% icon "plus" %} Agregar</button>
+  </div>
+</form>
+{% endblock %}

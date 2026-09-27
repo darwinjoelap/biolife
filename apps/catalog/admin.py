@@ -13,12 +13,14 @@ from apps.catalog.admin_forms import (
 from apps.catalog.models import (
     CodedOption,
     CodedOptionSet,
+    ContainerType,
     Method,
     Parameter,
     ParameterGroup,
     Profile,
     ProfileTest,
     ReferenceRange,
+    SampleRequirement,
     Section,
     Test,
     Unit,
@@ -102,12 +104,48 @@ class ParameterInline(admin.TabularInline):
                            rows or "Sin rangos. ", url)
 
 
+@admin.register(ContainerType)
+class ContainerTypeAdmin(admin.ModelAdmin):
+    list_display = ["muestra_color", "name", "short_name", "additive", "sample_type",
+                    "draw_order", "max_tests", "is_active"]
+    list_display_links = ["name"]
+    list_editable = ["draw_order", "max_tests"]
+    search_fields = ["code", "name"]
+
+    @admin.display(description="Color")
+    def muestra_color(self, obj):
+        return format_html(
+            '<span style="display:inline-block;width:14px;height:14px;border-radius:50%;'
+            'background:{}"></span>', obj.color,
+        )
+
+
+class SampleRequirementInline(admin.TabularInline):
+    model = SampleRequirement
+    extra = 0
+    fields = ["container_type", "collection_label", "own_container", "order_index"]
+    verbose_name_plural = "Tubos que requiere (toma de muestra)"
+
+
 @admin.register(Test)
 class TestAdmin(admin.ModelAdmin):
-    list_display = ["code", "name", "section", "sample_type", "is_active"]
+    list_display = ["code", "name", "section", "sample_type", "tubos", "is_active"]
     list_filter = ["section", "sample_type"]
     search_fields = ["code", "name"]
-    inlines = [ParameterGroupInline, ParameterInline]
+    inlines = [SampleRequirementInline, ParameterGroupInline, ParameterInline]
+
+    def get_queryset(self, request):
+        return super().get_queryset(request).prefetch_related(
+            "sample_requirements__container_type"
+        )
+
+    @admin.display(description="Tubos")
+    def tubos(self, obj):
+        return format_html_join(
+            " ", '<span style="color:{}">●</span> {}',
+            ((r.container_type.color, r.container_type.short_name)
+             for r in obj.sample_requirements.all()),
+        )
 
 
 class ParameterAdminForm(forms.ModelForm):

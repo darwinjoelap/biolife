@@ -1,0 +1,21 @@
+<script>
+  // Estado del selector de la recepción (Alpine). Al cambiar los exámenes avisa al
+  // formulario ("items-changed") para que htmx recalcule el resumen.
+  window.orderPicker = function (initial) {
+    return {
+      items: initial.items || [],
+      patient: initial.patient || null,
+      has(kind, id) { return this.items.some((i) => i.kind === kind && i.id === id); },
+      add(d) {
+        if (this.has(d.kind, d.id)) return;
+        this.items.push({ kind: d.kind, id: d.id, code: d.code, name: d.name });
+        this.changed();
+      },
+      remove(item) { this.items = this.items.filter((i) => i !== item); this.changed(); },
+      pickPatient(d) { this.patient = { id: d.id, name: d.name, meta: d.meta }; },
+      changed() {
+        this.$nextTick(() => this.$root.dispatchEvent(new Event("items-changed", { bubbles: true })));
+      },
+    };
+  };
+</script>

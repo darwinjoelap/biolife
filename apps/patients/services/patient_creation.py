@@ -7,7 +7,7 @@ from apps.accounts.models import User
 from apps.core.exceptions import ApplicationError
 from apps.masterdata.models import Locality
 from apps.patients.models import Guardian, Patient, PatientCodeSequence, PatientGuardian
-from apps.patients.services.guardian_linking import link_guardian
+from apps.patients.services.guardian_linking import create_guardian, link_guardian
 from apps.settings_lab.models import TenantSettings
 
 
@@ -137,3 +137,24 @@ def create_patient(
         ) from exc
 
     return patient
+
+
+def register_patient(*, guardian_data: dict | None = None, created_by: User | None = None,
+                     **patient_data) -> Patient:
+    """Registro desde la recepción (Fase 09): paciente y, si se indica, su representante,
+    en una sola transacción. Reutiliza el representante si ya existe con ese documento."""
+    with transaction.atomic():
+        guardian = None
+        relationship = relationship_detail = ""
+        if guardian_data:
+            data = dict(guardian_data)
+            relationship = data.pop("relationship")
+            relationship_detail = data.pop("relationship_detail", "")
+            guardian = Guardian.objects.filter(
+                document_type=data["document_type"], document_number=data["document_number"]
+            ).first() or create_guardian(**data)
+        return create_patient(
+            guardian=guardian, guardian_relationship=relationship,
+            guardian_relationship_detail=relationship_detail, created_by=created_by,
+            **patient_data,
+        )

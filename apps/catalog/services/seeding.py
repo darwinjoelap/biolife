@@ -204,7 +204,6 @@ def seed_uroanalisis() -> Test:
             "name": "UROANÁLISIS",
             "section": section,
             "sample_type": Test.SampleType.ORINA,
-            "container": "Envase estéril de boca ancha",
         },
     )
 

@@ -1,0 +1,5 @@
+{% load ui %}
+<a class="card kpi" href="{% url 'orders:list' %}" style="color:inherit"><div class="kpi__label">{% icon "clipboard-list" %} Órdenes de hoy</div><div class="kpi__value">{{ summary.orders }}</div><div class="kpi__note">{{ summary.urgent }} urgente(s)</div></a>
+<a class="card kpi" href="{% url 'orders:list' %}?pendientes=1" style="color:inherit"><div class="kpi__label">{% icon "test-tube" %} Muestras por tomar</div><div class="kpi__value">{{ summary.pending_samples }}</div><div class="kpi__note">Lista de trabajo de la toma</div></a>
+<div class="card kpi"><div class="kpi__label">{% icon "shield-check" %} Por validar</div><div class="kpi__value">—</div><div class="kpi__note">Disponible con Resultados (Fase 10)</div></div>
+<div class="card kpi"><div class="kpi__label">{% icon "banknote" %} Por cobrar</div><div class="kpi__value">{{ summary.unpaid }}</div><div class="kpi__note">Órdenes de hoy sin pago</div></div>

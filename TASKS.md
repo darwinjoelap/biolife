@@ -5,7 +5,10 @@
 - [ ] **Valores críticos (pánico) en la Fase 10** - umbrales crítico bajo/alto por rango (sexo/edad) en la ficha del examen; marca CRITICO_BAJO/CRITICO_ALTO resaltada; no se valida sin confirmar el valor y registrar a quién se notificó (quién, cuándo, cómo)
 - [ ] **Ficha del examen definitiva con el nuevo estilo** - reemplaza al admin provisional (ADR-020/022)
 - [ ] **Cargar precios reales** en la lista GENERAL (admin → Precios y cobro)
-- [ ] **Fase 09** - Órdenes y muestras (no iniciar sin pedirlo)
+- [ ] **Verificar Fase 09 en la máquina de Darwin** - `pip install -r requirements/local.txt` (reportlab), `migrate_schemas`, `tenant_command seed_contenedores --schema=demo_uno`, siglas del laboratorio, `pytest -q` → 211, `ruff check .`, flujo completo en demo1.localhost; luego commit
+- [ ] **Caja** - abonos, métodos de pago (efectivo, pago móvil, transferencia, divisas), vuelto; fase propia (ADR-024)
+- [ ] **Definir impresora de etiquetas** - modelo y tamaño real; ajustar ancho/alto en Laboratorio (hoy 50 × 25 mm)
+- [ ] **Fase 10** - Captura y validación de resultados (no iniciar sin pedirlo)
 
 ## Waiting On
 
@@ -35,6 +38,7 @@
 
 ## Done
 
+- [x] ~~Fase 09 — Órdenes y muestras~~ (2026-09-27) — número diario, tubos por aditivo, etiquetas PDF con Code 128, toma/rechazo/reemplazo, cotización congelada, pantallas de recepción (ADR-024); 211/211 en el entorno de Claude — pendiente verificación en la máquina de Darwin
 - [x] ~~Verificar Fases 08c/08d~~ (2026-09-26) — 180 passed, ruff limpio, pantallas revisadas en demo1.localhost; commit `39a4491`
 - [x] ~~Borrar tenants demo_dos y demo_tres~~ (2026-09-26) — comando `eliminar_laboratorio_demo` (ADR-023); queda demo_uno; carpeta `Claude outputs/` borrada; 183 passed y ruff limpio en la máquina de Darwin; commit `7ad6be1`
 - [x] ~~Subir el repo a GitHub~~ (2026-09-26) — https://github.com/darwinjoelap/biolife, rama main

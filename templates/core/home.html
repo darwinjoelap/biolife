@@ -3,14 +3,13 @@
 {% block page_title_text %}Inicio{% endblock %}
 {% block page_title %}Hola, {{ user.first_name|default:user.username }}{% endblock %}
 {% block page_actions %}
-  <span class="btn btn--primary is-disabled" title="Disponible en la Fase 09">{% icon "plus" %} Nueva orden</span>
+  <a class="btn" href="{% url 'patients:create' %}">{% icon "user-plus" %} Nuevo paciente</a>
+  <a class="btn btn--primary" href="{% url 'orders:new' %}">{% icon "plus" %} Nueva orden</a>
 {% endblock %}
 {% block content %}
-<section class="grid grid-4" aria-label="Indicadores del día">
-  <div class="card kpi"><div class="kpi__label">{% icon "clipboard-list" %} Órdenes de hoy</div><div class="kpi__value">—</div><div class="kpi__note">Disponible con Órdenes (Fase 09)</div></div>
-  <div class="card kpi"><div class="kpi__label">{% icon "test-tube" %} Muestras pendientes</div><div class="kpi__value">—</div><div class="kpi__note">Disponible con Órdenes (Fase 09)</div></div>
-  <div class="card kpi"><div class="kpi__label">{% icon "shield-check" %} Por validar</div><div class="kpi__value">—</div><div class="kpi__note">Disponible con Resultados (Fase 10)</div></div>
-  <div class="card kpi"><div class="kpi__label">{% icon "triangle-alert" %} Valores críticos</div><div class="kpi__value">—</div><div class="kpi__note">Disponible con Resultados (Fase 10)</div></div>
+<section class="grid grid-4" aria-label="Indicadores del día"
+         hx-get="{% url 'orders:day-summary' %}" hx-trigger="load" hx-swap="innerHTML">
+  <div class="card kpi"><div class="kpi__label">{% icon "clipboard-list" %} Órdenes de hoy</div><div class="kpi__value">…</div></div>
 </section>
 
 {% if user.is_staff %}

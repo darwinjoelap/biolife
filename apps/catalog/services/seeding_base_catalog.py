@@ -97,7 +97,6 @@ class T:
     sample: str
     params: tuple[P, ...]
     method: str = ""
-    container: str = ""
     fasting: bool = False
     anthropometry: bool = False
     groups: tuple[str, ...] = field(default_factory=tuple)
@@ -279,7 +278,7 @@ def _paired_igg_igm(prefix: str, label: str) -> tuple[P, P]:
 TESTS: list[T] = [
     # ---------------------------------------------------------------- Hematología
     T("HEM_COMP", "HEMATOLOGÍA COMPLETA", "HEMATOLOGIA", ST.SANGRE_TOTAL,
-      container="Tubo lila (EDTA)", groups=("SERIE ROJA", "SERIE BLANCA"), params=(
+      groups=("SERIE ROJA", "SERIE BLANCA"), params=(
         P("HEM_HEMOGLOBINA", "HEMOGLOBINA", unit="g/dL", dec=1, group="SERIE ROJA", ranges=(
             closed("13,0 - 15,0 g/dL", "13.0", "15.0", sex=SEX.M),
             closed("12,0 - 16,0 g/dL", "12.0", "16.0", sex=SEX.F),
@@ -308,16 +307,16 @@ TESTS: list[T] = [
           ranges=(closed("150.000 - 450.000/mm3", "150000", "450000"),)),
     )),
     T("VSG", "VELOCIDAD DE SEDIMENTACIÓN GLOBULAR", "HEMATOLOGIA", ST.SANGRE_TOTAL,
-      container="Tubo lila (EDTA)", params=(
+      params=(
           P("HEM_VSG", "VSG", unit="mm/h", dec=0, ranges=(closed("0 - 15 mm/h", "0", "15"),)),
       )),
     T("GRUPO_SANGUINEO", "GRUPO SANGUÍNEO (TIPIAJE)", "HEMATOLOGIA", ST.SANGRE_TOTAL,
-      container="Tubo lila (EDTA)", params=(
+      params=(
           P("GS_GRUPO", "GRUPO SANGUÍNEO", VT.CODED, options="GRUPO_ABO"),
           P("GS_FACTOR_RH", "FACTOR Rh", VT.CODED, options="FACTOR_RH"),
       )),
     T("HBA1C", "HEMOGLOBINA GLICADA (HbA1c)", "HORMONAS", ST.SANGRE_TOTAL,
-      container="Tubo lila (EDTA)", params=(
+      params=(
           P("ESP_HBA1C", "HEMOGLOBINA GLICADA (HbA1c)", unit="%", dec=1, ranges=(
               R(RT.INTERPRETIVE, "NORMAL: MENOR A 5,7 % (PROPUESTO, criterios ADA)",
                 bands=HBA1C_BANDS),
@@ -505,7 +504,7 @@ TESTS: list[T] = [
       )),
     # ---------------------------------------------------------------- Coagulación
     T("PT", "TIEMPO DE PROTROMBINA (PT)", "COAGULACION", ST.PLASMA,
-      container="Tubo azul (citrato)", params=(
+      params=(
           P("COAG_PT_PACIENTE", "PACIENTE", unit="seg", dec=1),
           P("COAG_PT_CONTROL", "CONTROL", unit="seg", dec=1),
           P("COAG_PT_RAZON", "RAZÓN", VT.NUMERIC_CALCULATED, dec=2,
@@ -516,7 +515,7 @@ TESTS: list[T] = [
             ranges=(closed("0,80 - 1,20", "0.80", "1.20"),)),
       )),
     T("PTT", "TIEMPO DE TROMBOPLASTINA PARCIAL (PTT)", "COAGULACION", ST.PLASMA,
-      container="Tubo azul (citrato)", params=(
+      params=(
           P("COAG_PTT_PACIENTE", "PACIENTE", unit="seg", dec=1),
           P("COAG_PTT_CONTROL", "CONTROL", unit="seg", dec=1),
           P("COAG_PTT_DIFERENCIA", "DIFERENCIA", VT.NUMERIC_CALCULATED, unit="seg", dec=1,
@@ -525,7 +524,7 @@ TESTS: list[T] = [
             )),
       )),
     T("FIBRINOGENO", "FIBRINÓGENO", "COAGULACION", ST.PLASMA,
-      container="Tubo azul (citrato)", params=(
+      params=(
           P("COAG_FIBRINOGENO", "FIBRINÓGENO", unit="mg/dL", dec=0,
             ranges=(closed("200 - 400 mg/dL", "200", "400"),)),
       )),
@@ -630,7 +629,7 @@ def _ensure_test(spec: T, *, sections, methods) -> Test:
         code=spec.code,
         defaults={
             "name": spec.name, "section": sections[spec.section], "sample_type": spec.sample,
-            "method": methods.get(spec.method), "container": spec.container,
+            "method": methods.get(spec.method),
             "requires_fasting": spec.fasting, "requires_anthropometry": spec.anthropometry,
         },
     )

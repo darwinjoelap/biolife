@@ -55,12 +55,22 @@ class TenantSettings(models.Model):
     )
 
     # Operación
-    order_number_prefix = models.CharField(
-        "Prefijo de número de orden", max_length=10, blank=True, default=""
-    )
-    order_number_next = models.PositiveIntegerField("Próximo número de orden", default=1)
+    # El número de orden es diario, AAMMDD-NNNN, y lo lleva apps.orders (ADR-024).
     require_second_validation = models.BooleanField(
         "Requiere doble validación", default=False
+    )
+
+    # Etiquetas de tubo (Fase 09, ADR-024): PDF del tamaño exacto de la etiqueta térmica.
+    label_width_mm = models.PositiveSmallIntegerField(
+        "Ancho de etiqueta (mm)", default=50
+    )
+    label_height_mm = models.PositiveSmallIntegerField(
+        "Alto de etiqueta (mm)", default=25
+    )
+    label_extra_for_order = models.BooleanField(
+        "Etiqueta extra para la hoja de la orden", default=False,
+        help_text="Imprime una etiqueta más, con el número de orden, para pegar en la "
+                  "solicitud.",
     )
 
     class Meta:

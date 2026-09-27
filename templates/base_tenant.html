@@ -18,16 +18,17 @@ page_actions, content. Los módulos que aún no existen se muestran como "Pronto
     <nav class="nav">
       <a class="nav__item {% nav_active request '/' %}" href="{% url 'tenant-home' %}">{% icon "house" %}<span>Inicio</span></a>
       <div class="nav__group">Operación</div>
-      {% if user.is_staff %}
-      <a class="nav__item {% nav_active request '/admin/patients/' %}" href="{% url 'admin:patients_patient_changelist' %}">{% icon "users" %}<span>Pacientes</span></a>
-      {% endif %}
-      <span class="nav__item is-disabled" aria-disabled="true">{% icon "clipboard-list" %}<span>Órdenes</span><em class="tag">Pronto</em></span>
-      <span class="nav__item is-disabled" aria-disabled="true">{% icon "test-tube" %}<span>Muestras</span><em class="tag">Pronto</em></span>
+      <a class="nav__item {% nav_active request '/ordenes/nueva/' %}" href="{% url 'orders:new' %}">{% icon "plus" %}<span>Nueva orden</span></a>
+      <a class="nav__item {% if '/ordenes/' in request.path and '/ordenes/nueva/' not in request.path and request.GET.pendientes != '1' %}is-active{% endif %}" href="{% url 'orders:list' %}">{% icon "clipboard-list" %}<span>Órdenes</span></a>
+      <a class="nav__item {% if request.GET.pendientes == '1' %}is-active{% endif %}" href="{% url 'orders:list' %}?pendientes=1">{% icon "test-tube" %}<span>Muestras por tomar</span></a>
+      <a class="nav__item {% nav_active request '/pacientes/' %}" href="{% url 'patients:create' %}">{% icon "user-plus" %}<span>Nuevo paciente</span></a>
       <span class="nav__item is-disabled" aria-disabled="true">{% icon "flask-conical" %}<span>Resultados</span><em class="tag">Pronto</em></span>
       <span class="nav__item is-disabled" aria-disabled="true">{% icon "file-text" %}<span>Informes</span><em class="tag">Pronto</em></span>
       {% if user.is_staff %}
+      <a class="nav__item {% nav_active request '/admin/patients/' %}" href="{% url 'admin:patients_patient_changelist' %}">{% icon "users" %}<span>Pacientes (admin)</span></a>
       <div class="nav__group">Configuración</div>
       <a class="nav__item {% nav_active request '/admin/catalog/test/' %}" href="{% url 'admin:catalog_test_changelist' %}">{% icon "microscope" %}<span>Exámenes</span></a>
+      <a class="nav__item {% nav_active request '/admin/catalog/containertype/' %}" href="{% url 'admin:catalog_containertype_changelist' %}">{% icon "test-tube" %}<span>Tubos</span></a>
       <a class="nav__item {% nav_active request '/admin/catalog/profile/' %}" href="{% url 'admin:catalog_profile_changelist' %}">{% icon "layers" %}<span>Perfiles</span></a>
       <a class="nav__item {% nav_active request '/admin/billing/' %}" href="{% url 'admin:billing_pricelist_changelist' %}">{% icon "tag" %}<span>Precios</span></a>
       <a class="nav__item {% nav_active request '/admin/settings_lab/' %}" href="{% url 'admin:settings_lab_tenantsettings_changelist' %}">{% icon "settings" %}<span>Laboratorio</span></a>
@@ -56,11 +57,11 @@ page_actions, content. Los módulos que aún no existen se muestran como "Pronto
         <div class="crumbs">{% block crumbs %}{{ request.tenant.name }}{% endblock %}</div>
         <h1>{% block page_title %}Inicio{% endblock %}</h1>
       </div>
-      <label class="topbar__search">
-        <span class="sr-only">Buscar</span>
+      <form class="topbar__search" method="get" action="{% url 'orders:list' %}" role="search">
+        <label><span class="sr-only">Buscar orden, muestra o paciente</span>
         {% icon "search" %}
-        <input type="search" placeholder="Buscar paciente u orden…  (pronto)" disabled>
-      </label>
+        <input type="search" name="q" placeholder="Orden, tubo (escáner), cédula o nombre…"></label>
+      </form>
       <div class="topbar__actions">{% block page_actions %}{% endblock %}</div>
     </header>
 

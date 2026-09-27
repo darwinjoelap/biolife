@@ -1,0 +1,47 @@
+{% load ui %}{% if error %}
+<div class="alert alert--danger">{% icon "triangle-alert" %}<span>{{ error }}</span></div>
+{% elif not draft or not draft.items %}
+<p class="muted small">{% if form.non_field_errors %}{{ form.non_field_errors|join:" " }}{% else %}Agregue exámenes para ver el monto y los tubos.{% endif %}</p>
+{% else %}
+<div class="stack" style="gap:var(--s3)">
+  {% if draft.quote %}
+  <table class="lines">
+    {% for line in draft.quote.lines %}
+    <tr><td>{{ line.name }}{% if line.kind == "PROFILE" %} <span class="muted small">({{ line.included_tests|length }})</span>{% endif %}
+      {% if line.discount_amount %}<br><span class="small" style="color:var(--ok)">− {{ line.discount_amount|floatformat:"2g" }}</span>{% endif %}</td>
+      <td class="num">{{ line.amount|floatformat:"2g" }}</td></tr>
+    {% endfor %}
+  </table>
+  <div class="totals">
+    {% if draft.quote.discount_total %}
+    <div><span>Subtotal</span><span class="num">{{ draft.quote.subtotal|floatformat:"2g" }}</span></div>
+    <div style="color:var(--ok)"><span>Descuentos</span><span class="num">− {{ draft.quote.discount_total|floatformat:"2g" }}</span></div>
+    {% endif %}
+    <div class="total"><span>Total</span><span class="num">{{ draft.quote.total|floatformat:"2g" }} {{ draft.quote.currency.code }}</span></div>
+    {% if draft.converted_total is not None %}
+    <div class="muted"><span>En {{ draft.reference_currency.code }} (tasa {{ draft.exchange_rate|floatformat:"-4g" }})</span><span class="num">{{ draft.converted_total|floatformat:"2g" }}</span></div>
+    {% endif %}
+  </div>
+  {% else %}
+  <div class="totals"><div class="total"><span>Total</span><span class="muted">pendiente</span></div></div>
+  {% endif %}
+
+  <div>
+    <div class="fieldset-title" style="margin:0 0 6px">Tubos · orden de extracción</div>
+    <div class="tubes">
+      {% for tube in draft.tubes %}
+      <div class="tube" style="--tube: {{ tube.container_type.color }}">
+        <span class="draw-step">{{ forloop.counter }}</span>
+        <div><div class="tube__name">{{ tube.container_type.name }}{% if tube.collection_label %} · {{ tube.collection_label }}{% endif %}</div>
+          <div class="tube__tests">{{ tube.item_keys|join:", " }}</div></div>
+        <span class="tube-dot"></span>
+      </div>
+      {% empty %}<p class="muted small">Sin tubos.</p>{% endfor %}
+    </div>
+  </div>
+
+  {% if draft.warnings %}
+  <div class="warnings">{% for w in draft.warnings %}<div class="alert alert--warn">{% icon "triangle-alert" %}<span>{{ w }}</span></div>{% endfor %}</div>
+  {% endif %}
+</div>
+{% endif %}

@@ -1,3 +1,4 @@
+from django.core.exceptions import ValidationError
 from django.db.models import Q, QuerySet
 
 from apps.patients.models import Patient
@@ -19,3 +20,14 @@ def search_patients(*, query: str) -> QuerySet[Patient]:
         | Q(first_name__icontains=query)
         | Q(last_name__icontains=query)
     )
+
+
+def active_patients() -> QuerySet[Patient]:
+    return Patient.objects.filter(is_active=True)
+
+
+def get_patient(*, pk) -> Patient | None:
+    try:
+        return Patient.objects.select_related("locality").filter(pk=pk, is_active=True).first()
+    except (ValueError, ValidationError):  # id mal formado en la URL
+        return None

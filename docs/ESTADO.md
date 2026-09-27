@@ -3,8 +3,8 @@
 > Se actualiza al **cerrar cada sesión**. Es el primer archivo que se lee al abrir la siguiente.
 > Mantener bajo 100 líneas: si crece, es que hay historial que pertenece a DECISIONES.md.
 
-**Última actualización:** 2026-09-26
-**Fase actual:** Fases 00–08d **completas y verificadas** (último commit `7ad6be1`) → siguiente: 09 (órdenes y muestras)
+**Última actualización:** 2026-09-27
+**Fase actual:** 09 — Órdenes y muestras (**escrita, falta verificar en la máquina de Darwin**; último commit `cffaa46`)
 **Repositorio:** https://github.com/darwinjoelap/biolife (rama `main`, CI en GitHub Actions)
 **Responsable:** Darwin
 
@@ -14,27 +14,29 @@
 
 - [x] Fases 00–08b (hasta `53655ab`): diseño, multi-tenancy, usuarios y roles, configuración,
   pacientes, catálogo, rangos, fórmulas, perfiles, precios, ficha del examen (ADR-001–020).
-- [x] Fases 08c y 08d (`39a4491`): laboratorios nacen con catálogo, lípidos sin AYUNO, CI,
-  script de aislamiento reparado (ADR-021); sistema visual (CSS plano, paleta del logo,
-  pantallas densas), acceso, Inicio, guía en `/estilo/`, admin con la marca (ADR-022).
-  Verificado por Darwin: 180 passed, ruff limpio, pantallas revisadas en `demo1.localhost`.
-- [x] Limpieza (`7ad6be1`): comando `eliminar_laboratorio_demo` (sólo estado DEMO); borrados
-  `demo_dos` y `demo_tres` y la carpeta `Claude outputs/` (ADR-023). Verificado por Darwin:
-  183 passed, ruff limpio. Repo publicado en GitHub con el CI (ruff, migraciones, pytest); CI en verde.
+- [x] Fases 08c, 08d y limpieza (`39a4491`, `7ad6be1`): provisión con catálogo, CI, sistema
+  visual, baja de laboratorios demo (ADR-021–023). Verificado: 183 passed; CI en verde.
+- [x] Fase 09 (sin commit): órdenes con número diario `AAMMDD-NNNN`, tubos por aditivo con
+  orden de extracción, etiquetas PDF 50 × 25 mm con código de barras, toma/rechazo/reemplazo,
+  cotización congelada, pantallas de recepción (ADR-024). 211/211 en el entorno de Claude.
 
 ## Dónde estamos
 
 Base del producto terminada: multi-tenancy, usuarios y roles, configuración del laboratorio,
 pacientes, catálogo con rangos por sexo/edad/condición, motor de fórmulas, perfiles, precios
-multimoneda y el sistema visual. Todavía **no hay flujo clínico**: no se pueden crear órdenes
-ni capturar resultados. Eso empieza en la Fase 09.
+multimoneda y el sistema visual. Con la Fase 09 empieza el flujo clínico: recepción de
+pacientes, órdenes, tubos y etiquetas. Falta capturar y validar resultados (Fase 10).
+Detalle y lista de verificación: `docs/roadmap/09_ordenes_y_muestras.md`.
 
 Local: un solo laboratorio, `demo_uno` → http://demo1.localhost:8000/ (+ `public` en localhost).
 
 ## Pendiente inmediato
 
-1. Siguiente: Fase 09 (órdenes y muestras) con el nuevo estilo.
-2. Cargar precios reales en la lista GENERAL (admin) cuando se tengan.
+1. Verificar la Fase 09 (ver el roadmap 09: `pip install`, `migrate_schemas`,
+   `seed_contenedores`, siglas del laboratorio, pytest 211) y hacer su commit.
+   Siguiente: Fase 10 (captura y validación de resultados).
+2. Cargar precios reales en la lista GENERAL (admin): sin ellos las órdenes quedan con
+   monto pendiente.
 3. **No usar en un informe real** ningún `ReferenceRange`/parámetro marcado "PENDIENTE DE
    CONFIRMAR" o "NO CONFIRMADO" (ver ADR-015 y ADR-016), ni el INR sin
    confirmar el ISI (ADR-017/019), hasta que el laboratorio responda.
@@ -87,7 +89,7 @@ laboratorio antes de producción.
   django-tenants), 010–011 (`User` propio, `accounts` SHARED+TENANT), 017 (fórmulas),
   018 (alcance: Angelus es referencia), 019 (perfiles y precios), 020 (rangos y admin por
   tenant), 021 (provisión con catálogo, CI), 022 (sistema visual y `STORAGES`), 023 (baja de
-  laboratorios demo).
+  laboratorios demo), 024 (órdenes, tubos y etiquetas).
 - "7 roles" del índice del roadmap = 6 roles de tenant (esta fase) + `SUPERADMIN_PLATAFORMA`
   como `PlatformUser` en `public` (Fase 12), no un séptimo `Role` de tenant.
 - **Postgres local (máquina de Darwin):** hay 3 instalaciones (16, 17, 18). La base

@@ -1,0 +1,24 @@
+{% load ui %}{% comment %}
+Selector de exámenes y perfiles (nueva orden y agregar exámenes). Requiere el estado Alpine
+`orderPicker` en un ancestro. Los elegidos viajan como <input hidden name="tests|profiles">.
+{% endcomment %}
+<div class="picker">
+  <label class="picker__input">
+    <span class="sr-only">Buscar examen o perfil</span>
+    {% icon "search" %}
+    <input type="search" name="oq" placeholder="Buscar examen o perfil por nombre o código…" autocomplete="off"
+           hx-get="{% url 'orders:search-orderables' %}" hx-trigger="input changed delay:200ms, search"
+           hx-target="#orderable-results" hx-include="this" @keydown.enter.prevent autofocus>
+  </label>
+  <div id="orderable-results" class="picker__results"></div>
+</div>
+<div class="chips" style="margin-top:var(--s3)" x-show="items.length">
+  <template x-for="item in items" :key="item.kind + item.id">
+    <span class="chip" :class="item.kind === 'profiles' && 'chip--profile'">
+      <span x-text="item.name"></span>
+      <button type="button" @click="remove(item)" :aria-label="'Quitar ' + item.name">{% icon "x" %}</button>
+      <input type="hidden" :name="item.kind" :value="item.id">
+    </span>
+  </template>
+</div>
+<p class="muted small" x-show="!items.length" style="margin-top:var(--s2)">Aún no hay exámenes en la orden.</p>

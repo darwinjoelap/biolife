@@ -1,0 +1,61 @@
+{% extends "base_tenant.html" %}
+{% load ui %}
+{% block page_title_text %}Nuevo paciente{% endblock %}
+{% block crumbs %}Recepción{% endblock %}
+{% block page_title %}Nuevo paciente{% endblock %}
+{% block content %}
+<form method="post" novalidate class="card"
+      x-data="{ docType: '{{ form.document_type.value|default:'V' }}', showGuardian: {% if form.g_document_number.value or form.errors.g_document_number or form.errors.g_first_name %}true{% else %}false{% endif %} }">
+  {% csrf_token %}
+  <input type="hidden" name="next" value="{{ next }}">
+  {% if form.non_field_errors %}
+  <div class="card__body"><div class="alert alert--danger">{% icon "triangle-alert" %}<span>{{ form.non_field_errors|join:" " }}</span></div></div>
+  {% endif %}
+  <div class="card__body form-grid">
+    <div class="fieldset-title">Identificación</div>
+    <div class="field col-2">
+      <label for="{{ form.document_type.id_for_label }}">{{ form.document_type.label }} <span class="req">*</span></label>
+      <select name="document_type" id="{{ form.document_type.id_for_label }}" x-model="docType">
+        {% for value, label in form.document_type.field.choices %}<option value="{{ value }}"{% if form.document_type.value == value %} selected{% endif %}>{{ label }}</option>{% endfor %}
+      </select>
+    </div>
+    <div class="field col-2{% if form.document_number.errors %} has-error{% endif %}" x-show="docType !== 'SIN_DOCUMENTO'">
+      <label for="{{ form.document_number.id_for_label }}">{{ form.document_number.label }}</label>
+      {{ form.document_number }}
+      {% if form.document_number.errors %}<span class="error">{{ form.document_number.errors|join:" " }}</span>{% endif %}
+    </div>
+    {% field form.first_name "col-4" %}
+    {% field form.last_name "col-4" %}
+    {% field form.sex "col-2" %}
+    {% field form.birth_date "col-2" %}
+    {% field form.declared_age_value "col-2" %}
+    {% field form.declared_age_unit "col-2" %}
+    {% field form.phone "col-2" %}
+    {% field form.email "col-2" %}
+    {% field form.locality "col-4" %}
+    {% field form.address "col-8" %}
+
+    <div class="fieldset-title">Representante legal</div>
+    <div class="col-12 row" style="margin-top:-6px">
+      <span class="muted small">Obligatorio si el paciente es menor de edad y no tiene documento propio.</span>
+      <button type="button" class="btn btn--sm" x-show="docType !== 'SIN_DOCUMENTO'" @click="showGuardian = !showGuardian"
+              x-text="showGuardian ? 'Quitar representante' : 'Agregar representante'"></button>
+    </div>
+    <template x-if="showGuardian || docType === 'SIN_DOCUMENTO'"><div class="form-grid" style="grid-column:1/-1;padding:0">
+      {% field form.g_document_type "col-2" %}
+      {% field form.g_document_number "col-2" %}
+      {% field form.g_first_name "col-3" %}
+      {% field form.g_last_name "col-3" %}
+      {% field form.g_phone "col-2" %}
+      {% field form.g_relationship "col-2" %}
+      {% field form.g_relationship_detail "col-4" %}
+    </div></template>
+  </div>
+  <div class="actionbar">
+    <span class="muted small">Fecha de nacimiento o, si no se conoce, edad declarada.</span>
+    <span class="spacer"></span>
+    <a class="btn btn--ghost" href="{% if next %}{{ next }}{% else %}{% url 'orders:new' %}{% endif %}">Cancelar</a>
+    <button class="btn btn--primary" type="submit">{% icon "save" %} Registrar paciente</button>
+  </div>
+</form>
+{% endblock %}

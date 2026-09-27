@@ -676,3 +676,38 @@ esquema con un `delete()` común, y así debe seguir.
 **Consecuencias.** `migrate_schemas` corre más rápido. Si se necesita probar a mano el
 aislamiento en el navegador, se crea un segundo laboratorio con `crear_laboratorio` y se
 borra después con este comando.
+
+---
+
+## ADR-024 — Órdenes: número diario, tubos por aditivo y cotización congelada
+**Fecha:** 2026-09-27 · **Estado:** Aceptada
+
+**Contexto.** La Fase 09 abre el flujo clínico. Darwin planteó cómo se trabaja en la toma:
+una etiqueta por tubo según su tipo (morado hematología, rojo química, azul coagulación),
+con el mismo paciente y números de muestra distintos. La impresora de etiquetas aún no
+está definida y el laboratorio no tiene precios cargados.
+
+**Decisión.**
+- **Numeración:** orden `AAMMDD-NNNN` con correlativo diario (`OrderNumberSequence`,
+  `select_for_update`); muestra `AAMMDD-NNNN-SS`; código de barras = 12 dígitos (Code 128,
+  sólo numérico, compatible con analizadores). Se eliminan `TenantSettings.order_number_*`.
+- **Tubos por aditivo:** `catalog.ContainerType` (color, aditivo, orden de extracción CLSI,
+  máximo de exámenes) y `SampleRequirement` (examen → tubo(s), toma por tiempo, tubo
+  propio), en lugar del texto libre `Test.container`. La asignación es configuración de
+  cada laboratorio. `Sample ↔ OrderItem` es M2M: un examen puede necesitar varios tubos.
+- **Planificación pura** (`plan_tubes`): misma lógica para la vista previa y para guardar.
+- **Cotización congelada** en la orden (`quote_snapshot` + totales + tasa). Si la lista no
+  tiene precio para un examen, la orden se registra igual con `pricing_pending` y aviso; el
+  paciente no espera por un precio sin cargar. No se puede marcar pagada así.
+- **Nada se borra:** anular = estado + motivo; rechazar muestra = reemplazo con número
+  nuevo que referencia a la rechazada; cada impresión de etiqueta queda registrada.
+- **Etiquetas en PDF** (ReportLab, nueva dependencia) del tamaño configurado (50 × 25 mm
+  por defecto), impresas desde el navegador: sirve para cualquier marca de impresora
+  térmica sin instalar nada.
+- `core` no importa otras apps: los indicadores de Inicio llegan por htmx desde `orders`.
+
+**Consecuencias.**
+- Las Fases 10 (resultados) y 16 (instrumentos) identifican la muestra por `barcode`.
+- Laboratorios existentes: correr `seed_contenedores` una vez; los nuevos ya nacen con tubos.
+- Una caja completa (abonos, métodos, vuelto) queda para una fase propia.
+- Impresión ZPL directa exigiría un agente local; se evaluará si el PDF resulta lento.

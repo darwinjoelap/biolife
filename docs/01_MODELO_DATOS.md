@@ -99,9 +99,11 @@ time_format           ENUM: H12 | H24, default H12
 date_format           default 'dd/MM/yyyy'
 decimal_separator     ENUM: COMA | PUNTO, default COMA
 # Operación
-order_number_prefix   N
-order_number_next     int
 require_second_validation  bool, default False
+# Etiquetas de tubo (Fase 09, ADR-024). El número de orden es diario (AAMMDD-NNNN) y lo
+# lleva apps.orders: se eliminaron order_number_prefix/order_number_next.
+label_width_mm · label_height_mm   default 50 × 25
+label_extra_for_order              bool, default False
 ```
 
 ### `Role` / `Membership`
@@ -191,9 +193,7 @@ name                          # "HEMATOLOGÍA COMPLETA"
 section         FK→Section
 method          FK→Method, N  # se imprime bajo el resultado
 sample_type     ENUM: SANGRE_TOTAL | SUERO | PLASMA | ORINA | ORINA_24H | HECES | OTRO
-container       N             # "Tubo lila EDTA", "Tubo azul citrato"
 process_hours   int N         # tiempo de respuesta estimado
-price           decimal N
 requires_fasting        bool
 requires_anthropometry  bool  # peso/talla — depuración de creatinina
 is_active       bool
@@ -304,45 +304,66 @@ id PK · section FK→Section, N · text · order_index · is_active
 
 ---
 
-## E. ESQUEMA TENANT — Órdenes y muestras
+## E. ESQUEMA TENANT — Órdenes y muestras (Fase 09, ADR-024)
+
+### `ContainerType` y `SampleRequirement` (en `apps.catalog`)
+```
+ContainerType:      code U · name · short_name (etiqueta) · color hex · additive ENUM
+                    sample_type · volume_ml N · draw_order (CLSI) · max_tests (0 = sin límite)
+SampleRequirement:  test FK→Test · container_type FK→ContainerType
+                    collection_label ("Basal", "Post-carga 2 h"…) · own_container bool
+                    UNIQUE (test, container_type, collection_label)
+```
+> Reemplaza al texto libre `Test.container`. Un examen puede pedir varios tubos
+> (depuración: envase de 24 h + tubo rojo). Cada laboratorio ajusta la asignación.
 
 ### `Order`
 ```
 id PK
-number          U, [idx]      # correlativo del tenant, con prefijo
+number          U, [idx]      # AAMMDD-NNNN, correlativo diario (OrderNumberSequence)
 patient         FK→Patient
-requested_by    N             # médico solicitante (texto libre; no se modela aún)
+requested_by    ""            # médico solicitante (texto libre; no se modela aún)
 priority        ENUM: NORMAL | URGENTE
-status          ENUM: BORRADOR | REGISTRADA | MUESTRA_TOMADA | EN_PROCESO |
-                      RESULTADOS_CARGADOS | VALIDADA | ENTREGADA | ANULADA
-ordered_at · delivered_at N
+status          ENUM: REGISTRADA | MUESTRA_TOMADA | EN_PROCESO | RESULTADOS_CARGADOS |
+                      VALIDADA | ENTREGADA | ANULADA
+ordered_at
 # Datos clínicos del episodio (no del paciente)
-weight_kg N · height_cm N          # depuración de creatinina
-urine_volume_24h_ml N
-collection_start_time N            # "6:00 A.M." → TimeField, se renderiza en 12 h
-notes N
-total_amount N · is_paid bool
-client_mutation_id  UUID N, U      # idempotencia offline
-sync_version        int, default 1
+weight_kg N · height_cm N · urine_volume_24h_ml N
+notes ""
+# Cotización congelada (ADR-019/024)
+price_list_code · currency_code · subtotal N · discount_total N · total N
+converted_currency_code · exchange_rate N · converted_total N
+quote_snapshot JSONB · pricing_pending bool   # sin precio en la lista al registrar
+is_paid bool · paid_at N · paid_by FK→User N
+cancelled_at N · cancelled_by N · cancel_reason     # anular, nunca borrar
 ```
 > Peso, talla y volumen de orina viven en la **orden**, no en el paciente: cambian entre
 > visitas y la depuración de creatinina debe calcularse con los del día de la muestra.
+> Pendiente (Fases 13–14): `client_mutation_id`, `sync_version`; `delivered_at` (Fase 11).
 
 ### `OrderItem`
 ```
-id PK · order FK · test FK→Test · profile FK→Profile N
-unit_price N · status ENUM: PENDIENTE|EN_PROCESO|CARGADO|VALIDADO|ANULADO
+id PK · order FK · test FK→Test · profile FK→Profile N · order_index
+status ENUM: PENDIENTE|EN_PROCESO|CARGADO|VALIDADO|ANULADO
 UNIQUE (order, test)
 ```
-> `profile` se guarda sólo para saber de qué paquete vino. Un examen ordenado dos veces
-> vía dos perfiles se cobra una vez.
+> `profile` se guarda sólo para saber de qué paquete vino. El precio vive en el
+> `quote_snapshot` de la orden (un examen dentro de un perfil no tiene precio propio).
 
 ### `Sample`
 ```
-id PK · order FK · sample_type · barcode U [idx]
-collected_at N · collected_by FK→User N
-received_at N · status ENUM: PENDIENTE|TOMADA|RECIBIDA|RECHAZADA
-rejection_reason N     # hemólisis, muestra insuficiente, mal rotulada
+id PK · order FK · sequence (UNIQUE con order)
+number U     # AAMMDD-NNNN-SS          barcode U  # 12 dígitos, Code 128
+container_type FK→ContainerType · collection_label · is_exclusive bool
+order_items  M2M→OrderItem             # los exámenes que van en este tubo
+status ENUM: PENDIENTE | TOMADA | RECHAZADA
+collected_at N · collected_by N · rejected_at N · rejected_by N · rejection_reason
+replaces 1:1→Sample N                  # el rechazo crea un reemplazo con número nuevo
+```
+
+### `LabelPrint`
+```
+sample FK · is_reprint bool · created_by · created_at     # quién imprimió y cuándo
 ```
 
 ---

@@ -1,0 +1,87 @@
+"""Toma y rechazo de muestras; el estado de la orden se deriva de sus muestras."""
+from __future__ import annotations
+
+from django.db import transaction
+from django.utils import timezone
+
+from apps.core.exceptions import ApplicationError
+from apps.orders.models import Order, Sample
+from apps.orders.services.numbering import sample_identifiers
+
+# Estados de orden que todavía dependen de la toma (luego manda la Fase 10).
+PRE_ANALYTIC = (Order.Status.REGISTRADA, Order.Status.MUESTRA_TOMADA)
+
+
+def refresh_order_status(order: Order) -> Order:
+    """REGISTRADA ↔ MUESTRA_TOMADA según si todas las muestras vigentes se tomaron."""
+    if order.status not in PRE_ANALYTIC:
+        return order
+    active = order.samples.exclude(status=Sample.Status.RECHAZADA)
+    all_taken = active.exists() and not active.filter(
+        status=Sample.Status.PENDIENTE
+    ).exists()
+    status = Order.Status.MUESTRA_TOMADA if all_taken else Order.Status.REGISTRADA
+    if order.status != status:
+        order.status = status
+        order.save(update_fields=["status", "updated_at"])
+    return order
+
+
+def _check_order_open(order: Order) -> None:
+    if order.is_cancelled:
+        raise ApplicationError(f"La orden {order.number} está anulada.")
+
+
+def collect_sample(*, sample: Sample, user=None) -> Sample:
+    _check_order_open(sample.order)
+    if sample.status == Sample.Status.RECHAZADA:
+        raise ApplicationError(f"La muestra {sample.number} fue rechazada.")
+    if sample.status == Sample.Status.TOMADA:
+        return sample
+    with transaction.atomic():
+        sample.status = Sample.Status.TOMADA
+        sample.collected_at = timezone.now()
+        sample.collected_by = user
+        sample.save(update_fields=["status", "collected_at", "collected_by", "updated_at"])
+        refresh_order_status(sample.order)
+    return sample
+
+
+def collect_all(*, order: Order, user=None) -> int:
+    """Marca como tomadas todas las muestras por tomar. Devuelve cuántas."""
+    _check_order_open(order)
+    pending = list(order.samples.filter(status=Sample.Status.PENDIENTE))
+    with transaction.atomic():
+        for sample in pending:
+            collect_sample(sample=sample, user=user)
+    return len(pending)
+
+
+def reject_sample(*, sample: Sample, reason: str, user=None) -> Sample:
+    """Rechaza la muestra y crea su reemplazo (número nuevo, mismos exámenes). El número
+    rechazado nunca se reutiliza. Devuelve la muestra nueva."""
+    _check_order_open(sample.order)
+    reason = (reason or "").strip()
+    if not reason:
+        raise ApplicationError("Indique el motivo del rechazo.")
+    if sample.status == Sample.Status.RECHAZADA:
+        raise ApplicationError(f"La muestra {sample.number} ya fue rechazada.")
+    order = sample.order
+    with transaction.atomic():
+        sample.status = Sample.Status.RECHAZADA
+        sample.rejected_at = timezone.now()
+        sample.rejected_by = user
+        sample.rejection_reason = reason
+        sample.save(update_fields=["status", "rejected_at", "rejected_by",
+                                   "rejection_reason", "updated_at"])
+        sequence = order.samples.order_by("-sequence").values_list(
+            "sequence", flat=True).first() + 1
+        number, barcode = sample_identifiers(order_number=order.number, sequence=sequence)
+        replacement = Sample.objects.create(
+            order=order, sequence=sequence, number=number, barcode=barcode,
+            container_type=sample.container_type, collection_label=sample.collection_label,
+            is_exclusive=sample.is_exclusive, replaces=sample, created_by=user,
+        )
+        replacement.order_items.set(sample.order_items.all())
+        refresh_order_status(order)
+    return replacement
