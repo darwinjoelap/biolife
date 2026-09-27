@@ -11,6 +11,7 @@ from apps.billing.services.seeding import seed_billing_defaults
 from apps.catalog.services.seeding import seed_uroanalisis
 from apps.catalog.services.seeding_containers import seed_containers
 from apps.catalog.services.seeding_critical_values import seed_critical_values
+from apps.catalog.services.seeding_observations import seed_observation_templates
 from apps.catalog.services.seeding_profiles import seed_profiles
 from apps.catalog.services.seeding_reference_ranges import seed_reference_ranges
 from apps.core.exceptions import ApplicationError
@@ -100,6 +101,7 @@ def provision_tenant(
             seed_profiles()
             seed_containers()
             seed_critical_values()
+            seed_observation_templates()
             seed_billing_defaults()
 
     return tenant, admin_password

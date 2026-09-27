@@ -34,3 +34,13 @@ def entries_from_post(data) -> dict:
     for key in data.getlist("m_present"):  # multi sin nada marcado = vaciar
         entries.setdefault(key, [])
     return entries
+
+
+def notes_from_post(data) -> dict:
+    """{str(result_id): {"observations", "internal_note"}} desde `obs_<id>` y `nota_<id>`."""
+    notes: dict = {}
+    for key in data:
+        for prefix, field_name in (("obs_", "observations"), ("nota_", "internal_note")):
+            if key.startswith(prefix):
+                notes.setdefault(key[len(prefix):], {})[field_name] = data.get(key, "")
+    return notes

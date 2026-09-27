@@ -22,7 +22,12 @@ from apps.orders.selectors.order_queries import (
 )
 from apps.orders.services.order_progress import update_clinical_data
 from apps.patients.services.patient_age import patient_age_text
-from apps.results.forms import ClinicalDataForm, CriticalNoticeForm, entries_from_post
+from apps.results.forms import (
+    ClinicalDataForm,
+    CriticalNoticeForm,
+    entries_from_post,
+    notes_from_post,
+)
 from apps.results.models import ResultValue
 from apps.results.selectors.result_queries import result_value_of_order
 from apps.results.services.result_capture import build_sheet, save_sheet
@@ -71,12 +76,13 @@ def capture(request, pk):
 
 @role_required(*CAPTURE_ROLES)
 def _save(request, order):
-    entries = entries_from_post(request.POST)
+    entries, notes = entries_from_post(request.POST), notes_from_post(request.POST)
     try:
-        sheet = save_sheet(order, entries=entries, user=request.user)
+        sheet = save_sheet(order, entries=entries, notes=notes, user=request.user)
     except ApplicationError as exc:
         messages.error(request, exc.message)
-        return _render_capture(request, order, build_sheet(order, entries=entries), 400)
+        return _render_capture(request, order,
+                               build_sheet(order, entries=entries, notes=notes), 400)
     messages.success(request, "Resultados guardados.")
     for warning in sheet.warnings:
         messages.warning(request, warning)
@@ -99,7 +105,8 @@ def validate(request, pk):
         raise PermissionDenied("Su rol no puede validar resultados.")
     order = _order(pk)
     try:
-        save_sheet(order, entries=entries_from_post(request.POST), user=request.user)
+        save_sheet(order, entries=entries_from_post(request.POST),
+                   notes=notes_from_post(request.POST), user=request.user)
         validated = validate_results(order=order, result_ids=request.POST.getlist("result"),
                                      user=request.user)
     except ApplicationError as exc:

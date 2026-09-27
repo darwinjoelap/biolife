@@ -31,7 +31,9 @@ class Result(TenantBaseModel):
                                      blank=True, related_name="+",
                                      verbose_name="Validado por")
     validated_at = models.DateTimeField("Validado el", null=True, blank=True)
+    # Se imprime debajo de ESTE examen en el informe (no al final de todo).
     observations = models.TextField("Observaciones", blank=True, default="")
+    internal_note = models.TextField("Nota interna (no se imprime)", blank=True, default="")
     # Condición, peso, talla, orina, ISI y lote usados en los cálculos (copia al guardar).
     calculation_context = models.JSONField("Datos de cálculo", default=dict, blank=True)
 

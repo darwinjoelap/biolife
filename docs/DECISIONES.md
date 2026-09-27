@@ -750,3 +750,24 @@ dos pendientes: dónde vive el ISI del INR y cómo se tratan los valores de pán
 - Fase 16 (instrumentos) escribe con `source=INSTRUMENTO` por el mismo `save_sheet`.
 - Los críticos propuestos deben confirmarse con cada laboratorio.
 - `.content > * { min-width: 0 }` global: corrige desbordes en móvil de cualquier pantalla.
+
+---
+
+## ADR-026 — Observaciones por examen, no al final del informe
+**Fecha:** 2026-09-27 · **Estado:** Aceptada
+
+**Contexto.** Muchos sistemas ponen todas las observaciones al final del informe, lejos
+del examen al que se refieren («SUERO LIPÉMICO» queda debajo de la serología). Darwin lo
+considera poco práctico.
+
+**Decisión.**
+- `Result.observations` es **por examen** y el informe (Fase 11) la imprime debajo de ese
+  examen. `Result.internal_note` es una nota de trabajo que nunca se imprime.
+- `catalog.ObservationTemplate` con alcance: examen → sección → general. Al cargar se
+  ofrecen en ese orden como botones; `__` marca un hueco que queda seleccionado para
+  escribir («EUMÓRFICOS __ %»). Siembra desde `04_HALLAZGOS` §9 (`seed_observaciones`).
+- Las observaciones se congelan al validar, como los valores.
+
+**Consecuencias.** Fase 11 imprime cada observación bajo su examen. Si un laboratorio
+quiere además una nota general de la orden, se agrega como campo de la orden, sin mover
+estas.

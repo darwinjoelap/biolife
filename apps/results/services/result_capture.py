@@ -21,7 +21,11 @@ from decimal import Decimal
 from django.db import transaction
 from django.utils import timezone
 
-from apps.catalog.selectors.catalog_queries import calculated_formulas, parameters_for_tests
+from apps.catalog.selectors.catalog_queries import (
+    calculated_formulas,
+    observation_templates_by_test,
+    parameters_for_tests,
+)
 from apps.catalog.services.formula_engine import (
     evaluate_calculated_parameters,
     quantize_for_display,
@@ -87,6 +91,9 @@ class Block:
     result: Result
     rows: list[Row] = field(default_factory=list)
     sample_taken: bool = True
+    templates: list = field(default_factory=list)  # observaciones predefinidas
+    observations: str = ""   # se imprime debajo de este examen
+    internal_note: str = ""  # no se imprime
 
     @property
     def missing(self) -> list[str]:
@@ -167,10 +174,12 @@ class _RangeResolver:
         return self.cache[parameter.pk]
 
 
-def build_sheet(order, *, entries: dict | None = None) -> Sheet:
+def build_sheet(order, *, entries: dict | None = None, notes: dict | None = None) -> Sheet:
     """Planilla de la orden. `entries`: {str(parameter_id): valor crudo | [ids]} del
-    formulario; lo que no viene se toma de lo guardado."""
+    formulario; `notes`: {str(result_id): {"observations", "internal_note"}}. Lo que no
+    viene se toma de lo guardado."""
     entries = entries or {}
+    notes = notes or {}
     pairs = ensure_results(order)
     parameters = parameters_for_tests(tests=[item.test for item, _ in pairs])
     by_test: dict = {}
@@ -187,11 +196,16 @@ def build_sheet(order, *, entries: dict | None = None) -> Sheet:
     resolve = _RangeResolver(order)
     previous = previous_values(patient=order.patient, parameters=parameters,
                                exclude_order=order)
+    templates = observation_templates_by_test(tests=[item.test for item, _ in pairs])
 
     numbers: dict[str, Decimal | None] = {}
     for item, result in pairs:
+        typed = {} if result.is_validated else notes.get(str(result.pk), {})
         block = Block(item=item, result=result,
-                      sample_taken=any(s.status == TAKEN for s in item.samples.all()))
+                      sample_taken=any(s.status == TAKEN for s in item.samples.all()),
+                      templates=templates.get(item.test_id, []),
+                      observations=typed.get("observations", result.observations).strip(),
+                      internal_note=typed.get("internal_note", result.internal_note).strip())
         for parameter in by_test.get(item.test_id, []):
             row = Row(parameter=parameter, parsed=ParsedValue(),
                       stored=stored.get((result.pk, parameter.pk)),
@@ -315,12 +329,12 @@ def _frozen_inputs(sheet: Sheet) -> dict[str, str]:
 
 
 @transaction.atomic
-def save_sheet(order, *, entries: dict, user=None) -> Sheet:
+def save_sheet(order, *, entries: dict, notes: dict | None = None, user=None) -> Sheet:
     """Guarda lo capturado. Lanza `ApplicationError` si hay valores inválidos o se intenta
     cambiar un insumo de un calculado ya validado."""
     if order.is_cancelled:
         raise ApplicationError(f"La orden {order.number} está anulada.")
-    sheet = build_sheet(order, entries=entries)
+    sheet = build_sheet(order, entries=entries, notes=notes)
     if sheet.errors:
         raise ApplicationError(" ".join(sheet.errors), extra={"sheet": sheet})
     guarded = _frozen_inputs(sheet)
@@ -328,7 +342,7 @@ def save_sheet(order, *, entries: dict, user=None) -> Sheet:
     for block in sheet.blocks:
         if block.result.is_validated:
             continue
-        changed = False
+        changed = _save_notes(block)
         for row in block.rows:
             if not _row_changed(row):
                 if row.stored is not None and not row.parsed.is_empty:
@@ -344,6 +358,16 @@ def save_sheet(order, *, entries: dict, user=None) -> Sheet:
         _update_status(block, sheet, user=user if changed else None, now=now)
     refresh_order_progress(order)
     return sheet
+
+
+def _save_notes(block: Block) -> bool:
+    result = block.result
+    if (result.observations, result.internal_note) == (block.observations,
+                                                       block.internal_note):
+        return False
+    result.observations, result.internal_note = block.observations, block.internal_note
+    result.save(update_fields=["observations", "internal_note", "updated_at"])
+    return True
 
 
 def _row_changed(row: Row) -> bool:

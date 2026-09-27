@@ -39,15 +39,21 @@ en vivo, marcado alto/bajo, validación que congela referencias.
   examen o todo lo cargado. Inicio muestra «Por validar».
 - [x] Permisos: cargan técnico, bioanalista y administrador; validan quienes tienen
   `puede_validar_resultados` (bioanalista, administrador).
-- [x] Tests: +32 (243 en total).
+- [x] **Observaciones por examen** (ADR-026): cada examen tiene su observación (se imprime
+  debajo de él) y una nota interna (no se imprime); botones con las predefinidas del examen,
+  su sección y generales (`seed_observaciones`, 16 textos de las hojas); `__` queda
+  seleccionado para escribir. Admin → *Observaciones predefinidas*.
+- [x] Tests: +35 (246 en total).
 
 ## Verificación en la máquina de Darwin
 
-- [ ] `python manage.py migrate_schemas` (catalog.0008, orders.0002, results.0001).
-- [ ] `python manage.py tenant_command seed_criticos --schema=demo_uno`.
+- [x] `migrate_schemas` (catalog.0008, orders.0002, results.0001) y `seed_criticos`;
+  243 passed (verificado por Darwin, antes de agregar las observaciones).
+- [ ] `migrate_schemas` (catalog.0009, results.0002) y
+  `tenant_command seed_observaciones --schema=demo_uno`.
 - [ ] Admin → *Lotes de reactivos*: crear un lote de tromboplastina con su ISI y marcarlo
   vigente.
-- [ ] `pytest -q` → 243 · `ruff check .`
+- [ ] `pytest -q` → 246 · `ruff check .`
 - [ ] `runserver`: en una orden con tubos tomados → *Resultados*: cargar hematología,
   electrolitos (potasio 6,8 = crítico), perfil lipídico y PT; ver marcas y calculados al
   escribir; registrar el aviso del crítico; validar.
@@ -55,8 +61,6 @@ en vivo, marcado alto/bajo, validación que congela referencias.
 ## No incluye
 
 - Informe PDF, firma y QR (Fase 11). Rectificaciones de un validado (Fase 15).
-- Observaciones por examen desde plantillas (`ObservationTemplate`): el campo existe en
-  `Result`, falta la pantalla.
 - Reglas de delta (alertar si cambia mucho respecto al anterior): hoy sólo se muestra el
   valor anterior.
 - Críticos confirmados por el laboratorio: los sembrados son propuestos.

@@ -195,3 +195,38 @@ class ValidationTests(ResultsTestBase):
         second = self.order("HDL")
         row = self.rows(build_sheet(second))["LIP_HDL"]
         assert row.previous["text"] == "38,0"
+
+
+class ObservationTests(ResultsTestBase):
+    def setUp(self):
+        super().setUp()
+        from apps.catalog.services.seeding_observations import seed_observation_templates
+        seed_observation_templates()
+
+    def test_predefinidas_por_examen_seccion_y_generales(self):
+        order = self.order("HEM_COMP", "URO")
+        blocks = {b.item.test.code: [t.text for t in b.templates]
+                  for b in build_sheet(order).blocks}
+        assert blocks["HEM_COMP"][0] == "HEMATOLOGÍA COMPLETA VERIFICADA MEDIANTE TÉCNICA MANUAL"
+        assert "VALOR VERIFICADO" in blocks["HEM_COMP"]
+        assert "HEMATÍES: EUMÓRFICOS __ % / DISMÓRFICOS __ %" in blocks["URO"]
+        assert "CONTAJE PLAQUETARIO VERIFICADO" not in blocks["URO"]
+
+    def test_observacion_de_cada_examen_y_congelada_al_validar(self):
+        order = self.order("HDL", "COLESTEROL_TOTAL")
+        build_sheet(order)  # crea los Result
+        hdl = Result.objects.get(order_item__test__code="HDL")
+        save_sheet(order, entries=self.entries(LIP_HDL="50", LIP_COLESTEROL_TOTAL="180"),
+                   notes={str(hdl.pk): {"observations": " SUERO LIPÉMICO ",
+                                        "internal_note": "Repetir si llega otra muestra"}},
+                   user=self.tech)
+        hdl.refresh_from_db()
+        other = Result.objects.get(order_item__test__code="COLESTEROL_TOTAL")
+        assert (hdl.observations, hdl.internal_note) == ("SUERO LIPÉMICO",
+                                                         "Repetir si llega otra muestra")
+        assert other.observations == ""
+
+        validate_results(order=order, user=self.bio)
+        save_sheet(order, entries={}, notes={str(hdl.pk): {"observations": "otra"}})
+        hdl.refresh_from_db()
+        assert hdl.observations == "SUERO LIPÉMICO"

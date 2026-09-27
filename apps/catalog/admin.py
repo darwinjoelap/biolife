@@ -15,6 +15,7 @@ from apps.catalog.models import (
     CodedOptionSet,
     ContainerType,
     Method,
+    ObservationTemplate,
     Parameter,
     ParameterGroup,
     Profile,
@@ -104,6 +105,15 @@ class ParameterInline(admin.TabularInline):
         )
         return format_html('{}<a href="{}#reference_ranges-group">Editar rangos →</a>',
                            rows or "Sin rangos. ", url)
+
+
+@admin.register(ObservationTemplate)
+class ObservationTemplateAdmin(admin.ModelAdmin):
+    list_display = ["text", "test", "section", "order_index", "is_active"]
+    list_filter = ["section", "is_active"]
+    list_editable = ["order_index", "is_active"]
+    search_fields = ["text"]
+    autocomplete_fields = ["test"]
 
 
 @admin.register(ReagentLot)

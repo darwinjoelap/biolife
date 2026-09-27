@@ -104,6 +104,28 @@
         </tbody>
       </table>
     </div>
+    {% if block.result.is_validated %}
+      {% if block.observations or block.internal_note %}
+      <div class="card__body obs">
+        {% if block.observations %}<div class="obs__printed"><span class="obs__label">Observaciones</span>{{ block.observations|linebreaksbr }}</div>{% endif %}
+        {% if block.internal_note %}<div class="muted small"><b>Nota interna:</b> {{ block.internal_note|linebreaksbr }}</div>{% endif %}
+      </div>
+      {% endif %}
+    {% else %}
+    <div class="card__body obs">
+      <label class="obs__label" for="obs-{{ block.result.pk }}">Observaciones <span class="muted">· se imprimen debajo de este examen</span></label>
+      <textarea id="obs-{{ block.result.pk }}" name="obs_{{ block.result.pk }}" rows="2" placeholder="Opcional">{{ block.observations }}</textarea>
+      {% if block.templates %}
+      <div class="chips obs__templates">
+        {% for t in block.templates %}<button type="button" class="chip chip--add" data-target="obs-{{ block.result.pk }}" data-text="{{ t.text }}" onclick="blInsertObservation(this)">{% icon "plus" %}{{ t.text }}</button>{% endfor %}
+      </div>
+      {% endif %}
+      <details class="obs__internal"{% if block.internal_note %} open{% endif %}>
+        <summary>Nota interna <span class="muted">(no se imprime)</span></summary>
+        <textarea name="nota_{{ block.result.pk }}" rows="1">{{ block.internal_note }}</textarea>
+      </details>
+    </div>
+    {% endif %}
   </section>
   {% empty %}
   <div class="card"><div class="empty">{% icon "flask-conical" %}<h3>La orden no tiene exámenes</h3></div></div>
@@ -117,9 +139,22 @@
   </div>
 </form>
 <script>
+  // Observación predefinida: se agrega en una línea nueva y, si tiene huecos "__", queda
+  // seleccionado el primero para escribir encima.
+  function blInsertObservation(button) {
+    const area = document.getElementById(button.dataset.target);
+    const current = area.value.replace(/\s+$/, "");
+    const start = current ? current.length + 1 : 0;
+    area.value = (current ? current + "\n" : "") + button.dataset.text;
+    area.focus();
+    const gap = area.value.indexOf("__", start);
+    if (gap >= 0) area.setSelectionRange(gap, gap + 2);
+    else area.setSelectionRange(area.value.length, area.value.length);
+  }
   // Enter pasa al siguiente campo en vez de enviar el formulario.
   document.getElementById("capture-form").addEventListener("keydown", function (e) {
-    if (e.key !== "Enter" || e.target.tagName === "BUTTON" || e.target.multiple) return;
+    if (e.key !== "Enter" || e.target.tagName === "BUTTON" || e.target.tagName === "TEXTAREA"
+        || e.target.multiple) return;
     e.preventDefault();
     const fields = Array.from(this.querySelectorAll(".js-entry"));
     const next = fields[fields.indexOf(e.target) + 1];

@@ -79,3 +79,14 @@ class ResultsViewsTests(ResultsTestBase):
         self.client.force_login(viewer)
         assert self.client.get(self.url).status_code == 200
         assert self.post_values(LIP_HDL="50").status_code == 403
+
+    def test_observaciones_desde_la_pantalla(self):
+        self.client.force_login(self.tech)
+        self.client.get(self.url)  # crea los Result
+        hdl = Result.objects.get(order_item__test__code="HDL")
+        params = {p.code: p for p in Parameter.objects.filter(code="LIP_HDL")}
+        self.client.post(self.url, {f"v_{params['LIP_HDL'].pk}": "50",
+                                    f"obs_{hdl.pk}": "VALOR VERIFICADO"})
+        hdl.refresh_from_db()
+        assert hdl.observations == "VALOR VERIFICADO"
+        assert "se imprimen debajo de este examen" in self.client.get(self.url).content.decode()

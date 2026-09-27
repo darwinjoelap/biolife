@@ -508,3 +508,26 @@ class ReagentLot(TenantBaseModel):
 
     def __str__(self) -> str:
         return f"{self.get_reagent_display()} — lote {self.lot_number}"
+
+
+class ObservationTemplate(TenantBaseModel):
+    """Observación predefinida para el informe (Fase 10, ADR-025). Se elige al cargar y se
+    imprime **debajo del examen** al que corresponde, no al final del informe.
+
+    Alcance: `test` (sólo ese examen), si no `section` (exámenes de esa sección), si no
+    general (todos). `__` marca un hueco que se completa al usarla («DISMÓRFICOS __ %»)."""
+
+    text = models.CharField("Texto", max_length=255)
+    section = models.ForeignKey(Section, on_delete=models.CASCADE, null=True, blank=True,
+                                related_name="observation_templates", verbose_name="Sección")
+    test = models.ForeignKey(Test, on_delete=models.CASCADE, null=True, blank=True,
+                             related_name="observation_templates", verbose_name="Examen")
+    order_index = models.PositiveIntegerField("Orden", default=0)
+
+    class Meta:
+        verbose_name = "Observación predefinida"
+        verbose_name_plural = "Observaciones predefinidas"
+        ordering = ["order_index", "text"]
+
+    def __str__(self) -> str:
+        return self.text

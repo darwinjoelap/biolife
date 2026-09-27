@@ -304,9 +304,10 @@ id PK · profile FK · test FK · order_index · UNIQUE(profile, test)
 Perfiles reales a sembrar: PERFIL 20, BÁSICO, LIPÍDICO, HEPÁTICO, RENAL, PRE-OPERATORIO,
 PRECLÁMPTICO, PEDIÁTRICO, GLICÉMICO, ORINA+HECES, HC+COAG, HIV+VDRL, HC+ORINA.
 
-### `ObservationTemplate`
+### `ObservationTemplate` (Fase 10, ADR-026)
 ```
-id PK · section FK→Section, N · text · order_index · is_active
+id PK · text · test FK→Test, N · section FK→Section, N · order_index · is_active
+# alcance: examen → sección → general (ambos nulos). "__" = hueco a completar
 ```
 > Del formato: "SUERO ICTÉRICO", "SE SUGIERE REALIZAR EXAMEN DE HECES SERIADO",
 > "HEMATOLOGÍA COMPLETA VERIFICADA CON UNA SEGUNDA MUESTRA". El bioanalista las elige
@@ -387,7 +388,8 @@ id PK · order_item 1:1→OrderItem
 status ENUM: PENDIENTE (por cargar / incompleto) | CARGADO | VALIDADO | RECTIFICADO
 entered_by FK→User N · entered_at N
 validated_by FK→User N · validated_at N
-observations text
+observations text               # se imprime DEBAJO de este examen (ADR-026)
+internal_note text              # nota de trabajo, no se imprime
 calculation_context JSONB       # condición, peso, talla, orina, ISI y lote usados
 ```
 

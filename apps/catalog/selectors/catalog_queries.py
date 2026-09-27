@@ -7,6 +7,7 @@ from django.db.models import Prefetch, Q, QuerySet
 from apps.catalog.models import (
     CodedOption,
     ContainerType,
+    ObservationTemplate,
     Parameter,
     Profile,
     ProfileTest,
@@ -150,3 +151,19 @@ def parameters_by_codes(*, codes: Iterable[str]) -> dict[str, Parameter]:
 
 def active_sections() -> QuerySet[Section]:
     return Section.objects.filter(is_active=True).order_by("order_index", "name")
+
+
+def observation_templates_by_test(*, tests: Iterable[Test]) -> dict:
+    """{test_id: [ObservationTemplate...]}: las del examen, luego las de su sección, luego
+    las generales (Fase 10)."""
+    tests = list(tests)
+    templates = list(ObservationTemplate.objects.filter(is_active=True).filter(
+        Q(test__in=tests) | Q(section_id__in={t.section_id for t in tests})
+        | Q(test__isnull=True, section__isnull=True)))
+    result = {}
+    for test in tests:
+        own = [t for t in templates if t.test_id == test.id]
+        section = [t for t in templates if t.test_id is None and t.section_id == test.section_id]
+        general = [t for t in templates if t.test_id is None and t.section_id is None]
+        result[test.id] = own + section + general
+    return result
