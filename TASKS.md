@@ -2,6 +2,7 @@
 
 ## Active
 
+- [ ] **Revisar el primer run del CI** - GitHub → Actions en darwinjoelap/biolife; si falla, pasar el log del paso
 - [ ] **Valores críticos (pánico) en la Fase 10** - umbrales crítico bajo/alto por rango (sexo/edad) en la ficha del examen; marca CRITICO_BAJO/CRITICO_ALTO resaltada; no se valida sin confirmar el valor y registrar a quién se notificó (quién, cuándo, cómo)
 - [ ] **Ficha del examen definitiva con el nuevo estilo** - reemplaza al admin provisional (ADR-020/022)
 - [ ] **Cargar precios reales** en la lista GENERAL (admin → Precios y cobro)
@@ -35,7 +36,8 @@
 ## Done
 
 - [x] ~~Verificar Fases 08c/08d~~ (2026-09-26) — 180 passed, ruff limpio, pantallas revisadas en demo1.localhost; commit `39a4491`
-- [x] ~~Borrar tenants demo_dos y demo_tres~~ (2026-09-26) — comando `eliminar_laboratorio_demo` (ADR-023); queda demo_uno; carpeta `Claude outputs/` borrada
+- [x] ~~Borrar tenants demo_dos y demo_tres~~ (2026-09-26) — comando `eliminar_laboratorio_demo` (ADR-023); queda demo_uno; carpeta `Claude outputs/` borrada; 183 passed y ruff limpio en la máquina de Darwin; commit `7ad6be1`
+- [x] ~~Subir el repo a GitHub~~ (2026-09-26) — https://github.com/darwinjoelap/biolife, rama main
 - [x] ~~Fase 08c — Consolidación~~ (2026-09-26) — provisión con catálogo, lípidos sin AYUNO, CI, script de aislamiento reparado, avisos eliminados (ADR-021)
 - [x] ~~Fase 08d — Estilo visual y pantallas base~~ (2026-09-26) — biolife.css, base/base_tenant/base_auth, acceso, Inicio, /estilo/, admin con marca, STORAGES (ADR-022); 180/180 en el entorno de Claude — verificado en la máquina de Darwin
 

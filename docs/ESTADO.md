@@ -4,37 +4,42 @@
 > Mantener bajo 100 líneas: si crece, es que hay historial que pertenece a DECISIONES.md.
 
 **Última actualización:** 2026-09-26
-**Fase actual:** 08d — Estilo visual (**completa y verificada**, `39a4491`) → siguiente: 09 (órdenes y muestras)
+**Fase actual:** Fases 00–08d **completas y verificadas** (último commit `7ad6be1`) → siguiente: 09 (órdenes y muestras)
+**Repositorio:** https://github.com/darwinjoelap/biolife (rama `main`, CI en GitHub Actions)
 **Responsable:** Darwin
 
 ---
 
 ## Completado
 
-- [x] Fases 00–05 (commits hasta `c9ac6ab`): diseño, multi-tenancy, usuarios y roles,
-  configuración del laboratorio, pacientes, catálogo (ADR-001 a ADR-015).
-- [x] Fase 06 (`d3475eb`) y Fases 07–08b (`53655ab`): rangos, motor de fórmulas, perfiles,
-  precios multimoneda, ficha del examen (ADR-016 a ADR-020).
+- [x] Fases 00–08b (hasta `53655ab`): diseño, multi-tenancy, usuarios y roles, configuración,
+  pacientes, catálogo, rangos, fórmulas, perfiles, precios, ficha del examen (ADR-001–020).
 - [x] Fases 08c y 08d (`39a4491`): laboratorios nacen con catálogo, lípidos sin AYUNO, CI,
   script de aislamiento reparado (ADR-021); sistema visual (CSS plano, paleta del logo,
   pantallas densas), acceso, Inicio, guía en `/estilo/`, admin con la marca (ADR-022).
   Verificado por Darwin: 180 passed, ruff limpio, pantallas revisadas en `demo1.localhost`.
-- [x] Limpieza: comando `eliminar_laboratorio_demo` (sólo estado DEMO); se borran
-  `demo_dos` y `demo_tres`, queda `demo_uno` como único laboratorio local (ADR-023).
-  183/183 en el entorno de Claude.
+- [x] Limpieza (`7ad6be1`): comando `eliminar_laboratorio_demo` (sólo estado DEMO); borrados
+  `demo_dos` y `demo_tres` y la carpeta `Claude outputs/` (ADR-023). Verificado por Darwin:
+  183 passed, ruff limpio. Repo publicado en GitHub con el CI (ruff, migraciones, pytest).
 
-## En curso
+## Dónde estamos
 
-Nada en curso.
+Base del producto terminada: multi-tenancy, usuarios y roles, configuración del laboratorio,
+pacientes, catálogo con rangos por sexo/edad/condición, motor de fórmulas, perfiles, precios
+multimoneda y el sistema visual. Todavía **no hay flujo clínico**: no se pueden crear órdenes
+ni capturar resultados. Eso empieza en la Fase 09.
+
+Local: un solo laboratorio, `demo_uno` → http://demo1.localhost:8000/ (+ `public` en localhost).
 
 ## Pendiente inmediato
 
-1. Siguiente: Fase 09 (órdenes y muestras) con el nuevo estilo.
-2. Cargar precios reales en la lista GENERAL (admin) cuando se tengan.
-3. **No usar en un informe real** ningún `ReferenceRange`/parámetro marcado "PENDIENTE DE
+1. Revisar el primer run del CI en GitHub → Actions (nunca se ha ejecutado allá).
+2. Siguiente: Fase 09 (órdenes y muestras) con el nuevo estilo.
+3. Cargar precios reales en la lista GENERAL (admin) cuando se tengan.
+4. **No usar en un informe real** ningún `ReferenceRange`/parámetro marcado "PENDIENTE DE
    CONFIRMAR" o "NO CONFIRMADO" (ver ADR-015 y ADR-016), ni el INR sin
    confirmar el ISI (ADR-017/019), hasta que el laboratorio responda.
-4. Confirmar con Angelus los rangos de referencia contradictorios, los rangos
+5. Confirmar con Angelus los rangos de referencia contradictorios, los rangos
    pediátricos/neonatales reales, y el detalle geográfico de localidades sin municipio
    verificado (Cantagallo, Dos Caminos, Las Minas, Píritu).
 
