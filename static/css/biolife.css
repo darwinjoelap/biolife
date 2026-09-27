@@ -512,3 +512,20 @@ input[readonly], input:disabled, select:disabled { background: var(--surface-2);
 @media print {
   .no-print { display: none !important; }
 }
+
+/* ==========================================================================
+   Resultados (Fase 10, ADR-025)
+   ========================================================================== */
+.content > *, form > .stack { min-width: 0; }
+.results-table { table-layout: fixed; }
+.results-table td { padding-top: 5px; padding-bottom: 5px; overflow-wrap: anywhere; }
+@media (max-width: 820px) {
+  .results-table { table-layout: auto; min-width: 720px; }
+  .actionbar .hint { display: none; }
+}
+.results-table tr:has(.flag--critico) { background: var(--danger-soft); }
+.results-table tr:has(.flag--critico) td:first-child { box-shadow: inset 3px 0 0 var(--critical); }
+.results-table .calc { display: inline-block; min-width: 110px; padding: 0 8px; text-align: right; font-weight: 600; font-variant-numeric: tabular-nums; }
+.results-table .error { display: block; font-size: var(--fs-xs); color: var(--danger); }
+.results-table .error:empty { display: none; }
+.results-table select[multiple] { height: auto; padding: 2px; }

@@ -19,6 +19,7 @@ from apps.catalog.models import (
     ParameterGroup,
     Profile,
     ProfileTest,
+    ReagentLot,
     ReferenceRange,
     SampleRequirement,
     Section,
@@ -31,6 +32,7 @@ from apps.catalog.services.formula_validation import (
     sync_parameter_dependencies,
     validate_formula,
 )
+from apps.catalog.services.reagent_lots import set_current_lot
 from apps.catalog.services.reference_range_management import (
     AVISO,
     age_window_text,
@@ -102,6 +104,29 @@ class ParameterInline(admin.TabularInline):
         )
         return format_html('{}<a href="{}#reference_ranges-group">Editar rangos →</a>',
                            rows or "Sin rangos. ", url)
+
+
+@admin.register(ReagentLot)
+class ReagentLotAdmin(admin.ModelAdmin):
+    list_display = ["reagent", "lot_number", "brand", "isi", "expires_on", "is_current"]
+    list_filter = ["reagent", "is_current"]
+    search_fields = ["lot_number", "brand"]
+    actions = ["marcar_vigente"]
+
+    @admin.action(description="Marcar como lote vigente")
+    def marcar_vigente(self, request, queryset):
+        if queryset.count() != 1:
+            self.message_user(request, "Elija un solo lote.", level=messages.ERROR)
+            return
+        lot = set_current_lot(lot=queryset.get())
+        self.message_user(request, f"{lot} es ahora el lote vigente.")
+
+    def save_model(self, request, obj, form, change):
+        wants_current = obj.is_current
+        obj.is_current = False if wants_current else obj.is_current
+        super().save_model(request, obj, form, change)
+        if wants_current:
+            set_current_lot(lot=obj)
 
 
 @admin.register(ContainerType)
@@ -191,6 +216,11 @@ class ReferenceRangeInline(admin.StackedInline):
         ("Valores", {"fields": ["range_type", ("low", "high"), ("center", "tolerance"),
                                 "expected_option", "bands"]}),
         ("Impresión", {"fields": [("display_text", "unit")]}),
+        ("Valores críticos (pánico)", {
+            "fields": [("critical_low", "critical_high"), "critical_note"],
+            "description": "Fuera de estos límites el resultado se marca CRÍTICO y no se "
+                           "valida sin registrar a quién se notificó. Vacío = sin crítico.",
+        }),
     ]
 
     def get_formset(self, request, obj=None, **kwargs):

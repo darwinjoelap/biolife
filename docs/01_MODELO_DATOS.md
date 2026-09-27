@@ -274,11 +274,21 @@ bands           JSONB N             # sólo INTERPRETIVE (procalcitonina)
 display_text                        # OBLIGATORIO. Se imprime literal.
 unit            FK→Unit, N
 priority        int                 # desempate cuando varios rangos coinciden
+critical_low · critical_high  decimal N   # valores de pánico (Fase 10, ADR-025)
+critical_note                       # "PROPUESTO (literatura)…" o confirmado
 ```
 Resolución en `services/reference_resolver.py`: filtra por sexo y edad-en-días, ordena por
 `priority` desc y por rango etario más estrecho primero, devuelve el primero. Si no hay
 coincidencia devuelve `None` y el informe imprime la celda de referencia vacía — que es
 exactamente lo que hacen los formatos actuales con MONOCITOS y BASÓFILOS.
+
+### `ReagentLot` (Fase 10, ADR-025)
+```
+id PK · reagent ENUM: TROMBOPLASTINA · lot_number · brand · isi decimal N
+expires_on N · is_current bool      # un solo vigente por reactivo
+```
+> El INR usa el ISI del lote vigente; el resultado copia lote e ISI en
+> `Result.calculation_context`, así un cambio de lote no altera informes anteriores.
 
 ### `Profile` (perfil / paquete)
 ```
@@ -329,6 +339,7 @@ status          ENUM: REGISTRADA | MUESTRA_TOMADA | EN_PROCESO | RESULTADOS_CARG
 ordered_at
 # Datos clínicos del episodio (no del paciente)
 weight_kg N · height_cm N · urine_volume_24h_ml N
+patient_condition ENUM: NINGUNA | EMBARAZO   # cambia los rangos (Fase 10)
 notes ""
 # Cotización congelada (ADR-019/024)
 price_list_code · currency_code · subtotal N · discount_total N · total N
@@ -370,47 +381,45 @@ sample FK · is_reprint bool · created_by · created_at     # quién imprimió 
 
 ## F. ESQUEMA TENANT — Resultados
 
-### `Result` (un examen dentro de una orden)
+### `Result` (un examen dentro de una orden) — Fase 10, ADR-025
 ```
-id PK · order_item FK→OrderItem, U
-status ENUM: PENDIENTE | CARGADO | VALIDADO | RECTIFICADO
+id PK · order_item 1:1→OrderItem
+status ENUM: PENDIENTE (por cargar / incompleto) | CARGADO | VALIDADO | RECTIFICADO
 entered_by FK→User N · entered_at N
 validated_by FK→User N · validated_at N
-observations text N
-method_override N               # si se usó un método distinto al del catálogo
-sync_version int
+observations text
+calculation_context JSONB       # condición, peso, talla, orina, ISI y lote usados
 ```
 
-### `ResultValue`
+### `ResultValue` (sólo existe si hay valor)
 ```
 id PK
 result          FK→Result
 parameter       FK→Parameter
 value_numeric   decimal N
-value_text      text N
-value_low · value_high   decimal N       # COUNT_RANGE: 0 - 1 P/C
+value_text      text N                   # narrativo, multi, "< 0,5", "INCONTABLES"
+value_low · value_high   decimal N       # COUNT_RANGE: 0 - 2 p/c
 coded_option    FK→CodedOption, N
-multi_options   M2M→CodedOption          # MULTI_CATALOG (parásitos)
-flag            ENUM: NORMAL | BAJO | ALTO | CRITICO_BAJO | CRITICO_ALTO | ANORMAL, N
-reference_used  FK→ReferenceRange, N     # congelado al momento de validar
-reference_text  N                        # copia literal del display_text
-is_calculated   bool
-source          ENUM: MANUAL | INSTRUMENTO | CALCULADO | OFFLINE_SYNC
-UNIQUE (result, parameter)
+multi_options   M2M→CodedOption          # MULTI_CATALOG (cristales, parásitos)
+flag            ENUM: NORMAL | BAJO | ALTO | CRITICO_BAJO | CRITICO_ALTO | ANORMAL, ""
+interpretation  ""                       # texto de la banda (HOMA, HbA1c, PCT)
+reference_range FK→ReferenceRange, N     # congelado al validar
+reference_text                           # copia literal del display_text
+source          ENUM: MANUAL | CALCULADO | INSTRUMENTO | OFFLINE_SYNC
+UNIQUE (result, parameter) · CHECK (algún valor no nulo)
 ```
 
-**Constraint clave**
-```sql
-CHECK (
-  (value_numeric IS NOT NULL)::int + (value_text IS NOT NULL)::int +
-  (coded_option_id IS NOT NULL)::int + (value_low IS NOT NULL)::int >= 1
-)
-```
+> **`reference_range` + `reference_text` se copian al guardar y quedan congelados al
+> validar; no se resuelven al imprimir.** Si el laboratorio cambia un rango en 2027, el
+> informe de 2026 sigue mostrando el rango vigente entonces.
 
-> **`reference_used` + `reference_text` se copian al validar, no se resuelven al imprimir.**
-> Si el laboratorio cambia un rango en 2027, el informe de 2026 debe seguir mostrando el
-> rango que estaba vigente. Sin esto, cualquier reimpresión de un histórico es incorrecta —
-> y en un contexto clínico eso es un problema serio, no cosmético.
+### `CriticalNotification` (Fase 10)
+```
+id PK · result_value FK · value_confirmed bool · value_display   # valor avisado
+notified_to · method ENUM: LLAMADA | WHATSAPP | PRESENCIAL | CORREO | OTRO
+notified_at · notes · created_by (quién avisó)
+```
+> Un valor crítico no se valida sin un aviso confirmado **de ese mismo valor**.
 
 ### `ResultAmendment` (rectificación)
 ```

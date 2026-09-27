@@ -49,6 +49,7 @@ class ReferenceRangeForm(forms.ModelForm):
         fields = [
             "sex", "condition", "priority", "range_type", "low", "high", "center",
             "tolerance", "expected_option", "bands", "display_text", "unit", "is_active",
+            "critical_low", "critical_high", "critical_note",
         ]
 
     def __init__(self, *args, **kwargs):
@@ -85,6 +86,9 @@ class ReferenceRangeForm(forms.ModelForm):
         for field_name in RANGE_TYPE_REQUIRED.get(range_type, ()):
             if cleaned.get(field_name) in (None, ""):
                 self.add_error(field_name, "Obligatorio para este tipo de rango.")
+        critical_low, critical_high = cleaned.get("critical_low"), cleaned.get("critical_high")
+        if critical_low is not None and critical_high is not None and critical_low >= critical_high:
+            self.add_error("critical_high", "El crítico alto debe ser mayor que el bajo.")
         if range_type == ReferenceRange.RangeType.CLOSED:
             low, high = cleaned.get("low"), cleaned.get("high")
             if low is not None and high is not None and low > high:

@@ -2,12 +2,14 @@
 
 ## Active
 
-- [ ] **Valores críticos (pánico) en la Fase 10** - umbrales crítico bajo/alto por rango (sexo/edad) en la ficha del examen; marca CRITICO_BAJO/CRITICO_ALTO resaltada; no se valida sin confirmar el valor y registrar a quién se notificó (quién, cuándo, cómo)
 - [ ] **Ficha del examen definitiva con el nuevo estilo** - reemplaza al admin provisional (ADR-020/022)
 - [ ] **Cargar precios reales** en la lista GENERAL (admin → Precios y cobro)
+- [ ] **Verificar Fase 10 en la máquina de Darwin** - `migrate_schemas`, `tenant_command seed_criticos --schema=demo_uno`, lote de tromboplastina vigente con ISI, `pytest -q` → 243, `ruff check .`, cargar/validar en demo1.localhost; luego commit
+- [ ] **Fase 11** - Informe PDF, firma y QR (no iniciar sin pedirlo)
+- [ ] **Confirmar valores críticos propuestos** - con el laboratorio (ficha del examen → Valores críticos)
+- [ ] **Observaciones por examen desde plantillas** - pantalla pendiente (ObservationTemplate)
 - [ ] **Caja** - abonos, métodos de pago (efectivo, pago móvil, transferencia, divisas), vuelto; fase propia (ADR-024)
 - [ ] **Definir impresora de etiquetas** - modelo y tamaño real; ajustar ancho/alto en Laboratorio (hoy 50 × 25 mm)
-- [ ] **Fase 10** - Captura y validación de resultados (no iniciar sin pedirlo)
 
 ## Waiting On
 
@@ -30,13 +32,12 @@
 - [ ] **Privacidad antes de producción (Fase 17)** - sacar `docs/`, `TASKS.md` y `CLAUDE.md` de git (`git rm -r --cached` + `.gitignore`), repo privado, cambiar las menciones a Angelus en comentarios de `apps/catalog`; evaluar limpiar el historial
 - [ ] **Automatizar creación del tenant `public` + dominio** - como parte del script de despliegue (Fase 17), ver ADR-009
 - [ ] **Mecanismo Master*+copia al aprovisionar tenant** - pospuesto en Fase 05 (ADR-015), retomar cuando haya un segundo laboratorio real
-- [ ] **Decidir dónde se persiste el ISI** (TenantSettings o por lote) - Fase 10, ADR-017
 - [ ] **Sembrar rangos de los nuevos calculados** (CHCM, globulinas, LDL, VLDL, Castelli, INR) - valores en 04_HALLAZGOS §1-2, cuando la Fase 10 los use
-- [ ] **Decidir condición de los rangos de lípidos (AYUNO vs NINGUNA)** - Fase 10, ADR-019
 - [ ] **Tasa BCV automática y perfiles anidados** - posteriores, ADR-019
 
 ## Done
 
+- [x] ~~Fase 10 — Captura y validación de resultados~~ (2026-09-27) — cálculo en vivo, marcas y críticos con aviso, validación que congela referencias, ISI por lote (ADR-025); 243/243 en el entorno de Claude — pendiente verificación en la máquina de Darwin
 - [x] ~~Fase 09 — Órdenes y muestras~~ (2026-09-27) — número diario, tubos por aditivo, etiquetas PDF con Code 128, toma/rechazo/reemplazo, cotización congelada, pantallas de recepción (ADR-024); 211 passed y flujo completo verificados en la máquina de Darwin; commit `9919111`
 - [x] ~~Verificar Fases 08c/08d~~ (2026-09-26) — 180 passed, ruff limpio, pantallas revisadas en demo1.localhost; commit `39a4491`
 - [x] ~~Borrar tenants demo_dos y demo_tres~~ (2026-09-26) — comando `eliminar_laboratorio_demo` (ADR-023); queda demo_uno; carpeta `Claude outputs/` borrada; 183 passed y ruff limpio en la máquina de Darwin; commit `7ad6be1`

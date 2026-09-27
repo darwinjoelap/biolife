@@ -288,6 +288,18 @@ class ReferenceRange(TenantBaseModel):
         Unit, on_delete=models.PROTECT, related_name="+", null=True, blank=True
     )
     priority = models.PositiveIntegerField("Prioridad (desempate)", default=0)
+    # Valores críticos / de pánico (Fase 10, ADR-025): fuera de estos límites el resultado
+    # se marca CRÍTICO y no se valida sin registrar a quién se notificó.
+    critical_low = models.DecimalField(
+        "Crítico bajo", max_digits=12, decimal_places=4, null=True, blank=True
+    )
+    critical_high = models.DecimalField(
+        "Crítico alto", max_digits=12, decimal_places=4, null=True, blank=True
+    )
+    critical_note = models.CharField(
+        "Origen de los críticos", max_length=120, blank=True, default="",
+        help_text="P. ej. «PROPUESTO (literatura)» o «Confirmado por el laboratorio».",
+    )
 
     class Meta:
         verbose_name = "Rango de referencia"
@@ -466,3 +478,33 @@ class SampleRequirement(TenantBaseModel):
     def __str__(self) -> str:
         label = f" ({self.collection_label})" if self.collection_label else ""
         return f"{self.test.code} → {self.container_type.short_name}{label}"
+
+
+class ReagentLot(TenantBaseModel):
+    """Lote de reactivo con sus datos de cálculo (Fase 10, ADR-025). Hoy: el ISI de la
+    tromboplastina para el INR. Un solo lote vigente por reactivo; el resultado copia el
+    lote y el ISI usados, así un cambio de lote no altera informes anteriores."""
+
+    class Reagent(models.TextChoices):
+        TROMBOPLASTINA = "TROMBOPLASTINA", "Tromboplastina (PT / INR)"
+
+    reagent = models.CharField("Reactivo", max_length=20, choices=Reagent.choices)
+    lot_number = models.CharField("Lote", max_length=40)
+    brand = models.CharField("Marca", max_length=80, blank=True, default="")
+    isi = models.DecimalField("ISI", max_digits=6, decimal_places=3, null=True, blank=True)
+    expires_on = models.DateField("Vence", null=True, blank=True)
+    is_current = models.BooleanField("Vigente", default=False)
+
+    class Meta:
+        verbose_name = "Lote de reactivo"
+        verbose_name_plural = "Lotes de reactivos"
+        ordering = ["reagent", "-is_current", "-created_at"]
+        constraints = [
+            models.UniqueConstraint(fields=["reagent"], condition=models.Q(is_current=True),
+                                    name="reagentlot_single_current"),
+            models.UniqueConstraint(fields=["reagent", "lot_number"],
+                                    name="reagentlot_unique_lot"),
+        ]
+
+    def __str__(self) -> str:
+        return f"{self.get_reagent_display()} — lote {self.lot_number}"

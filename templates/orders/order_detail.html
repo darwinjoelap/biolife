@@ -6,6 +6,7 @@
 {% block page_actions %}
   {% if active_samples %}<a class="btn btn--primary" href="{% url 'orders:labels' order.pk %}" target="_blank" rel="noopener">{% icon "printer" %} Imprimir etiquetas ({{ active_samples|length }})</a>{% endif %}
   {% if editable %}<a class="btn" href="{% url 'orders:add' order.pk %}">{% icon "plus" %} Agregar exámenes</a>{% endif %}
+  {% if not order.is_cancelled %}<a class="btn" href="{% url 'results:capture' order.pk %}">{% icon "flask-conical" %} Resultados</a>{% endif %}
 {% endblock %}
 {% block content %}
 <div class="row only-mobile" style="margin-bottom:var(--s3)">
@@ -67,7 +68,7 @@
           <tbody>
             {% for i in order.items.all %}
             <tr><td>{{ i.test.name }} <span class="muted small">{{ i.test.code }}</span></td>
-              <td class="muted">{{ i.test.section.name|title }}</td>
+              <td class="muted">{{ i.test.section.name|lower|capfirst }}</td>
               <td>{% if i.profile %}<span class="tag tag--brand">{{ i.profile.name }}</span>{% endif %}</td>
               <td class="num small">{% for s in samples %}{% if i in s.order_items.all and s.status != "RECHAZADA" %}<span class="tube-dot" style="--tube: {{ s.container_type.color }};width:9px;height:9px"></span> {{ s.number|slice:"-2:" }} {% endif %}{% endfor %}</td>
               <td><span class="tag">{{ i.get_status_display }}</span></td></tr>

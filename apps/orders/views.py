@@ -232,4 +232,5 @@ def order_add(request, pk):
 def day_summary_partial(request):
     """Indicadores del día para la pantalla de Inicio (htmx)."""
     return render(request, "orders/_day_kpis.html",
-                  {"summary": q.day_summary(day=timezone.localdate())})
+                  {"summary": q.day_summary(day=timezone.localdate()),
+                   "results": q.results_worklist_counts()})

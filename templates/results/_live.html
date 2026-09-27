@@ -1,0 +1,6 @@
+{% load results_ui %}{% for block in sheet.blocks %}{% for row in block.rows %}
+<span id="flag-{{ row.parameter.pk }}" hx-swap-oob="true">{{ row.assessment.flag|flag_badge }}</span>
+<span id="ref-{{ row.parameter.pk }}" hx-swap-oob="true">{{ row.reference_text }}{% if row.assessment.interpretation %}<br><b>{{ row.assessment.interpretation }}</b>{% endif %}</span>
+<span id="err-{{ row.parameter.pk }}" hx-swap-oob="true" class="error">{{ row.error }}</span>
+{% if row.is_calculated %}<span id="calc-{{ row.parameter.pk }}" hx-swap-oob="true" class="calc {{ row.assessment.flag|value_class }}" title="{{ row.calc_note }}">{% if row.display %}{{ row.display }}{% else %}<span class="muted">—</span>{% endif %}</span>{% endif %}
+{% endfor %}{% endfor %}

@@ -711,3 +711,42 @@ está definida y el laboratorio no tiene precios cargados.
 - Laboratorios existentes: correr `seed_contenedores` una vez; los nuevos ya nacen con tubos.
 - Una caja completa (abonos, métodos, vuelto) queda para una fase propia.
 - Impresión ZPL directa exigiría un agente local; se evaluará si el PDF resulta lento.
+
+---
+
+## ADR-025 — Resultados: planilla única para vista previa y guardado, críticos con aviso, ISI por lote
+**Fecha:** 2026-09-27 · **Estado:** Aceptada
+
+**Contexto.** La Fase 10 carga y valida resultados. Hay que marcar alto/bajo/crítico según
+el rango de cada paciente, calcular en vivo, congelar la referencia al validar y resolver
+dos pendientes: dónde vive el ISI del INR y cómo se tratan los valores de pánico.
+
+**Decisión.**
+- `results.services.result_capture.build_sheet()` arma la planilla de la orden (valores,
+  calculados, rango, marca, valor anterior) y la usan **igual** la vista previa en vivo
+  (htmx, sin guardar) y el guardado: lo que se ve es lo que se guarda.
+- `ResultValue` sólo existe si hay valor. Guarda marca, interpretación, rango y texto de
+  referencia; al validar se recalcula con los rangos vigentes y queda congelado.
+- Validado = inmutable, **incluidos los insumos** de un calculado ya validado. Corregir =
+  rectificación (Fase 15).
+- Críticos: `critical_low/high` por rango (sexo/edad). Un crítico no se valida sin un
+  `CriticalNotification` con el valor confirmado y a quién se avisó; el aviso guarda el
+  valor avisado y deja de servir si el valor cambia. Se siembran umbrales de literatura
+  marcados «PROPUESTO» (no en rangos neonatales/pediátricos).
+- ISI: `catalog.ReagentLot` con un único lote vigente por reactivo; el resultado copia
+  lote e ISI (y peso, talla, orina y condición) en `calculation_context`.
+- Condición del paciente en la orden (`NINGUNA`/`EMBARAZO`); si no hay rango para esa
+  condición se usa el general.
+- Doble validación configurable por laboratorio (`require_second_validation`): quien valida
+  debe ser distinto de quien cargó.
+- La bandeja vive en `orders.selectors` (por estado del examen), para que existan
+  pendientes aunque nadie haya abierto la captura; la orden avanza vía
+  `orders.services.order_progress`.
+- Números con coma decimal y punto de miles (`150.000`, `13,4`); redondeo clínico mitad
+  hacia arriba.
+
+**Consecuencias.**
+- Fase 11 imprime `reference_text` y la marca guardados, nunca los recalcula.
+- Fase 16 (instrumentos) escribe con `source=INSTRUMENTO` por el mismo `save_sheet`.
+- Los críticos propuestos deben confirmarse con cada laboratorio.
+- `.content > * { min-width: 0 }` global: corrige desbordes en móvil de cualquier pantalla.

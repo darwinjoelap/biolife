@@ -41,6 +41,11 @@ class Order(TenantBaseModel):
         NORMAL = "NORMAL", "Normal"
         URGENTE = "URGENTE", "Urgente"
 
+    class Condition(models.TextChoices):
+        """Condición del paciente que cambia sus rangos de referencia (Fase 10)."""
+        NINGUNA = "NINGUNA", "Ninguna"
+        EMBARAZO = "EMBARAZO", "Embarazo"
+
     number = models.CharField("Número", max_length=11, unique=True, editable=False)
     patient = models.ForeignKey(
         "patients.Patient", on_delete=models.PROTECT, related_name="orders",
@@ -64,6 +69,10 @@ class Order(TenantBaseModel):
                                     null=True, blank=True)
     urine_volume_24h_ml = models.DecimalField(
         "Volumen de orina 24 h (mL)", max_digits=7, decimal_places=1, null=True, blank=True
+    )
+    patient_condition = models.CharField(
+        "Condición del paciente", max_length=10, choices=Condition.choices,
+        default=Condition.NINGUNA,
     )
 
     # Cotización congelada (ADR-019/024).

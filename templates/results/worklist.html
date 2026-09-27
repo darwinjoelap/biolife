@@ -1,0 +1,46 @@
+{% extends "base_tenant.html" %}
+{% load ui orders_ui %}
+{% block page_title_text %}Resultados{% endblock %}
+{% block crumbs %}Laboratorio{% endblock %}
+{% block page_title %}Resultados{% endblock %}
+{% block content %}
+<section class="card">
+  <div class="card__head row">
+    <a class="btn {% if status == 'por_cargar' %}btn--primary{% else %}btn--ghost{% endif %}" href="?estado=por_cargar&seccion={{ section_id }}">{% icon "flask-conical" %} Por cargar <b>{{ counts.por_cargar }}</b></a>
+    <a class="btn {% if status == 'por_validar' %}btn--primary{% else %}btn--ghost{% endif %}" href="?estado=por_validar&seccion={{ section_id }}">{% icon "shield-check" %} Por validar <b>{{ counts.por_validar }}</b></a>
+    <a class="btn {% if status == 'validados' %}btn--primary{% else %}btn--ghost{% endif %}" href="?estado=validados&seccion={{ section_id }}">{% icon "circle-check" %} Validados</a>
+    <span class="spacer"></span>
+    <form method="get" class="row" role="search">
+      <input type="hidden" name="estado" value="{{ status }}">
+      <select name="seccion" onchange="this.form.submit()" style="width:200px" aria-label="Sección">
+        <option value="">Todas las secciones</option>
+        {% for s in sections %}<option value="{{ s.pk }}"{% if s.pk|stringformat:"s" == section_id %} selected{% endif %}>{{ s.name|lower|capfirst }}</option>{% endfor %}
+      </select>
+      <label class="picker__input" style="width:260px"><span class="sr-only">Buscar</span>{% icon "search" %}
+        <input type="search" name="q" value="{{ query }}" placeholder="Orden, cédula o nombre…"></label>
+    </form>
+  </div>
+  <div class="card__body card__body--flush table-wrap">
+    {% if items %}
+    <table class="table">
+      <thead><tr><th>Orden</th><th>Registrada</th><th>Paciente</th><th>Examen</th><th>Sección</th><th>Tubo</th><th>Estado</th></tr></thead>
+      <tbody>
+      {% for i in items %}
+      <tr style="cursor:pointer" onclick="location.href='{% url 'results:capture' i.order.pk %}#item-{{ i.pk }}'">
+        <td class="num"><a href="{% url 'results:capture' i.order.pk %}#item-{{ i.pk }}"><b>{{ i.order.number }}</b></a>{% if i.order.priority == "URGENTE" %} <span class="tag tag--info">Urgente</span>{% endif %}</td>
+        <td class="num">{{ i.order.ordered_at|date:"d/m h:i A" }}</td>
+        <td>{{ i.order.patient.last_name }}, {{ i.order.patient.first_name }}</td>
+        <td>{{ i.test.name }}</td>
+        <td class="muted">{{ i.test.section.name|lower|capfirst }}</td>
+        <td>{% for s in i.samples.all %}{% if s.status != "RECHAZADA" %}<span class="tag {{ s.status|status_tag }}">{{ s.get_status_display }}</span> {% endif %}{% endfor %}</td>
+        <td><span class="tag">{{ i.get_status_display }}</span></td>
+      </tr>
+      {% endfor %}
+      </tbody>
+    </table>
+    {% else %}
+    <div class="empty">{% icon "flask-conical" %}<h3>{% if status == "por_validar" %}Nada por validar{% elif status == "validados" %}Sin validados{% else %}Nada por cargar{% endif %}</h3></div>
+    {% endif %}
+  </div>
+</section>
+{% endblock %}

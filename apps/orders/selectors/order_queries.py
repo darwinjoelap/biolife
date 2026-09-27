@@ -101,3 +101,55 @@ def day_summary(*, day: datetime.date) -> dict:
         "urgent": orders.filter(priority=Order.Priority.URGENTE).count(),
         "unpaid": orders.filter(is_paid=False).count(),
     }
+
+
+def items_for_results(*, order: Order) -> list[OrderItem]:
+    """Exámenes vigentes de la orden con sus tubos (captura de resultados, Fase 10)."""
+    return list(
+        order.items.exclude(status=OrderItem.Status.ANULADO)
+        .select_related("test", "test__section", "profile")
+        .prefetch_related("samples")
+        .order_by("test__section__order_index", "order_index")
+    )
+
+
+def get_order(*, pk) -> Order:
+    return Order.objects.select_related("patient").get(pk=pk)
+
+
+WORKLIST_STATUSES = {
+    "por_cargar": (OrderItem.Status.PENDIENTE, OrderItem.Status.EN_PROCESO),
+    "por_validar": (OrderItem.Status.CARGADO,),
+    "validados": (OrderItem.Status.VALIDADO,),
+}
+
+
+def results_worklist(*, status: str = "por_cargar", section_id: str = "",
+                     query: str = "") -> QuerySet[OrderItem]:
+    """Bandeja de resultados (Fase 10): exámenes por cargar, por validar o validados;
+    urgentes y más antiguos primero. Excluye órdenes anuladas."""
+    items = (
+        OrderItem.objects.filter(status__in=WORKLIST_STATUSES.get(
+            status, WORKLIST_STATUSES["por_cargar"]))
+        .exclude(order__status=Order.Status.ANULADA)
+        .select_related("order__patient", "test__section")
+        .prefetch_related("samples")
+    )
+    if section_id:
+        items = items.filter(test__section_id=section_id)
+    query = query.strip()
+    if query:
+        items = items.filter(
+            Q(order__number__icontains=query) | Q(order__patient__last_name__icontains=query)
+            | Q(order__patient__first_name__icontains=query)
+            | Q(order__patient__document_number__icontains=query)
+        )
+    if status == "validados":
+        return items.order_by("-updated_at")[:200]
+    return items.order_by("-order__priority", "order__ordered_at", "order_index")
+
+
+def results_worklist_counts() -> dict:
+    items = OrderItem.objects.exclude(order__status=Order.Status.ANULADA)
+    return {key: items.filter(status__in=statuses).count()
+            for key, statuses in WORKLIST_STATUSES.items() if key != "validados"}

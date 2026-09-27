@@ -4,7 +4,7 @@
 > Mantener bajo 100 líneas: si crece, es que hay historial que pertenece a DECISIONES.md.
 
 **Última actualización:** 2026-09-27
-**Fase actual:** 09 — Órdenes y muestras (**completa y verificada**, `9919111`) → siguiente: 10 (captura y validación de resultados)
+**Fase actual:** 10 — Resultados (**escrita, falta verificar en la máquina de Darwin**; último commit `9919111`)
 **Repositorio:** https://github.com/darwinjoelap/biolife (rama `main`, CI en GitHub Actions)
 **Responsable:** Darwin
 
@@ -16,23 +16,24 @@
   pacientes, catálogo, rangos, fórmulas, perfiles, precios, ficha del examen (ADR-001–020).
 - [x] Fases 08c, 08d y limpieza (`39a4491`, `7ad6be1`): provisión con catálogo, CI, sistema
   visual, baja de laboratorios demo (ADR-021–023). Verificado: 183 passed; CI en verde.
-- [x] Fase 09 (`9919111`): órdenes con número diario `AAMMDD-NNNN`, tubos por aditivo con
-  orden de extracción, etiquetas PDF 50 × 25 mm con código de barras, toma/rechazo/reemplazo,
-  cotización congelada, pantallas de recepción (ADR-024). Verificado por Darwin: 211 passed, flujo completo OK.
+- [x] Fase 09 (`9919111`): órdenes, tubos, etiquetas, recepción (ADR-024). Verificado: 211.
+- [x] Fase 10 (sin commit): captura con cálculo en vivo, marcas alto/bajo/crítico, aviso de
+  críticos, validación que congela referencias, ISI por lote (ADR-025). 243/243 aquí.
 
 ## Dónde estamos
 
 Base del producto terminada: multi-tenancy, usuarios y roles, configuración del laboratorio,
 pacientes, catálogo con rangos por sexo/edad/condición, motor de fórmulas, perfiles, precios
-multimoneda y el sistema visual. Con la Fase 09 empieza el flujo clínico: recepción de
-pacientes, órdenes, tubos y etiquetas. Falta capturar y validar resultados (Fase 10).
-Detalle y lista de verificación: `docs/roadmap/09_ordenes_y_muestras.md`.
+multimoneda y el sistema visual. Flujo clínico: recepción, órdenes, tubos y etiquetas
+(Fase 09) y resultados cargados y validados (Fase 10). Falta el informe PDF (Fase 11).
+Verificación pendiente: `docs/roadmap/10_resultados.md`.
 
 Local: un solo laboratorio, `demo_uno` → http://demo1.localhost:8000/ (+ `public` en localhost).
 
 ## Pendiente inmediato
 
-1. Siguiente: Fase 10 (captura y validación de resultados, valores críticos).
+1. Verificar la Fase 10 (roadmap 10: `migrate_schemas`, `seed_criticos`, lote de
+   tromboplastina, pytest 243) y hacer su commit. Siguiente: Fase 11 (informe PDF).
 2. Cargar precios reales en la lista GENERAL (admin): sin ellos las órdenes quedan con
    monto pendiente.
 3. **No usar en un informe real** ningún `ReferenceRange`/parámetro marcado "PENDIENTE DE
@@ -87,7 +88,8 @@ laboratorio antes de producción.
   django-tenants), 010–011 (`User` propio, `accounts` SHARED+TENANT), 017 (fórmulas),
   018 (alcance: Angelus es referencia), 019 (perfiles y precios), 020 (rangos y admin por
   tenant), 021 (provisión con catálogo, CI), 022 (sistema visual y `STORAGES`), 023 (baja de
-  laboratorios demo), 024 (órdenes, tubos y etiquetas).
+  laboratorios demo), 024 (órdenes, tubos y etiquetas), 025
+  (resultados, críticos, ISI).
 - "7 roles" del índice del roadmap = 6 roles de tenant (esta fase) + `SUPERADMIN_PLATAFORMA`
   como `PlatformUser` en `public` (Fase 12), no un séptimo `Role` de tenant.
 - **Postgres local (máquina de Darwin):** hay 3 instalaciones (16, 17, 18). La base

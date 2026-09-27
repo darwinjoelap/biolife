@@ -5,11 +5,13 @@ from collections.abc import Iterable
 from django.db.models import Prefetch, Q, QuerySet
 
 from apps.catalog.models import (
+    CodedOption,
     ContainerType,
     Parameter,
     Profile,
     ProfileTest,
     SampleRequirement,
+    Section,
     Test,
 )
 
@@ -120,3 +122,31 @@ def orderable_tests() -> QuerySet[Test]:
 
 def orderable_profiles() -> QuerySet[Profile]:
     return Profile.objects.filter(is_active=True)
+
+
+def parameters_for_tests(*, tests: Iterable[Test]) -> list[Parameter]:
+    """Parámetros activos de los exámenes, en orden de informe, con unidad, grupo y opciones
+    precargados (captura de resultados, Fase 10)."""
+    return list(
+        Parameter.objects.filter(test_id__in=[t.id for t in tests], is_active=True)
+        .select_related("test", "unit", "group", "option_set")
+        .prefetch_related(Prefetch("option_set__options",
+                                   queryset=CodedOption.objects.order_by("order_index")),
+                          "depends_on")
+        .order_by("test__section__order_index", "test__name", "group__order_index",
+                  "order_index")
+    )
+
+
+def calculated_formulas(*, parameters: Iterable[Parameter]) -> dict[str, str]:
+    return {p.code: p.formula for p in parameters
+            if p.value_type == Parameter.ValueType.NUMERIC_CALCULATED and p.formula}
+
+
+def parameters_by_codes(*, codes: Iterable[str]) -> dict[str, Parameter]:
+    return {p.code: p for p in Parameter.objects.filter(code__in=list(codes))
+            .select_related("test")}
+
+
+def active_sections() -> QuerySet[Section]:
+    return Section.objects.filter(is_active=True).order_by("order_index", "name")

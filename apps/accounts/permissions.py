@@ -65,3 +65,13 @@ def role_required(*codes: str):
             return view(request, *args, **kwargs)
         return wrapper
     return decorator
+
+# Resultados (Fase 10): cargan técnico, bioanalista y administrador; validan quienes tienen
+# `puede_validar_resultados` en su rol (bioanalista y administrador).
+CAPTURE_ROLES = ("ADMIN_LAB", "BIOANALISTA", "TECNICO")
+VALIDATE_ROLES = ("ADMIN_LAB", "BIOANALISTA")
+
+
+def can_validate_results(user) -> bool:
+    return bool(getattr(user, "is_superuser", False)) or has_permission(
+        user, "puede_validar_resultados")
