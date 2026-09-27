@@ -57,15 +57,15 @@ Ejemplo de Darwin — hematología + colesterol + triglicéridos + tiempos de co
 - [x] `patients.services.patient_age`: edad en días / texto / corta (etiquetas; Fase 10).
 - [x] Tests: +28 (211 en total). Códigos de barras verificados con lector (zbar) a 203 dpi.
 
-## Verificación en la máquina de Darwin
+## Verificación en la máquina de Darwin (2026-09-27: todo OK, commit `9919111`)
 
-- [ ] `pip install -r requirements/local.txt` (nuevo: `reportlab`).
-- [ ] `python manage.py migrate_schemas` (catalog.0007, orders.0001, settings_lab.0004).
-- [ ] `python manage.py tenant_command seed_contenedores --schema=demo_uno`.
-- [ ] En *Laboratorio* (admin): cargar **Siglas del laboratorio** si está vacío (lo pide el
+- [x] `pip install -r requirements/local.txt` (nuevo: `reportlab`).
+- [x] `python manage.py migrate_schemas` (catalog.0007, orders.0001, settings_lab.0004).
+- [x] `python manage.py tenant_command seed_contenedores --schema=demo_uno`.
+- [x] En *Laboratorio* (admin): cargar **Siglas del laboratorio** si está vacío (lo pide el
   código de paciente).
-- [ ] `pytest -q` → 211 · `ruff check .`
-- [ ] `runserver` → `http://demo1.localhost:8000/`: registrar un paciente, crear la orden
+- [x] `pytest -q` → 211 · `ruff check .`
+- [x] `runserver` → `http://demo1.localhost:8000/`: registrar un paciente, crear la orden
   del ejemplo, ver 3 tubos, imprimir etiquetas, tomar, rechazar, agregar un examen, pagar.
 
 ## No incluye

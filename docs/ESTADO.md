@@ -4,7 +4,7 @@
 > Mantener bajo 100 líneas: si crece, es que hay historial que pertenece a DECISIONES.md.
 
 **Última actualización:** 2026-09-27
-**Fase actual:** 09 — Órdenes y muestras (**escrita, falta verificar en la máquina de Darwin**; último commit `cffaa46`)
+**Fase actual:** 09 — Órdenes y muestras (**completa y verificada**, `9919111`) → siguiente: 10 (captura y validación de resultados)
 **Repositorio:** https://github.com/darwinjoelap/biolife (rama `main`, CI en GitHub Actions)
 **Responsable:** Darwin
 
@@ -16,9 +16,9 @@
   pacientes, catálogo, rangos, fórmulas, perfiles, precios, ficha del examen (ADR-001–020).
 - [x] Fases 08c, 08d y limpieza (`39a4491`, `7ad6be1`): provisión con catálogo, CI, sistema
   visual, baja de laboratorios demo (ADR-021–023). Verificado: 183 passed; CI en verde.
-- [x] Fase 09 (sin commit): órdenes con número diario `AAMMDD-NNNN`, tubos por aditivo con
+- [x] Fase 09 (`9919111`): órdenes con número diario `AAMMDD-NNNN`, tubos por aditivo con
   orden de extracción, etiquetas PDF 50 × 25 mm con código de barras, toma/rechazo/reemplazo,
-  cotización congelada, pantallas de recepción (ADR-024). 211/211 en el entorno de Claude.
+  cotización congelada, pantallas de recepción (ADR-024). Verificado por Darwin: 211 passed, flujo completo OK.
 
 ## Dónde estamos
 
@@ -32,9 +32,7 @@ Local: un solo laboratorio, `demo_uno` → http://demo1.localhost:8000/ (+ `publ
 
 ## Pendiente inmediato
 
-1. Verificar la Fase 09 (ver el roadmap 09: `pip install`, `migrate_schemas`,
-   `seed_contenedores`, siglas del laboratorio, pytest 211) y hacer su commit.
-   Siguiente: Fase 10 (captura y validación de resultados).
+1. Siguiente: Fase 10 (captura y validación de resultados, valores críticos).
 2. Cargar precios reales en la lista GENERAL (admin): sin ellos las órdenes quedan con
    monto pendiente.
 3. **No usar en un informe real** ningún `ReferenceRange`/parámetro marcado "PENDIENTE DE
