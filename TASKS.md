@@ -4,7 +4,7 @@
 
 - [ ] **Ficha del examen definitiva con el nuevo estilo** - reemplaza al admin provisional (ADR-020/022)
 - [ ] **Cargar precios reales** en la lista GENERAL (admin → Precios y cobro)
-- [ ] **Verificar Fase 10 en la máquina de Darwin** - `migrate_schemas` (catalog.0009, results.0002), `tenant_command seed_observaciones --schema=demo_uno`, lote de tromboplastina vigente, `pytest -q` → 246, cargar/validar y observaciones en demo1.localhost; luego commit
+- [ ] **Crear lote de tromboplastina vigente en demo_uno** - admin → Lotes de reactivos, con su ISI (sin él el INR queda vacío)
 - [ ] **Fase 11** - Informe PDF, firma y QR (no iniciar sin pedirlo)
 - [ ] **Confirmar valores críticos propuestos** - con el laboratorio (ficha del examen → Valores críticos)
 - [ ] **Caja** - abonos, métodos de pago (efectivo, pago móvil, transferencia, divisas), vuelto; fase propia (ADR-024)
@@ -36,7 +36,7 @@
 
 ## Done
 
-- [x] ~~Fase 10 — Captura y validación de resultados~~ (2026-09-27) — cálculo en vivo, marcas y críticos con aviso, validación que congela referencias, ISI por lote, observaciones por examen (ADR-025/026); 246/246 en el entorno de Claude — pendiente verificación en la máquina de Darwin
+- [x] ~~Fase 10 — Captura y validación de resultados~~ (2026-09-27) — cálculo en vivo, marcas y críticos con aviso, validación que congela referencias, ISI por lote, observaciones por examen (ADR-025/026); verificado en la máquina de Darwin (246 passed, ruff limpio); commits `f934aaf` y `bac4352`
 - [x] ~~Fase 09 — Órdenes y muestras~~ (2026-09-27) — número diario, tubos por aditivo, etiquetas PDF con Code 128, toma/rechazo/reemplazo, cotización congelada, pantallas de recepción (ADR-024); 211 passed y flujo completo verificados en la máquina de Darwin; commit `9919111`
 - [x] ~~Verificar Fases 08c/08d~~ (2026-09-26) — 180 passed, ruff limpio, pantallas revisadas en demo1.localhost; commit `39a4491`
 - [x] ~~Borrar tenants demo_dos y demo_tres~~ (2026-09-26) — comando `eliminar_laboratorio_demo` (ADR-023); queda demo_uno; carpeta `Claude outputs/` borrada; 183 passed y ruff limpio en la máquina de Darwin; commit `7ad6be1`

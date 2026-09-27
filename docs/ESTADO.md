@@ -3,8 +3,8 @@
 > Se actualiza al **cerrar cada sesión**. Es el primer archivo que se lee al abrir la siguiente.
 > Mantener bajo 100 líneas: si crece, es que hay historial que pertenece a DECISIONES.md.
 
-**Última actualización:** 2026-09-27
-**Fase actual:** 10 — Resultados (**escrita, falta verificar en la máquina de Darwin**; último commit `9919111`)
+**Última actualización:** 2026-09-27 (cierre del día)
+**Fase actual:** 10 — Resultados (**completa y verificada**, `f934aaf` + `bac4352`) → siguiente: 11 (informe PDF, firma y QR)
 **Repositorio:** https://github.com/darwinjoelap/biolife (rama `main`, CI en GitHub Actions)
 **Responsable:** Darwin
 
@@ -17,9 +17,9 @@
 - [x] Fases 08c, 08d y limpieza (`39a4491`, `7ad6be1`): provisión con catálogo, CI, sistema
   visual, baja de laboratorios demo (ADR-021–023). Verificado: 183 passed; CI en verde.
 - [x] Fase 09 (`9919111`): órdenes, tubos, etiquetas, recepción (ADR-024). Verificado: 211.
-- [x] Fase 10 (sin commit): captura con cálculo en vivo, marcas alto/bajo/crítico, aviso de
+- [x] Fase 10 (`f934aaf`, `bac4352`): captura con cálculo en vivo, marcas alto/bajo/crítico, aviso de
   críticos, validación que congela referencias, ISI por lote, observaciones por examen
-  (ADR-025/026). 246/246 aquí.
+  (ADR-025/026). Verificado por Darwin: 246 passed, ruff limpio.
 
 ## Dónde estamos
 
@@ -27,13 +27,12 @@ Base del producto terminada: multi-tenancy, usuarios y roles, configuración del
 pacientes, catálogo con rangos por sexo/edad/condición, motor de fórmulas, perfiles, precios
 multimoneda y el sistema visual. Flujo clínico: recepción, órdenes, tubos y etiquetas
 (Fase 09) y resultados cargados y validados (Fase 10). Falta el informe PDF (Fase 11).
-Verificación pendiente: `docs/roadmap/10_resultados.md`.
 
 Local: `demo_uno` → http://demo1.localhost:8000/ (+ `public` en localhost).
 ## Pendiente inmediato
 
-1. Verificar la Fase 10 (roadmap 10: `migrate_schemas`, `seed_observaciones`, lote de
-   tromboplastina, pytest 246) y hacer su commit. Siguiente: Fase 11 (informe PDF).
+1. Siguiente: Fase 11 (informe PDF, firma y QR: cada observación debajo de su examen).
+   En `demo_uno`, crear el lote de tromboplastina vigente con su ISI (sin él no hay INR).
 2. Cargar precios reales en la lista GENERAL (admin): sin ellos las órdenes quedan con
    monto pendiente.
 3. **No usar en un informe real** ningún `ReferenceRange`/parámetro marcado "PENDIENTE DE

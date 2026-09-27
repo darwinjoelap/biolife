@@ -45,16 +45,15 @@ en vivo, marcado alto/bajo, validación que congela referencias.
   seleccionado para escribir. Admin → *Observaciones predefinidas*.
 - [x] Tests: +35 (246 en total).
 
-## Verificación en la máquina de Darwin
+## Verificación en la máquina de Darwin (2026-09-27: OK, commits `f934aaf` y `bac4352`)
 
 - [x] `migrate_schemas` (catalog.0008, orders.0002, results.0001) y `seed_criticos`;
   243 passed (verificado por Darwin, antes de agregar las observaciones).
-- [ ] `migrate_schemas` (catalog.0009, results.0002) y
-  `tenant_command seed_observaciones --schema=demo_uno`.
+- [x] `migrate_schemas` (catalog.0009, results.0002) y `seed_observaciones` (16 textos).
 - [ ] Admin → *Lotes de reactivos*: crear un lote de tromboplastina con su ISI y marcarlo
   vigente.
-- [ ] `pytest -q` → 246 · `ruff check .`
-- [ ] `runserver`: en una orden con tubos tomados → *Resultados*: cargar hematología,
+- [x] `pytest -q` → 246 passed · `ruff check .` limpio.
+- [x] `runserver`: en una orden con tubos tomados → *Resultados*: cargar hematología,
   electrolitos (potasio 6,8 = crítico), perfil lipídico y PT; ver marcas y calculados al
   escribir; registrar el aviso del crítico; validar.
 
