@@ -20,7 +20,7 @@
   Verificado por Darwin: 180 passed, ruff limpio, pantallas revisadas en `demo1.localhost`.
 - [x] Limpieza (`7ad6be1`): comando `eliminar_laboratorio_demo` (sólo estado DEMO); borrados
   `demo_dos` y `demo_tres` y la carpeta `Claude outputs/` (ADR-023). Verificado por Darwin:
-  183 passed, ruff limpio. Repo publicado en GitHub con el CI (ruff, migraciones, pytest).
+  183 passed, ruff limpio. Repo publicado en GitHub con el CI (ruff, migraciones, pytest); CI en verde.
 
 ## Dónde estamos
 
@@ -33,13 +33,12 @@ Local: un solo laboratorio, `demo_uno` → http://demo1.localhost:8000/ (+ `publ
 
 ## Pendiente inmediato
 
-1. Revisar el primer run del CI en GitHub → Actions (nunca se ha ejecutado allá).
-2. Siguiente: Fase 09 (órdenes y muestras) con el nuevo estilo.
-3. Cargar precios reales en la lista GENERAL (admin) cuando se tengan.
-4. **No usar en un informe real** ningún `ReferenceRange`/parámetro marcado "PENDIENTE DE
+1. Siguiente: Fase 09 (órdenes y muestras) con el nuevo estilo.
+2. Cargar precios reales en la lista GENERAL (admin) cuando se tengan.
+3. **No usar en un informe real** ningún `ReferenceRange`/parámetro marcado "PENDIENTE DE
    CONFIRMAR" o "NO CONFIRMADO" (ver ADR-015 y ADR-016), ni el INR sin
    confirmar el ISI (ADR-017/019), hasta que el laboratorio responda.
-5. Confirmar con Angelus los rangos de referencia contradictorios, los rangos
+4. Confirmar con Angelus los rangos de referencia contradictorios, los rangos
    pediátricos/neonatales reales, y el detalle geográfico de localidades sin municipio
    verificado (Cantagallo, Dos Caminos, Las Minas, Píritu).
 
@@ -80,6 +79,8 @@ laboratorio antes de producción.
 
 ## Notas
 
+- **Antes de producción (Fase 17):** sacar `docs/`, `TASKS.md` y `CLAUDE.md` de git y poner el
+  repo privado (privacidad: datos del laboratorio de referencia). Decidido 2026-09-27.
 - Los formatos originales están en el proyecto de Cowork. No re-analizarlos:
   el resumen completo está en `docs/04_HALLAZGOS_FORMATOS.md`.
 - ADRs que conviene leer antes de tocar ciertas zonas: 007–009 (esquemas en
