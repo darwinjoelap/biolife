@@ -12,6 +12,8 @@ urlpatterns = [
     path("pacientes/", include("apps.patients.urls")),
     path("resultados/", include("apps.results.urls")),
     path("informes/", include("apps.reports.urls")),
+    path("configuracion/laboratorio/", include("apps.settings_lab.urls")),
+    path("configuracion/", include("apps.accounts.urls_lab")),
     path("verificar/", include("apps.reports.urls_public")),
     path("admin/", admin.site.urls),
 ]

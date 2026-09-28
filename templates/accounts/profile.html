@@ -1,0 +1,33 @@
+{% extends "base_tenant.html" %}
+{% load ui %}
+{% block page_title_text %}Mi perfil{% endblock %}
+{% block crumbs %}Cuenta{% endblock %}
+{% block page_title %}Mi perfil{% endblock %}
+{% block page_actions %}<a class="btn" href="{% url 'accounts:password' %}">{% icon "shield-check" %} Cambiar clave</a>{% endblock %}
+{% block content %}
+<form method="post" enctype="multipart/form-data" novalidate class="card">
+  {% csrf_token %}
+  <div class="card__body form-grid">
+    <div class="fieldset-title">Datos <span class="muted small" style="font-weight:400">· usuario {{ user.username }}</span></div>
+    {% field form.first_name "col-6" %}
+    {% field form.last_name "col-6" %}
+    {% field form.email "col-6" %}
+    {% field form.phone "col-6" %}
+    <div class="fieldset-title">Datos profesionales y firma <span class="muted small" style="font-weight:400">· se imprimen en cada página de los informes que usted valide</span></div>
+    {% field form.professional_title "col-6" %}
+    {% field form.professional_license "col-6" %}
+    {% for f in form %}{% if f.name == "signature_image" or f.name == "stamp_image" %}
+    <div class="field col-6{% if f.errors %} has-error{% endif %}">
+      <label for="{{ f.id_for_label }}">{{ f.label }}</label>
+      {{ f }}
+      {% if f.errors %}<span class="error">{{ f.errors|join:" " }}</span>{% else %}<span class="help">PNG con fondo transparente (escaneada o fotografiada sobre papel blanco y recortada).</span>{% endif %}
+    </div>
+    {% endif %}{% endfor %}
+  </div>
+  <div class="actionbar">
+    <span class="muted small">Cambiar la firma no altera los informes ya emitidos.</span>
+    <span class="spacer"></span>
+    <button class="btn btn--primary" type="submit">{% icon "save" %} Guardar</button>
+  </div>
+</form>
+{% endblock %}

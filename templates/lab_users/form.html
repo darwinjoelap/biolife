@@ -1,0 +1,62 @@
+{% extends "base_tenant.html" %}
+{% load ui %}
+{% block page_title_text %}{% if creating %}Nuevo usuario{% else %}{{ target.username }}{% endif %}{% endblock %}
+{% block crumbs %}<a href="{% url 'lab_users:list' %}">Usuarios</a>{% endblock %}
+{% block page_title %}{% if creating %}Nuevo usuario{% else %}{{ target.get_full_name|default:target.username }}{% if not target.is_active %} <span class="tag" style="vertical-align:middle">Desactivado</span>{% endif %}{% endif %}{% endblock %}
+{% block content %}
+<div class="layout-side">
+<form method="post" novalidate class="card">
+  {% csrf_token %}
+  {% if form.non_field_errors %}<div class="card__body"><div class="alert alert--danger">{% icon "triangle-alert" %}<span>{{ form.non_field_errors|join:" " }}</span></div></div>{% endif %}
+  <div class="card__body form-grid">
+    <div class="fieldset-title">Datos</div>
+    {% field form.username "col-4" %}
+    {% field form.first_name "col-4" %}
+    {% field form.last_name "col-4" %}
+    {% field form.email "col-6" %}
+    {% field form.phone "col-6" %}
+    <div class="fieldset-title">Roles</div>
+    <div class="field col-12{% if form.roles.errors %} has-error{% endif %}">
+      <div class="role-checks">
+      {% for opt in form.roles %}<label class="role-check">{{ opt.tag }} <span>{{ opt.choice_label }}</span></label>{% endfor %}
+      </div>
+      {% if form.roles.errors %}<span class="error">{{ form.roles.errors|join:" " }}</span>{% else %}<span class="help">Puede marcar varios; el usuario tendrá la suma de sus permisos. <a href="{% url 'lab_users:roles' %}" target="_blank">Qué hace cada rol</a>.</span>{% endif %}
+    </div>
+    <div class="fieldset-title">Datos profesionales <span class="muted small" style="font-weight:400">(se imprimen bajo la firma de quien valida)</span></div>
+    {% field form.professional_title "col-6" %}
+    {% field form.professional_license "col-6" %}
+    {% if form.password %}
+    <div class="fieldset-title">Acceso</div>
+    {% field form.password "col-6" %}
+    {% endif %}
+  </div>
+  <div class="actionbar">
+    <span class="muted small">{% if creating %}Al guardar verá la clave temporal para entregarla.{% else %}La firma y el sello los carga cada usuario en «Mi perfil».{% endif %}</span>
+    <span class="spacer"></span>
+    <a class="btn btn--ghost" href="{% url 'lab_users:list' %}">Cancelar</a>
+    <button class="btn btn--primary" type="submit">{% icon "save" %} {% if creating %}Crear usuario{% else %}Guardar{% endif %}</button>
+  </div>
+</form>
+{% if target %}
+<aside class="stack">
+  <section class="card">
+    <div class="card__head"><h2>{% icon "shield-check" %} Acceso</h2></div>
+    <div class="card__body stack" style="gap:var(--s3)">
+      <dl class="dl">
+        <dt>Último ingreso</dt><dd>{{ target.last_login|date:"d/m/Y h:i A"|default:"Nunca" }}</dd>
+        <dt>Estado</dt><dd>{% if not target.is_active %}Desactivado{% elif target.must_change_password %}Debe cambiar su clave temporal{% else %}Activo{% endif %}</dd>
+        <dt>Firma</dt><dd>{% if target.signature_image %}Cargada{% else %}Sin cargar{% endif %}</dd>
+      </dl>
+      <form method="post" action="{% url 'lab_users:reset-password' target.pk %}">{% csrf_token %}
+        <button class="btn" style="width:100%">{% icon "rotate-ccw" %} Nueva clave temporal</button></form>
+      {% if target.pk != user.pk %}
+      <form method="post" action="{% url 'lab_users:toggle' target.pk %}">{% csrf_token %}
+        <button class="btn {% if target.is_active %}btn--danger{% endif %}" style="width:100%">{% if target.is_active %}{% icon "ban" %} Desactivar usuario{% else %}{% icon "check" %} Reactivar usuario{% endif %}</button></form>
+      <p class="muted small" style="margin:0">Un usuario no se borra: conserva su historial (resultados cargados, informes firmados).</p>
+      {% endif %}
+    </div>
+  </section>
+</aside>
+{% endif %}
+</div>
+{% endblock %}

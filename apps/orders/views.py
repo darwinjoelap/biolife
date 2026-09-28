@@ -10,9 +10,12 @@ from django.utils import timezone
 from django.views.decorators.http import require_POST
 
 from apps.accounts.permissions import (
+    COLLECTION_ROLES,
     RECEPTION_ROLES,
+    VIEW_ORDER_ROLES,
     VIEW_ROLES,
     role_required,
+    ui_permissions,
     user_has_any_role,
 )
 from apps.catalog.selectors.catalog_queries import search_orderables
@@ -51,23 +54,25 @@ def _parse_day(value: str) -> datetime.date:
 def _collection_context(request, query: str) -> dict:
     return {"orders": q.collection_worklist(query=query), "query": query,
             "pending_only": True, "can_print": user_has_any_role(request.user,
-                                                                  *RECEPTION_ROLES)}
+                                                                  *COLLECTION_ROLES)}
 
 
-@role_required(*VIEW_ROLES)
+@role_required(*VIEW_ORDER_ROLES)
 def collection_table(request):
     """Tabla de *Muestras por tomar* (htmx): se refresca sola cada 20 s."""
     return render(request, "orders/_collection_table.html",
                   _collection_context(request, request.GET.get("q", "").strip()))
 
 
-@role_required(*VIEW_ROLES)
+@role_required(*VIEW_ORDER_ROLES)
 def order_list(request):
     query = request.GET.get("q", "").strip()
     found = q.find_order_by_code(code=query) if query else None
     if found:  # lector de código de barras: directo a la orden
         return redirect("orders:detail", pk=found.pk)
-    if request.GET.get("pendientes") == "1":
+    # El auxiliar de toma sólo trabaja con «Muestras por tomar».
+    if request.GET.get("pendientes") == "1" or ui_permissions(request.user)[
+            "only_collection"]:
         return render(request, "orders/collection.html", _collection_context(request, query))
     day = _parse_day(request.GET.get("dia"))
     orders = q.order_list(day=day, status=request.GET.get("estado", ""), query=query,
@@ -148,7 +153,7 @@ def patients_search(request):
     return render(request, "orders/_patients.html", {"patients": patients})
 
 
-@role_required(*VIEW_ROLES)
+@role_required(*VIEW_ORDER_ROLES)
 def order_detail(request, pk):
     order = _get_order(pk)
     # Vigentes en orden de extracción; las rechazadas al final, como historial.
@@ -166,7 +171,7 @@ def order_detail(request, pk):
     })
 
 
-@role_required(*RECEPTION_ROLES)
+@role_required(*COLLECTION_ROLES)
 def labels_pdf(request, pk):
     order = _get_order(pk)
     try:
@@ -200,7 +205,7 @@ def _run(request, pk, action, success: str):
     return redirect("orders:detail", pk=pk)
 
 
-@role_required(*RECEPTION_ROLES)
+@role_required(*COLLECTION_ROLES)
 @require_POST
 def sample_collect(request, pk):
     sample_id = request.POST.get("muestra")
@@ -212,7 +217,7 @@ def sample_collect(request, pk):
                 "{result} muestra(s) marcadas como tomadas.")
 
 
-@role_required(*RECEPTION_ROLES)
+@role_required(*COLLECTION_ROLES)
 @require_POST
 def sample_reject(request, pk, sample_pk):
     form = ReasonForm(request.POST)

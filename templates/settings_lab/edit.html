@@ -1,0 +1,49 @@
+{% extends "base_tenant.html" %}
+{% load ui %}
+{% block page_title_text %}Datos del laboratorio{% endblock %}
+{% block crumbs %}Laboratorio{% endblock %}
+{% block page_title %}Datos del laboratorio{% endblock %}
+{% block content %}
+<form method="post" enctype="multipart/form-data" novalidate class="stack">
+  {% csrf_token %}
+  {% if form.errors %}<div class="alert alert--danger">{% icon "triangle-alert" %}<span>Revise los campos marcados.</span></div>{% endif %}
+  <section class="card">
+    <div class="card__head"><h2>{% icon "shield-check" %} Identificación legal</h2><span class="spacer"></span><span class="muted small">La cambia el administrador de Biolife</span></div>
+    <div class="card__body">
+      <dl class="dl">
+        <dt>Nombre</dt><dd>{{ tenant.name }}</dd>
+        <dt>Razón social</dt><dd>{{ tenant.legal_name|default:"—" }}</dd>
+        <dt>RIF</dt><dd>{{ tenant.rif|default:"—" }}</dd>
+      </dl>
+      <p class="muted small" style="margin:var(--s3) 0 0">Para corregirlos, escriba a soporte de Biolife: se imprimen en cada informe.</p>
+    </div>
+  </section>
+  {% for title, fields in form.sections %}
+  <section class="card">
+    <div class="card__head"><h2>{{ title }}</h2></div>
+    <div class="card__body form-grid">
+      {% for f in fields %}
+        {% if f.name == "logo" %}
+        <div class="field col-6{% if f.errors %} has-error{% endif %}">
+          <label for="{{ f.id_for_label }}">{{ f.label }}</label>
+          {{ f }}
+          {% if f.errors %}<span class="error">{{ f.errors|join:" " }}</span>{% else %}<span class="help">PNG con fondo transparente; se imprime en el informe.</span>{% endif %}
+        </div>
+        {% elif f.field.widget.input_type == "checkbox" %}
+        <div class="field col-12"><label class="row" style="gap:8px;font-weight:500">{{ f }} {{ f.label }}</label>{% if f.help_text %}<span class="help">{{ f.help_text }}</span>{% endif %}</div>
+        {% elif f.name in "address report_footer_text report_disclaimer" %}
+        {% field f "col-12" %}
+        {% else %}
+        {% field f "col-3" %}
+        {% endif %}
+      {% endfor %}
+    </div>
+  </section>
+  {% endfor %}
+  <div class="actionbar card">
+    <span class="muted small">Los informes ya emitidos conservan los datos con que se emitieron.</span>
+    <span class="spacer"></span>
+    <button class="btn btn--primary" type="submit">{% icon "save" %} Guardar</button>
+  </div>
+</form>
+{% endblock %}

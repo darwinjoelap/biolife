@@ -9,7 +9,7 @@ from apps.accounts.models import Membership, Role, User
 
 def seed_system_roles() -> None:
     """
-    Siembra los 6 roles de tenant desde `apps/accounts/fixtures/roles.json`.
+    Siembra los 7 roles de tenant desde `apps/accounts/fixtures/roles.json`.
     Idempotente: `loaddata` hace upsert por PK, se puede llamar en cada
     provisionamiento sin duplicar ni fallar si ya existen.
     """

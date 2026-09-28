@@ -75,3 +75,54 @@ VALIDATE_ROLES = ("ADMIN_LAB", "BIOANALISTA")
 def can_validate_results(user) -> bool:
     return bool(getattr(user, "is_superuser", False)) or has_permission(
         user, "puede_validar_resultados")
+
+
+# Panel del laboratorio (Fase 11b) ---------------------------------------------------------
+# Toma de muestras: la recepción y el auxiliar de toma (éste sólo ve «Muestras por tomar»,
+# la orden sin cobro, imprime etiquetas y marca tomadas o rechazadas).
+COLLECTION_ROLES = RECEPTION_ROLES + ("AUXILIAR_TOMA",)
+VIEW_ORDER_ROLES = VIEW_ROLES + ("AUXILIAR_TOMA",)
+ADMIN_ROLES = ("ADMIN_LAB",)
+MONEY_ROLES = ("ADMIN_LAB", "RECEPCION", "FACTURACION", "BIOANALISTA", "TECNICO",
+               "SOLO_LECTURA")
+
+
+def can_manage_lab(user) -> bool:
+    """Configura el laboratorio y sus usuarios: rol Administrador (o superusuario)."""
+    return user_has_any_role(user, *ADMIN_ROLES)
+
+
+def ui_permissions(user) -> dict:
+    """Qué secciones ve el usuario en el menú y en las pantallas (suma de sus roles).
+    Las vistas vuelven a comprobar cada permiso: esto sólo decide qué se muestra."""
+    if not getattr(user, "is_authenticated", False):
+        return {}
+    if getattr(user, "is_superuser", False):
+        codes = {"ADMIN_LAB"}
+    else:
+        codes = set(user.memberships.filter(is_active=True)
+                    .values_list("role__code", flat=True))
+    return {
+        "reception": bool(codes & set(RECEPTION_ROLES)),
+        "collection": bool(codes & set(COLLECTION_ROLES)),
+        "orders": bool(codes & set(VIEW_ROLES)),
+        "money": bool(codes & set(MONEY_ROLES)),
+        "results": bool(codes & set(VIEW_ROLES)),
+        "reports": bool(codes & set(VIEW_ROLES)),
+        "admin": bool(codes & set(ADMIN_ROLES)),
+        "only_collection": bool(codes) and codes <= {"AUXILIAR_TOMA"},
+    }
+
+
+# Qué puede hacer cada rol (pantalla «Roles»): se deriva de las mismas tuplas que usan las
+# vistas, así la tabla nunca se desincroniza del control de acceso real.
+def role_abilities() -> list[tuple[str, set[str]]]:
+    return [
+        ("Registrar pacientes y órdenes, cobrar", set(RECEPTION_ROLES)),
+        ("Imprimir etiquetas y marcar tubos tomados", set(COLLECTION_ROLES)),
+        ("Ver órdenes y cobros", set(VIEW_ROLES)),
+        ("Cargar resultados", set(CAPTURE_ROLES)),
+        ("Validar resultados", set(VALIDATE_ROLES)),
+        ("Emitir y entregar informes", set(RECEPTION_ROLES)),
+        ("Configurar el laboratorio, usuarios y roles", set(ADMIN_ROLES)),
+    ]

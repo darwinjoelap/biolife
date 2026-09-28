@@ -1,6 +1,8 @@
 from django.contrib.auth import views as auth_views
 from django.urls import path
 
+from apps.accounts import views
+
 app_name = "accounts"
 
 urlpatterns = [
@@ -14,4 +16,6 @@ urlpatterns = [
         auth_views.LogoutView.as_view(),
         name="logout",
     ),
+    path("perfil/", views.profile, name="profile"),
+    path("clave/", views.password, name="password"),
 ]

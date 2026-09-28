@@ -1,0 +1,21 @@
+{% extends "base_tenant.html" %}
+{% load ui %}
+{% block page_title_text %}Roles{% endblock %}
+{% block crumbs %}Laboratorio{% endblock %}
+{% block page_title %}Roles{% endblock %}
+{% block content %}
+<section class="card">
+  <div class="card__head"><h2>{% icon "shield-check" %} Qué puede hacer cada rol</h2><span class="spacer"></span><span class="muted small">Los define Biolife; usted los asigna en <a href="{% url 'lab_users:list' %}">Usuarios</a></span></div>
+  <div class="card__body card__body--flush table-wrap">
+    <table class="table roles-matrix">
+      <thead><tr><th>Permiso</th>{% for r in roles %}<th class="center">{{ r.name }}</th>{% endfor %}</tr></thead>
+      <tbody>
+        {% for label, cells in rows %}
+        <tr><td>{{ label }}</td>{% for ok in cells %}<td class="center">{% if ok %}<span class="ok-mark" aria-label="Sí">{% icon "check" %}</span>{% else %}<span class="muted" aria-label="No">—</span>{% endif %}</td>{% endfor %}</tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  <div class="card__body muted small">Un usuario con varios roles tiene la suma de sus permisos. «Sólo lectura» consulta órdenes, resultados e informes sin modificar nada. El «Auxiliar de toma» sólo ve Muestras por tomar y la orden sin montos.</div>
+</section>
+{% endblock %}

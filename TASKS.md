@@ -2,13 +2,12 @@
 
 ## Active
 
-- [ ] **Verificar y commitear el ajuste de Muestras por tomar** - etiquetas impresas atenuadas, imprimir desde la fila, actualización cada 20 s
 
-- [ ] **Ficha del examen definitiva con el nuevo estilo** - reemplaza al admin provisional (ADR-020/022)
 - [ ] **Cargar precios reales** en la lista GENERAL (admin → Precios y cobro)
 - [ ] **Crear lote de tromboplastina vigente en demo_uno** - sólo cuando se pruebe PT/INR; admin → Lotes de reactivos, con su ISI (sin él el INR queda vacío)
 - [ ] **Revisión manual de la Fase 11** - firma/sello/título, logo, RIF; parcial → final; QR; entregar (checklist en `docs/roadmap/11_informe.md`)
-- [ ] **Fase 11b — Panel del laboratorio** - configuración, usuarios, roles, perfil profesional sin /admin (no iniciar sin pedirlo; `docs/roadmap/11b_panel_laboratorio.md`)
+- [ ] **Verificar Fase 11b — Panel del laboratorio** - checklist en `docs/roadmap/11b_panel_laboratorio.md`, luego commit
+- [ ] **Fase 11c — Catálogo sin /admin** - ficha del examen, tubos, perfiles, precios (no iniciar sin pedirlo)
 - [ ] **Cargar firma, sello, título y colegiatura** - de cada bioanalista (admin → Usuarios → Datos de Biolife); razón social y RIF del laboratorio
 - [ ] **Confirmar valores críticos propuestos** - con el laboratorio (ficha del examen → Valores críticos)
 - [ ] **Caja** - abonos, métodos de pago (efectivo, pago móvil, transferencia, divisas), vuelto; fase propia (ADR-024)
@@ -32,6 +31,8 @@
 
 ## Someday
 
+- [ ] **Invitación por correo y «olvidé mi clave»** - cuando haya envío de correos (Fase 17, ADR-029)
+
 - [ ] **Enviar el informe por WhatsApp/correo** - hoy se copia el enlace de verificación (ADR-027)
 - [ ] **Pantalla para que cada bioanalista suba su firma y sello** - hoy desde el admin
 
@@ -42,6 +43,8 @@
 - [ ] **Tasa BCV automática y perfiles anidados** - posteriores, ADR-019
 
 ## Done
+
+- [x] ~~Muestras por tomar para el auxiliar~~ (2026-09-28) — impresas atenuadas y al final, imprimir desde la fila, se actualiza sola; 260 passed; commit `986b830`
 
 - [x] ~~Fase 11 — Informe PDF, firma y QR~~ (2026-09-28) — versiones desde contenido congelado, parciales, huella, verificación por QR, firma y sello en cada página, firma de Biolife editable, recotizar, tomar tubo con resultados (ADR-027/028); 259 passed y ruff limpio en la máquina de Darwin; commit `212bb7a`
 - [x] ~~Anular la orden 260927-0001 y desactivar el examen HC~~ (2026-09-28) — creado a mano sin parámetros ni precio

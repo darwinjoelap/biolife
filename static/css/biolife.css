@@ -548,3 +548,16 @@ input[readonly], input:disabled, select:disabled { background: var(--surface-2);
 .collection tr.is-printed td { opacity: .5; }
 .collection tr.is-printed:hover td { opacity: .85; }
 .collection td:nth-child(1), .collection td:nth-child(2) { white-space: nowrap; }
+
+/* Panel del laboratorio (Fase 11b) */
+.role-checks { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 8px; }
+.role-check { display: flex; align-items: center; gap: 8px; padding: 8px 10px; border: 1px solid var(--line); border-radius: 8px; cursor: pointer; font-size: var(--fs-sm); }
+.role-check:has(input:checked) { border-color: var(--brand); background: var(--brand-soft, #eef4fb); }
+.roles-matrix th.center, .roles-matrix td.center { text-align: center; }
+.roles-matrix .ok-mark { color: var(--ok); }
+.signature-preview { height: 72px; display: flex; align-items: center; justify-content: flex-start; margin-bottom: 6px; }
+.signature-preview img { max-height: 72px; max-width: 220px; object-fit: contain; }
+.temp-password { font-size: 1.25rem; letter-spacing: .08em; padding: 2px 8px; background: var(--surface-2, #f3f4f6); border-radius: 6px; }
+.image-input { display: grid; gap: 6px; }
+.image-input__preview { height: 64px; display: flex; align-items: center; }
+.image-input__preview img { max-height: 64px; max-width: 220px; object-fit: contain; }

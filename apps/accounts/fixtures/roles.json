@@ -82,5 +82,19 @@
       },
       "is_system": true
     }
+  },
+  {
+    "model": "accounts.role",
+    "pk": 7,
+    "fields": {
+      "code": "AUXILIAR_TOMA",
+      "name": "Auxiliar de toma de muestras",
+      "permissions": {
+        "puede_validar_resultados": false,
+        "puede_gestionar_usuarios": false,
+        "puede_facturar": false
+      },
+      "is_system": true
+    }
   }
 ]

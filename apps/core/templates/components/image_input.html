@@ -1,0 +1,5 @@
+<div class="image-input">
+  <div class="image-input__preview">{% if widget.is_initial %}<img src="{{ widget.value.url }}" alt="">{% else %}<span class="muted small">Sin imagen</span>{% endif %}</div>
+  <input type="{{ widget.type }}" name="{{ widget.name }}"{% include "django/forms/widgets/attrs.html" %}>
+  {% if widget.is_initial and not widget.required %}<label class="row small muted" style="gap:6px"><input type="checkbox" name="{{ widget.checkbox_name }}" id="{{ widget.checkbox_id }}"> Quitar</label>{% endif %}
+</div>

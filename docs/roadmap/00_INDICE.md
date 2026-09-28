@@ -20,6 +20,7 @@ que envejece antes de usarse.
 | 10 | Captura y validación de resultados | **Opus** | 07, 09 | Captura con cálculo en vivo, marcado alto/bajo, validación que congela referencias |
 | 11 | Informe PDF, firma y QR | Sonnet | 10 | PDF versionado con firma, sello, QR de verificación y observaciones bajo cada examen (diseño propio, ADR-027) |
 | 11b | Panel del laboratorio (configuración, usuarios, roles, perfil profesional) | Sonnet | 11 | El administrador del laboratorio configura todo sin `/admin` |
+| 11c | Ficha del examen, tubos, perfiles y precios con estilo propio | Sonnet | 11b | El catálogo se edita sin `/admin` |
 | 12 | Panel SuperAdmin SaaS | Sonnet | 01 | Planes, suscripciones, métricas, suspensión |
 | 13 | PWA base y modo lectura offline | Sonnet | 11 | Instalable, consulta órdenes sin conexión |
 | 14 | Escritura offline y sincronización | **Opus** | 13 | Captura offline idempotente, conflictos registrados |
@@ -38,8 +39,8 @@ que envejece antes de usarse.
 > provisional). **Fases 08c y 08d (agregadas):** consolidación (ADR-021) y estilo visual y
 > pantallas base (ADR-022), antes de la primera pantalla real de la Fase 09.
 
-> **Avance (2026-09-28):** Fases 01–11 completas (último commit `212bb7a`, en GitHub).
-> Próxima: **11b — Panel del laboratorio** (agregada: configuración sin `/admin`). El CI se adelantó desde la Fase 17
+> **Avance (2026-09-28):** Fases 01–11 completas. **11b — Panel del laboratorio**
+> construida (ADR-029), por verificar. Luego **11c** (catálogo sin `/admin`). El CI se adelantó desde la Fase 17
 > (ADR-021); Railway y backups siguen en la 17.
 
 ## Ruta crítica al MVP vendible

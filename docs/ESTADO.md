@@ -4,7 +4,7 @@
 > Mantener bajo 100 líneas: si crece, es que hay historial que pertenece a DECISIONES.md.
 
 **Última actualización:** 2026-09-28 (cierre del día)
-**Fase actual:** 11 — Informe PDF, firma y QR (**completa**, `212bb7a`) → siguiente: 11b (panel del laboratorio; no iniciar sin pedirlo)
+**Fase actual:** 11b — Panel del laboratorio (**construida**, pendiente de verificar en la máquina de Darwin) → siguiente: 11c (catálogo sin /admin)
 **Repositorio:** https://github.com/darwinjoelap/biolife (rama `main`, CI en GitHub Actions)
 **Responsable:** Darwin
 
@@ -26,9 +26,12 @@
   editable en `public`, Instagram/correo en la cabecera, recotizar órdenes con precio
   pendiente, avisos de examen sin parámetros, tomar tubo con resultados ya cargados
   (ADR-028). Verificado por Darwin: 259 passed, ruff limpio.
-- [~] Ajuste de *Muestras por tomar* (sin commit): etiquetas impresas atenuadas y al
-  final con quién/cuándo, imprimir desde la fila, sin columna de pago, se actualiza sola
-  cada 20 s (roadmap 09, «Ajuste posterior»).
+- [x] Ajuste de *Muestras por tomar* (`986b830`): etiquetas impresas atenuadas y al final
+  con quién/cuándo, imprimir desde la fila, sin columna de pago, se actualiza sola cada
+  20 s (roadmap 09, «Ajuste posterior»). Verificado por Darwin: 260 passed.
+- [~] Fase 11b (sin commit): datos del laboratorio, usuarios con clave temporal, varios
+  roles por usuario, tabla de roles, mi perfil con firma y sello, rol Auxiliar de toma,
+  menú según rol (ADR-029).
 
 ## Dónde estamos
 
@@ -41,13 +44,11 @@ verificación por QR (Fase 11).
 Local: `demo_uno` → http://demo1.localhost:8000/ (+ `public` en localhost).
 ## Pendiente inmediato
 
-1. Siguiente: Fase 11b — panel del laboratorio (`docs/roadmap/11b_panel_laboratorio.md`),
-   cuando Darwin lo pida. Ya decidido: razón social/RIF sólo los edita el SaaS; rol
-   «Auxiliar de toma». Falta decidir qué permisos de rol edita el laboratorio.
-   Revisión manual de la 11 aún por confirmar en su máquina: cargar firma/sello/título,
-   logo, RIF y razón social; emitir parcial y final; escanear el QR; marcar entregada.
-   En `demo_uno`: crear el lote de tromboplastina vigente sólo cuando se hagan PT/INR
-   (sin él el INR queda vacío). Examen HC ya desactivado.
+1. Verificar la Fase 11b (checklist en `docs/roadmap/11b_panel_laboratorio.md`): migrar
+   `accounts.0006`, tests, crear un Auxiliar de toma y entrar con él, cargar firma/sello
+   en *Mi perfil* y emitir un informe. Luego el commit.
+   Pendiente de la 11: escanear el QR con el teléfono y marcar una orden entregada.
+   Lote de tromboplastina sólo cuando se prueben PT/INR.
 2. Cargar precios reales en la lista GENERAL (admin): sin ellos las órdenes quedan con
    monto pendiente.
 3. **No usar en un informe real** ningún `ReferenceRange`/parámetro marcado "PENDIENTE DE
@@ -104,7 +105,7 @@ laboratorio antes de producción.
   tenant), 021 (provisión con catálogo, CI), 022 (sistema visual y `STORAGES`), 023 (baja de
   laboratorios demo), 024 (órdenes, tubos y etiquetas), 025
   (resultados, críticos, ISI), 026 (observaciones por examen), 027 (informe, versiones y QR), 028 (pie del informe y
-  firma de la plataforma).
+  firma de la plataforma), 029 (panel del laboratorio, roles y claves).
 - "7 roles" del índice del roadmap = 6 roles de tenant (esta fase) + `SUPERADMIN_PLATAFORMA`
   como `PlatformUser` en `public` (Fase 12), no un séptimo `Role` de tenant.
 - **Postgres local (máquina de Darwin):** hay 3 instalaciones (16, 17, 18). La base

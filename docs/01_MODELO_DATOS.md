@@ -111,8 +111,14 @@ report_link_days      default 30   # días que el QR permite descargar el PDF
 ### `Role` / `Membership`
 ```
 Role:        id PK · code · name · permissions JSONB · is_system bool
-Membership:  id PK · user FK→User · role FK→Role · is_active
+             code: ADMIN_LAB | BIOANALISTA | TECNICO | RECEPCION | FACTURACION |
+                   SOLO_LECTURA | AUXILIAR_TOMA (Fase 11b)
+Membership:  id PK · user FK→User · role FK→Role · is_active   # varios roles por usuario
+User (accounts): phone · professional_title · professional_license · signature_image ·
+             stamp_image · must_change_password (clave temporal, Fase 11b)
 ```
+> Los roles y sus permisos los define Biolife (fixture + tuplas en
+> `accounts.permissions`); el laboratorio sólo los asigna (ADR-029).
 
 ### `AuditLog` (append-only, sin update ni delete)
 ```

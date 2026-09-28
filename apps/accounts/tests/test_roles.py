@@ -29,5 +29,6 @@ class RoleAssignmentTests(TenantTestCase):
 
         assert has_role(user, "ADMIN_LAB") is False
 
-    def test_seed_system_roles_crea_los_6_roles(self):
-        assert Role.objects.count() == 6
+    def test_seed_system_roles_crea_los_7_roles(self):
+        assert Role.objects.count() == 7
+        assert Role.objects.filter(code="AUXILIAR_TOMA").exists()

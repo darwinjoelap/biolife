@@ -3,23 +3,34 @@
 {% block page_title_text %}Inicio{% endblock %}
 {% block page_title %}Hola, {{ user.first_name|default:user.username }}{% endblock %}
 {% block page_actions %}
+  {% if can.reception %}
   <a class="btn" href="{% url 'patients:create' %}">{% icon "user-plus" %} Nuevo paciente</a>
   <a class="btn btn--primary" href="{% url 'orders:new' %}">{% icon "plus" %} Nueva orden</a>
+  {% elif can.collection %}
+  <a class="btn btn--primary" href="{% url 'orders:list' %}?pendientes=1">{% icon "test-tube" %} Muestras por tomar</a>
+  {% endif %}
 {% endblock %}
 {% block content %}
+{% if can.only_collection %}
+<a class="card kpi" href="{% url 'orders:list' %}?pendientes=1" style="color:inherit;max-width:420px">
+  <div class="kpi__label">{% icon "test-tube" %} Muestras por tomar</div>
+  <div class="kpi__note">Lista de pacientes esperando la toma: imprima sus etiquetas y marque los tubos tomados.</div>
+</a>
+{% else %}
 <section class="grid grid-4" aria-label="Indicadores del día"
          hx-get="{% url 'orders:day-summary' %}" hx-trigger="load" hx-swap="innerHTML">
   <div class="card kpi"><div class="kpi__label">{% icon "clipboard-list" %} Órdenes de hoy</div><div class="kpi__value">…</div></div>
 </section>
+{% endif %}
 
-{% if user.is_staff %}
+{% if can.admin %}
 <section class="card">
   <div class="card__head"><h2>Configuración del laboratorio</h2></div>
   <div class="card__body grid grid-4">
-    <a class="btn" href="{% url 'admin:catalog_test_changelist' %}">{% icon "microscope" %} Exámenes y rangos</a>
-    <a class="btn" href="{% url 'admin:catalog_profile_changelist' %}">{% icon "layers" %} Perfiles</a>
-    <a class="btn" href="{% url 'admin:billing_pricelist_changelist' %}">{% icon "tag" %} Listas de precios</a>
-    <a class="btn" href="{% url 'admin:settings_lab_tenantsettings_changelist' %}">{% icon "settings" %} Datos y colores del laboratorio</a>
+    <a class="btn" href="{% url 'settings_lab:edit' %}">{% icon "settings" %} Datos del laboratorio</a>
+    <a class="btn" href="{% url 'lab_users:list' %}">{% icon "users" %} Usuarios</a>
+    <a class="btn" href="{% url 'lab_users:roles' %}">{% icon "shield-check" %} Roles</a>
+    {% if user.is_staff %}<a class="btn" href="{% url 'admin:catalog_test_changelist' %}">{% icon "microscope" %} Exámenes y rangos</a>{% endif %}
   </div>
 </section>
 {% endif %}

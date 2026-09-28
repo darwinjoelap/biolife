@@ -102,6 +102,29 @@ class ReceptionViewsTests(TenantTestCase):
         assert "is-printed" in table and "Impresas" in table
         assert table.index(second.number) < table.index(first.number)  # impresa, al final
 
+    def test_auxiliar_de_toma_solo_ve_la_toma(self):
+        self._post_order()
+        order = Order.objects.get()
+        aux = User.objects.create_user(username="aux", password="x")
+        Membership.objects.create(user=aux, role=Role.objects.get(code="AUXILIAR_TOMA"))
+        client = TenantClient(self.tenant)
+        client.force_login(aux)
+
+        html = client.get("/ordenes/").content.decode()  # siempre la lista de la toma
+        assert "Tubos por tomar" in html and order.number in html
+        detail = client.get(f"/ordenes/{order.pk}/").content.decode()
+        assert "Cobro" not in detail and "Agregar exámenes" not in detail
+        assert client.get("/ordenes/nueva/").status_code == 403
+        assert client.get("/resultados/").status_code == 403
+        assert client.post(f"/ordenes/{order.pk}/pagar/").status_code == 403
+
+        sample = order.samples.first()
+        assert client.get(f"/ordenes/{order.pk}/etiquetas.pdf?muestra={sample.pk}"
+                          ).status_code == 200
+        client.post(f"/ordenes/{order.pk}/tomar/", {"muestra": sample.pk})
+        sample.refresh_from_db()
+        assert sample.status == Sample.Status.TOMADA
+
     def test_marcar_tomada_despues_de_cargar_resultados(self):
         self._post_order()
         order = Order.objects.get()

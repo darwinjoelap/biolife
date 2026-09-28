@@ -5,14 +5,14 @@
 {% block page_title %}Orden {{ order.number }} <span class="tag {{ order.status|status_tag }}" style="vertical-align:middle">{{ order.get_status_display }}</span>{% if order.priority == "URGENTE" %} <span class="tag tag--info" style="vertical-align:middle">Urgente</span>{% endif %}{% endblock %}
 {% block page_actions %}
   {% if active_samples %}<a class="btn btn--primary" href="{% url 'orders:labels' order.pk %}" target="_blank" rel="noopener">{% icon "printer" %} Imprimir etiquetas ({{ active_samples|length }})</a>{% endif %}
-  {% if editable %}<a class="btn" href="{% url 'orders:add' order.pk %}">{% icon "plus" %} Agregar exámenes</a>{% endif %}
-  {% if not order.is_cancelled %}<a class="btn" href="{% url 'results:capture' order.pk %}">{% icon "flask-conical" %} Resultados</a>
+  {% if editable and can.reception %}<a class="btn" href="{% url 'orders:add' order.pk %}">{% icon "plus" %} Agregar exámenes</a>{% endif %}
+  {% if not order.is_cancelled and can.results %}<a class="btn" href="{% url 'results:capture' order.pk %}">{% icon "flask-conical" %} Resultados</a>
   <a class="btn" href="{% url 'reports:order' order.pk %}">{% icon "file-text" %} Informe</a>{% endif %}
 {% endblock %}
 {% block content %}
 <div class="row only-mobile" style="margin-bottom:var(--s3)">
   {% if active_samples %}<a class="btn btn--primary" href="{% url 'orders:labels' order.pk %}" target="_blank" rel="noopener">{% icon "printer" %} Etiquetas ({{ active_samples|length }})</a>{% endif %}
-  {% if editable %}<a class="btn" href="{% url 'orders:add' order.pk %}">{% icon "plus" %} Agregar</a>{% endif %}
+  {% if editable and can.reception %}<a class="btn" href="{% url 'orders:add' order.pk %}">{% icon "plus" %} Agregar</a>{% endif %}
 </div>
 {% if order.is_cancelled %}
 <div class="alert alert--danger">{% icon "ban" %}<span><b>Orden anulada</b> el {{ order.cancelled_at|date:"d/m/Y h:i A" }} por {{ order.cancelled_by|default:"—" }}: {{ order.cancel_reason }}</span></div>
@@ -95,6 +95,7 @@
       </div>
     </section>
 
+    {% if can.money %}
     <section class="card">
       <div class="card__head"><h2>{% icon "banknote" %} Cobro</h2><span class="spacer"></span>
         {% if order.is_paid %}<span class="tag tag--ok">Pagada</span>{% elif not order.is_cancelled %}<span class="tag tag--warn">Por cobrar</span>{% endif %}</div>
@@ -120,6 +121,7 @@
         {% endif %}
       </div>
     </section>
+    {% endif %}
 
     <section class="card">
       <div class="card__head"><h2>{% icon "clipboard-list" %} Datos</h2></div>
@@ -133,7 +135,7 @@
           {% if order.notes %}<dt>Notas</dt><dd>{{ order.notes }}</dd>{% endif %}
           {% if order.delivered_at %}<dt>Entregada</dt><dd>{{ order.delivered_at|date:"d/m/Y h:i A" }} · {{ order.delivered_by|default:"—" }}</dd>{% endif %}
         </dl>
-        {% if editable %}
+        {% if editable and can.reception %}
         <div x-data="{ open: false }" style="margin-top:var(--s3)">
           <button type="button" class="btn btn--sm btn--danger" @click="open = true" x-show="!open">{% icon "ban" %} Anular orden</button>
           <form method="post" action="{% url 'orders:cancel' order.pk %}" class="inline-form" x-show="open" x-cloak>{% csrf_token %}

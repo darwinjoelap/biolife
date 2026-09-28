@@ -849,3 +849,34 @@ número de orden.
 **Consecuencias.** Los informes ya emitidos conservan el pie con que se congelaron (el
 texto legal viejo sigue en la v1/v2 de las pruebas); al emitir de nuevo sale el pie nuevo.
 La Fase 12 (SuperAdmin) moverá `PlatformSettings` a su propia pantalla.
+
+---
+
+## ADR-029 — Panel del laboratorio: roles fijos, varios por usuario, clave temporal
+**Fecha:** 2026-09-28 · **Estado:** Aceptada
+
+**Contexto.** Hasta la Fase 11 el laboratorio se configuraba en `/admin`: no apto para un
+cliente. Hay que decidir cuánto controla cada laboratorio sobre roles y usuarios, y cómo
+entra un usuario nuevo sin envío de correos configurado.
+
+**Decisión.**
+- Roles **definidos por Biolife** (fixture + tuplas de `accounts.permissions`); el
+  laboratorio sólo los asigna. Un usuario puede tener varios (`Membership` ya lo permitía);
+  sus permisos son la suma. La tabla «Roles» se genera de las mismas tuplas de las vistas.
+- Nuevo rol `AUXILIAR_TOMA` (pk 7, creado por migración de datos en los laboratorios
+  existentes): `COLLECTION_ROLES` (etiquetas, tomar, rechazar) y `VIEW_ORDER_ROLES`
+  (lista de la toma y orden sin montos).
+- Menú y botones según `can` (context processor `accounts.context_processors.ui`); las
+  vistas siguen comprobando cada permiso con `role_required` (el menú no es seguridad).
+- Alta con clave temporal (escrita o generada, 10 caracteres sin ambiguos, se muestra una
+  vez) y `User.must_change_password` + `ForcePasswordChangeMiddleware` que sólo deja pasar
+  `/cuenta/`, estáticos y `/verificar/` hasta cambiarla.
+- Usuarios nunca se borran: se desactivan. Siempre queda un administrador activo; nadie se
+  quita a sí mismo el acceso. Cambios en `AuditLog` (`USUARIO_*`, `CLAVE_*`,
+  `LABORATORIO_MODIFICADO`, `PERFIL_MODIFICADO`).
+- Razón social y RIF quedan en `tenants.Tenant` y sólo los edita el administrador del SaaS.
+
+**Consecuencias.** Permisos por laboratorio o roles propios exigirían pasar las vistas de
+tuplas de roles a permisos (`has_permission`); queda fuera. Invitación por correo y
+recuperación de clave, cuando haya correo (Fase 17). La Fase 12 (SuperAdmin) tendrá la
+pantalla para razón social/RIF.

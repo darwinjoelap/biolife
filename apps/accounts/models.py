@@ -20,6 +20,9 @@ class User(AbstractUser):
                                         null=True)
     stamp_image = models.ImageField("Sello (imagen)", upload_to="firmas/", blank=True,
                                     null=True)
+    # Clave temporal puesta por el administrador del laboratorio (Fase 11b): obliga a
+    # cambiarla en el primer ingreso.
+    must_change_password = models.BooleanField("Debe cambiar la clave", default=False)
 
     class Meta:
         verbose_name = "Usuario"
@@ -34,6 +37,7 @@ class Role(models.Model):
         RECEPCION = "RECEPCION", "Recepción"
         FACTURACION = "FACTURACION", "Facturación"
         SOLO_LECTURA = "SOLO_LECTURA", "Sólo lectura"
+        AUXILIAR_TOMA = "AUXILIAR_TOMA", "Auxiliar de toma de muestras"
 
     code = models.CharField(max_length=20, choices=Code.choices, unique=True)
     name = models.CharField("Nombre", max_length=80)
