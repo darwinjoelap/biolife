@@ -93,6 +93,10 @@ MONEY_ROLES = ("ADMIN_LAB", "RECEPCION", "FACTURACION", "BIOANALISTA", "TECNICO"
 CATALOG_EDIT_ROLES = ADMIN_ROLES
 CLINICAL_EDIT_ROLES = ("ADMIN_LAB", "BIOANALISTA")
 PRICE_EDIT_ROLES = ("ADMIN_LAB", "FACTURACION")
+# Tablas auxiliares (Fase 11d, ADR-031): el lote de reactivo lo registra quien procesa
+# (bioanalista y técnico) al cambiar de reactivo; listas de opciones y observaciones
+# generales, el bioanalista; monedas y descuentos, facturación.
+LOT_EDIT_ROLES = ("ADMIN_LAB", "BIOANALISTA", "TECNICO")
 
 
 def can_manage_lab(user) -> bool:
@@ -138,6 +142,10 @@ def role_abilities() -> list[tuple[str, set[str]]]:
         ("Emitir y entregar informes", set(RECEPTION_ROLES)),
         ("Editar exámenes, parámetros y perfiles", set(CATALOG_EDIT_ROLES)),
         ("Editar rangos, valores críticos y observaciones", set(CLINICAL_EDIT_ROLES)),
+        ("Editar listas de opciones y observaciones generales", set(CLINICAL_EDIT_ROLES)),
+        ("Registrar lotes de reactivos (ISI)", set(LOT_EDIT_ROLES)),
         ("Editar precios y registrar la tasa de cambio", set(PRICE_EDIT_ROLES)),
+        ("Editar monedas y descuentos", set(PRICE_EDIT_ROLES)),
+        ("Editar secciones, unidades, métodos y tubos", set(CATALOG_EDIT_ROLES)),
         ("Configurar el laboratorio, usuarios y roles", set(ADMIN_ROLES)),
     ]

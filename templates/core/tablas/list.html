@@ -1,0 +1,32 @@
+{% extends "base_tenant.html" %}
+{% load ui %}
+{% block page_title_text %}{{ table.title }}{% endblock %}
+{% block crumbs %}<a href="{% url 'core:aux-hub' %}">Tablas auxiliares</a>{% endblock %}
+{% block page_title %}{{ table.title }}{% endblock %}
+{% block page_actions %}{% if can_edit and table.allow_new %}<a class="btn btn--primary" href="{% url 'core:aux-new' table.key %}">{% icon "plus" %} Nuevo</a>{% endif %}{% endblock %}
+{% block content %}
+<section class="card">
+  <form method="get" class="card__head row" role="search">
+    <label class="row small" style="gap:6px"><input type="checkbox" name="inactivos" value="1" onchange="this.form.submit()"{% if show_inactive %} checked{% endif %}> Ver inactivos</label>
+    <span class="muted small">{{ table.description }}</span>
+    <span class="spacer"></span>
+    <label class="picker__input" style="width:min(280px,100%)"><span class="sr-only">Buscar</span>{% icon "search" %}
+      <input type="search" name="q" value="{{ query }}" placeholder="Buscar…"></label>
+  </form>
+  <div class="card__body card__body--flush table-wrap">
+    <table class="table">
+      <thead><tr>{% for c in table.columns %}<th>{{ c }}</th>{% endfor %}<th>Estado</th></tr></thead>
+      <tbody>
+      {% for obj, cells in rows %}
+      <tr style="cursor:pointer{% if not obj.is_active %};opacity:.55{% endif %}" onclick="location.href='{% url 'core:aux-edit' table.key obj.pk %}'">
+        {% for cell in cells %}<td>{% if forloop.first %}<a href="{% url 'core:aux-edit' table.key obj.pk %}"><b>{{ cell }}</b></a>{% else %}{{ cell }}{% endif %}</td>{% endfor %}
+        <td>{% if obj.is_active %}<span class="tag tag--ok">Activo</span>{% else %}<span class="tag">Inactivo</span>{% endif %}</td>
+      </tr>
+      {% empty %}
+      <tr><td colspan="{{ table.columns|length|add:1 }}"><div class="empty">{% icon table.icon %}<h3>Sin registros</h3>{% if query %}<p>No hay coincidencias con «{{ query }}».</p>{% endif %}</div></td></tr>
+      {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</section>
+{% endblock %}

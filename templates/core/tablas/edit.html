@@ -1,0 +1,38 @@
+{% extends "base_tenant.html" %}
+{% load ui %}
+{% block page_title_text %}{% if obj %}{{ obj }}{% else %}Nuevo: {{ table.singular }}{% endif %}{% endblock %}
+{% block crumbs %}<a href="{% url 'core:aux-hub' %}">Tablas auxiliares</a> / <a href="{% url 'core:aux-list' table.key %}">{{ table.title }}</a>{% endblock %}
+{% block page_title %}{% if obj %}{{ obj }}{% if not obj.is_active %} <span class="tag" style="vertical-align:middle">Inactivo</span>{% endif %}{% else %}Nuevo: {{ table.singular }}{% endif %}{% endblock %}
+{% block content %}
+<form method="post" novalidate class="stack">
+  {% csrf_token %}
+  {% if form.errors or form.non_field_errors %}<div class="alert alert--danger">{% icon "triangle-alert" %}<span>Revise los campos marcados.{% if form.non_field_errors %} {{ form.non_field_errors|join:" " }}{% endif %}</span></div>{% endif %}
+  {% for hidden in form.hidden_fields %}{{ hidden }}{% endfor %}
+  <section class="card">
+    <div class="card__head"><h2>{% icon table.icon %} Datos</h2>{% if not can_edit %}<span class="muted small">Sólo consulta: {{ table.editors|lower }} pueden cambiarlo</span>{% endif %}</div>
+    <div class="card__body form-grid">
+      {% for f, col, check in fields %}
+      {% if check %}
+      <div class="field {{ col }}"><label class="row" style="gap:8px;font-weight:500">{{ f }} {{ f.label }}</label>{% if f.help_text %}<span class="help">{{ f.help_text }}</span>{% endif %}{% if f.errors %}<span class="error">{{ f.errors|join:" " }}</span>{% endif %}</div>
+      {% else %}{% field f col %}{% endif %}
+      {% endfor %}
+    </div>
+  </section>
+  {% for title, fs, help in formsets %}
+  <section class="card">
+    <div class="card__head"><h2>{% icon "list" %} {{ title }}</h2>{% if help %}<span class="muted small">{{ help }}</span>{% endif %}</div>
+    <div class="card__body">{% include "catalog/_formset_table.html" with fs=fs %}</div>
+  </section>
+  {% endfor %}
+  {% if can_edit %}
+  <div class="actionbar card">
+    <span class="muted small">{{ table.note|default:"Nada se borra: desactive lo que ya no se use." }}</span>
+    <span class="spacer"></span>
+    <a class="btn btn--ghost" href="{% url 'core:aux-list' table.key %}">Volver</a>
+    <button class="btn btn--primary" type="submit">{% icon "save" %} Guardar</button>
+  </div>
+  {% else %}
+  <div><a class="btn btn--ghost" href="{% url 'core:aux-list' table.key %}">Volver</a></div>
+  {% endif %}
+</form>
+{% endblock %}

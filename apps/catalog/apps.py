@@ -6,3 +6,6 @@ class CatalogConfig(AppConfig):
     name = "apps.catalog"
     label = "catalog"
     verbose_name = "Catálogo de exámenes"
+
+    def ready(self):
+        from apps.catalog import aux_tables  # noqa: F401  (registra las tablas auxiliares)

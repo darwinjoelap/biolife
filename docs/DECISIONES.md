@@ -913,3 +913,38 @@ fijar quién puede cambiar qué, y qué pasa con lo que ya tiene historial.
 **Consecuencias.** Las tablas auxiliares siguen en `/admin` hasta la 11d. Los registros
 de admin de exámenes/parámetros/perfiles/precios se conservan para soporte, pero ya no
 están en el menú.
+
+---
+
+## ADR-031 — Tablas auxiliares sin /admin: motor genérico en core
+**Fecha:** 2026-09-28 · **Estado:** Aceptada
+
+**Contexto.** Tras la 11c quedaban en `/admin` nueve tablas pequeñas (secciones,
+unidades, métodos, listas de opciones, observaciones generales, tubos, lotes de
+reactivos, monedas, descuentos). Hacer lista y ficha a mano para cada una repetía el
+mismo código nueve veces, y viven en dos apps (`catalog`, `billing`) que no pueden
+importarse entre sí.
+
+**Decisión.**
+- `apps/core/aux_tables.py` define `AuxTable` y un registro; `core` pone el índice
+  (`/tablas/`), la lista y la ficha sin importar ningún modelo. Cada app describe sus
+  tablas (formulario, consulta, celdas de la lista, permisos, guardado) y las registra en
+  `AppConfig.ready()`. Respeta la regla 3 (`core` no importa apps).
+- Permisos: estructura (secciones, unidades, métodos, tubos) el administrador; listas de
+  opciones y observaciones generales `CLINICAL_EDIT_ROLES`; lotes `LOT_EDIT_ROLES`
+  (administrador, bioanalista, técnico); monedas y descuentos `PRICE_EDIT_ROLES`;
+  consulta `VIEW_ROLES`.
+- Nada se borra. Código fijo cuando el registro ya está en uso. Opciones de una lista con
+  resultados conservan su texto (reemitir un informe no debe cambiar lo que dice).
+- Lote vigente único por reactivo: el service desmarca el anterior en la misma
+  transacción; el formulario excluye `is_current` de la validación de la restricción
+  condicional para no bloquear el cambio.
+- Moneda base fija desde pantallas; una moneda nueva nunca es base.
+- Bitácora `TABLA_CREADA` / `TABLA_MODIFICADA` con los campos cambiados.
+
+**Consecuencias.** Una tabla auxiliar nueva es una entrada `AuxTable` + su formulario, sin
+vistas ni plantillas. Tablas con lógica propia (catálogo diario, precios, pacientes)
+siguen con pantallas dedicadas. Gotcha: los modelos con UUID tienen `pk` antes de
+guardarse, así que "¿es nuevo?" se pregunta con `instance._state.adding`, no con `pk`.
+Otro: ninguna carpeta o archivo puede llamarse `aux` (nombre reservado de Windows); las
+plantillas van en `templates/core/tablas/`.

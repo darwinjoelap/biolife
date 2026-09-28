@@ -6,3 +6,6 @@ class BillingConfig(AppConfig):
     name = "apps.billing"
     label = "billing"
     verbose_name = "Precios y cobro"
+
+    def ready(self):
+        from apps.billing import aux_tables  # noqa: F401  (registra monedas y descuentos)

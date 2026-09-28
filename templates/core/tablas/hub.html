@@ -1,0 +1,22 @@
+{% extends "base_tenant.html" %}
+{% load ui %}
+{% block page_title_text %}Tablas auxiliares{% endblock %}
+{% block crumbs %}Catálogo{% endblock %}
+{% block page_title %}Tablas auxiliares{% endblock %}
+{% block content %}
+<p class="muted" style="margin:0">Datos de apoyo del catálogo y del cobro. Nada se borra: lo que ya no se usa se desactiva.</p>
+{% for group, tables in groups %}
+<section class="stack">
+  <h2 class="aux-group">{{ group }}</h2>
+  <div class="grid grid-3 aux-cards">
+    {% for t in tables %}
+    <a class="card aux-card" href="{% url 'core:aux-list' t.key %}">
+      <div class="aux-card__head">{% icon t.icon %}<b>{{ t.title }}</b><span class="spacer"></span><span class="tag">{{ t.count }}</span></div>
+      <div class="muted small">{{ t.description }}</div>
+      <div class="aux-card__who small">{% icon "shield-check" %} Editan: {{ t.editors }}</div>
+    </a>
+    {% endfor %}
+  </div>
+</section>
+{% endfor %}
+{% endblock %}

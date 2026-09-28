@@ -35,13 +35,11 @@ page_actions, content. Los módulos que aún no existen se muestran como "Pronto
       <a class="nav__item {% nav_active request '/catalogo/examenes/' %}{% nav_active request '/catalogo/parametros/' %}" href="{% url 'catalog:tests' %}">{% icon "microscope" %}<span>Exámenes</span></a>
       <a class="nav__item {% nav_active request '/catalogo/perfiles/' %}" href="{% url 'catalog:profiles' %}">{% icon "layers" %}<span>Perfiles</span></a>
       <a class="nav__item {% nav_active request '/precios/' %}" href="{% url 'billing:grid' %}">{% icon "tag" %}<span>Precios</span></a>
+      <a class="nav__item {% nav_active request '/tablas/' %}" href="{% url 'core:aux-hub' %}">{% icon "table" %}<span>Tablas auxiliares</span></a>
       {% endif %}
       {% if user.is_staff %}
       <div class="nav__group">Administración (provisional)</div>
       <a class="nav__item {% nav_active request '/admin/patients/' %}" href="{% url 'admin:patients_patient_changelist' %}">{% icon "users" %}<span>Pacientes (admin)</span></a>
-      <a class="nav__item {% nav_active request '/admin/catalog/containertype/' %}" href="{% url 'admin:catalog_containertype_changelist' %}">{% icon "test-tube" %}<span>Tubos</span></a>
-      <a class="nav__item {% nav_active request '/admin/catalog/reagentlot/' %}" href="{% url 'admin:catalog_reagentlot_changelist' %}">{% icon "droplet" %}<span>Lotes de reactivos</span></a>
-      <a class="nav__item" href="{% url 'admin:app_list' 'catalog' %}">{% icon "settings" %}<span>Tablas auxiliares</span></a>
       <a class="nav__item {% nav_active request '/estilo/' %}" href="{% url 'core:style-guide' %}">{% icon "palette" %}<span>Guía de estilo</span></a>
       {% endif %}
     </nav>

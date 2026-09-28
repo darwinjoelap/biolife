@@ -21,7 +21,8 @@ que envejece antes de usarse.
 | 11 | Informe PDF, firma y QR | Sonnet | 10 | PDF versionado con firma, sello, QR de verificación y observaciones bajo cada examen (diseño propio, ADR-027) |
 | 11b | Panel del laboratorio (configuración, usuarios, roles, perfil profesional) | Sonnet | 11 | El administrador del laboratorio configura todo sin `/admin` |
 | 11c | Catálogo sin `/admin`: exámenes, rangos, perfiles, precios y tasa | Sonnet | 11b | El catálogo del día a día se edita sin `/admin` (ADR-030) |
-| 11d | Tablas auxiliares sin `/admin` (tubos, lotes, unidades, métodos, secciones, opciones, monedas) | Haiku | 11c | El laboratorio no necesita `/admin` |
+| 11d | Tablas auxiliares sin `/admin` (secciones, unidades, métodos, opciones, observaciones, tubos, lotes, monedas, descuentos) | Haiku | 11c | Tablas de apoyo sin `/admin` (ADR-031) |
+| 11e | Pacientes: lista, ficha, representantes, historial, evolución con gráficos, antecedentes y PDF | Sonnet | 11d | El laboratorio no necesita `/admin` |
 | 12 | Panel SuperAdmin SaaS | Sonnet | 01 | Planes, suscripciones, métricas, suspensión |
 | 13 | PWA base y modo lectura offline | Sonnet | 11 | Instalable, consulta órdenes sin conexión |
 | 14 | Escritura offline y sincronización | **Opus** | 13 | Captura offline idempotente, conflictos registrados |
