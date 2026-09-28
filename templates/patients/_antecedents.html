@@ -1,0 +1,8 @@
+{% load ui %}{% comment %}Antecedentes del paciente como etiquetas. Variables: antecedents, patient (si removable), removable (bool).{% endcomment %}
+<div class="chips">
+  {% for a in antecedents %}
+  <span class="chip chip--antecedent" title="{% if a.notes %}{{ a.notes }} · {% endif %}Registrado por {{ a.created_by|default:'—' }} el {{ a.updated_at|date:'d/m/Y' }}">{% icon "activity" %} {{ a.antecedent.name }}{% if a.notes %} <span class="muted">· {{ a.notes }}</span>{% endif %}
+    {% if removable %}<form method="post" action="{% url 'patients:antecedent-remove' patient.pk a.pk %}" style="display:contents">{% csrf_token %}<button type="submit" aria-label="Quitar {{ a.antecedent.name }}" title="Ya no aplica">{% icon "x" %}</button></form>{% endif %}
+  </span>
+  {% empty %}{% if not compact %}<span class="muted small">Sin antecedentes registrados.</span>{% endif %}{% endfor %}
+</div>

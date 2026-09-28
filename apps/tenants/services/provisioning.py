@@ -15,6 +15,7 @@ from apps.catalog.services.seeding_observations import seed_observation_template
 from apps.catalog.services.seeding_profiles import seed_profiles
 from apps.catalog.services.seeding_reference_ranges import seed_reference_ranges
 from apps.core.exceptions import ApplicationError
+from apps.patients.services.seeding_antecedents import seed_antecedents
 from apps.settings_lab.services.branding import create_default_settings
 from apps.tenants.models import Plan, Subscription, Tenant
 
@@ -102,6 +103,7 @@ def provision_tenant(
             seed_containers()
             seed_critical_values()
             seed_observation_templates()
+            seed_antecedents()
             seed_billing_defaults()
 
     return tenant, admin_password

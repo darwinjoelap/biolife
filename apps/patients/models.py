@@ -178,3 +178,49 @@ class PatientCodeSequence(models.Model):
 
     def __str__(self) -> str:
         return f"{self.year}: {self.last_value}"
+
+
+class Antecedent(TenantBaseModel):
+    """Antecedente clínico que el laboratorio quiere vigilar (Fase 11e, ADR-032):
+    diabetes, hipertensión, anticoagulado… Cada uno sugiere qué parámetros seguir en la
+    evolución del paciente. Lo configura cada laboratorio (tabla auxiliar)."""
+
+    code = models.CharField("Código", max_length=30, unique=True)
+    name = models.CharField("Nombre", max_length=80)
+    description = models.CharField("Descripción", max_length=255, blank=True, default="")
+    suggested_parameters = models.ManyToManyField(
+        "catalog.Parameter", blank=True, related_name="+",
+        verbose_name="Parámetros a vigilar",
+    )
+    order_index = models.PositiveIntegerField("Orden", default=0)
+
+    class Meta:
+        verbose_name = "Antecedente"
+        verbose_name_plural = "Antecedentes"
+        ordering = ["order_index", "name"]
+
+    def __str__(self) -> str:
+        return self.name
+
+
+class PatientAntecedent(TenantBaseModel):
+    """Antecedente registrado a un paciente: quién (`created_by`) y cuándo
+    (`created_at`). No se borra: si deja de aplicar se desactiva."""
+
+    patient = models.ForeignKey(Patient, on_delete=models.CASCADE,
+                                related_name="antecedents")
+    antecedent = models.ForeignKey(Antecedent, on_delete=models.PROTECT,
+                                   related_name="patients", verbose_name="Antecedente")
+    notes = models.CharField("Nota", max_length=200, blank=True, default="")
+
+    class Meta:
+        verbose_name = "Antecedente del paciente"
+        verbose_name_plural = "Antecedentes del paciente"
+        ordering = ["antecedent__order_index", "antecedent__name"]
+        constraints = [
+            models.UniqueConstraint(fields=["patient", "antecedent"],
+                                    name="patientantecedent_unique"),
+        ]
+
+    def __str__(self) -> str:
+        return f"{self.patient} — {self.antecedent}"

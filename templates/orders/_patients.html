@@ -1,7 +1,8 @@
 {% load ui %}{% for p in patients %}
 <button type="button" class="option" @click="pickPatient($el.dataset)"
         data-id="{{ p.pk }}" data-name="{{ p.first_name }} {{ p.last_name }}"
-        data-meta="{% if p.document_number %}{{ p.document_type }}-{{ p.document_number }}{% else %}Sin documento{% endif %} · {{ p.get_sex_display }} · {{ p.internal_code }}">
+        data-meta="{% if p.document_number %}{{ p.document_type }}-{{ p.document_number }}{% else %}Sin documento{% endif %} · {{ p.get_sex_display }} · {{ p.internal_code }}"
+        data-antecedents="{% for a in p.active_antecedents %}{{ a.antecedent.name }}{% if not forloop.last %}, {% endif %}{% endfor %}">
   {% icon "user" %}<span><b>{{ p.last_name }}, {{ p.first_name }}</b></span>
   <span class="option__meta">{% if p.document_number %}{{ p.document_type }}-{{ p.document_number }}{% else %}sin documento{% endif %} · {{ p.internal_code }}</span>
 </button>

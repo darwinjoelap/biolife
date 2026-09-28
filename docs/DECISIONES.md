@@ -948,3 +948,31 @@ siguen con pantallas dedicadas. Gotcha: los modelos con UUID tienen `pk` antes d
 guardarse, así que "¿es nuevo?" se pregunta con `instance._state.adding`, no con `pk`.
 Otro: ninguna carpeta o archivo puede llamarse `aux` (nombre reservado de Windows); las
 plantillas van en `templates/core/tablas/`.
+
+---
+
+## ADR-032 — Ficha del paciente, antecedentes y evolución con gráficos propios
+**Fecha:** 2026-09-28 · **Estado:** Aceptada
+
+**Contexto.** El paciente sólo se podía crear; para editarlo había que ir a `/admin`. El
+laboratorio quiere ver la evolución de un paciente (p. ej. la glicemia de un diabético)
+y entregarla al médico.
+
+**Decisión.**
+- Lista y ficha en `apps.patients`; el historial de órdenes y las series de resultados se
+  piden a `orders` y `results` por sus selectors públicos.
+- **Evolución sólo con resultados validados** y numéricos; fecha = la de la orden; banda =
+  el rango de referencia guardado al validar (`ResultValue.reference_range`), así cambia
+  con la edad o el sexo como el informe.
+- **Gráfico propio**: `core/charts.py` calcula la geometría una vez; se dibuja en SVG
+  (pantalla, colores por clases CSS) y con ReportLab (PDF) desde los mismos números. Sin
+  librerías JS de gráficos.
+- **Antecedentes** por laboratorio (`Antecedent` con `suggested_parameters`) como tabla
+  auxiliar (ADR-031); `PatientAntecedent` guarda quién y cuándo, y se desactiva en lugar
+  de borrarse. Se asignan con `RECEPTION_ROLES`; la tabla la editan administrador y
+  bioanalista.
+- El PDF de evolución no es un informe: sin firma ni QR, y lo dice.
+
+**Consecuencias.** Si un rango se edita en el lugar, la banda de puntos viejos refleja el
+rango editado (el texto impreso sí queda congelado). Parámetros codificados en la
+evolución y la unión de pacientes duplicados quedan fuera.

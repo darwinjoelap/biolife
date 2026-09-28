@@ -6,3 +6,6 @@ class PatientsConfig(AppConfig):
     name = "apps.patients"
     label = "patients"
     verbose_name = "Pacientes"
+
+    def ready(self):
+        from apps.patients import aux_tables  # noqa: F401  (registra los antecedentes)

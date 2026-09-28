@@ -135,6 +135,8 @@ def ui_permissions(user) -> dict:
 def role_abilities() -> list[tuple[str, set[str]]]:
     return [
         ("Registrar pacientes y órdenes, cobrar", set(RECEPTION_ROLES)),
+        ("Editar pacientes, representantes y antecedentes", set(RECEPTION_ROLES)),
+        ("Ver la ficha y la evolución del paciente", set(VIEW_ROLES)),
         ("Imprimir etiquetas y marcar tubos tomados", set(COLLECTION_ROLES)),
         ("Ver órdenes y cobros", set(VIEW_ROLES)),
         ("Cargar resultados", set(CAPTURE_ROLES)),
@@ -142,7 +144,8 @@ def role_abilities() -> list[tuple[str, set[str]]]:
         ("Emitir y entregar informes", set(RECEPTION_ROLES)),
         ("Editar exámenes, parámetros y perfiles", set(CATALOG_EDIT_ROLES)),
         ("Editar rangos, valores críticos y observaciones", set(CLINICAL_EDIT_ROLES)),
-        ("Editar listas de opciones y observaciones generales", set(CLINICAL_EDIT_ROLES)),
+        ("Editar listas de opciones, observaciones generales y antecedentes",
+         set(CLINICAL_EDIT_ROLES)),
         ("Registrar lotes de reactivos (ISI)", set(LOT_EDIT_ROLES)),
         ("Editar precios y registrar la tasa de cambio", set(PRICE_EDIT_ROLES)),
         ("Editar monedas y descuentos", set(PRICE_EDIT_ROLES)),

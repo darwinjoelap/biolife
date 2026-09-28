@@ -1,0 +1,40 @@
+{% extends "base_tenant.html" %}
+{% load ui %}
+{% block page_title_text %}Editar paciente{% endblock %}
+{% block crumbs %}<a href="{% url 'patients:list' %}">Pacientes</a> / <a href="{% url 'patients:detail' patient.pk %}">{{ patient.first_name }} {{ patient.last_name }}</a>{% endblock %}
+{% block page_title %}Editar paciente <span class="muted small">{{ patient.internal_code }}</span>{% endblock %}
+{% block content %}
+<form method="post" novalidate class="card" x-data="{ docType: '{{ form.document_type.value|default:'V' }}' }">
+  {% csrf_token %}
+  {% if form.non_field_errors %}<div class="card__body"><div class="alert alert--danger">{% icon "triangle-alert" %}<span>{{ form.non_field_errors|join:" " }}</span></div></div>{% endif %}
+  <div class="card__body form-grid">
+    <div class="field col-2">
+      <label for="{{ form.document_type.id_for_label }}">{{ form.document_type.label }} <span class="req">*</span></label>
+      <select name="document_type" id="{{ form.document_type.id_for_label }}" x-model="docType">
+        {% for value, label in form.document_type.field.choices %}<option value="{{ value }}"{% if form.document_type.value == value %} selected{% endif %}>{{ label }}</option>{% endfor %}
+      </select>
+    </div>
+    <div class="field col-2{% if form.document_number.errors %} has-error{% endif %}" x-show="docType !== 'SIN_DOCUMENTO'">
+      <label for="{{ form.document_number.id_for_label }}">{{ form.document_number.label }}</label>
+      {{ form.document_number }}
+      {% if form.document_number.errors %}<span class="error">{{ form.document_number.errors|join:" " }}</span>{% endif %}
+    </div>
+    {% field form.first_name "col-4" %}
+    {% field form.last_name "col-4" %}
+    {% field form.sex "col-2" %}
+    {% field form.birth_date "col-2" %}
+    {% field form.declared_age_value "col-2" %}
+    {% field form.declared_age_unit "col-2" %}
+    {% field form.phone "col-2" %}
+    {% field form.email "col-2" %}
+    {% field form.locality "col-4" %}
+    {% field form.address "col-8" %}
+  </div>
+  <div class="actionbar">
+    <span class="muted small">El código de historia no cambia. Los informes ya emitidos conservan los datos con que se emitieron.</span>
+    <span class="spacer"></span>
+    <a class="btn btn--ghost" href="{% url 'patients:detail' patient.pk %}">Cancelar</a>
+    <button class="btn btn--primary" type="submit">{% icon "save" %} Guardar</button>
+  </div>
+</form>
+{% endblock %}

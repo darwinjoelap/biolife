@@ -16,6 +16,7 @@
       <div><strong>{{ order.patient.first_name }} {{ order.patient.last_name }}</strong>
         <small>{{ order.patient.get_sex_display }} · {{ patient_age }} · {% if order.patient.document_number %}{{ order.patient.document_type }}-{{ order.patient.document_number }}{% else %}Sin documento{% endif %}</small></div>
     </div>
+    {% if antecedents %}{% include "patients/_antecedents.html" with removable=False compact=True %}{% endif %}
     <span class="spacer"></span>
     <div class="field" style="width:110px">{{ clinical_form.patient_condition.label_tag }}{{ clinical_form.patient_condition }}</div>
     <div class="field" style="width:90px">{{ clinical_form.weight_kg.label_tag }}{{ clinical_form.weight_kg }}</div>
@@ -99,7 +100,7 @@
             <td class="muted">{{ row.parameter.unit.symbol|default:"" }}</td>
             <td><span id="flag-{{ row.parameter.pk }}">{{ row.assessment.flag|flag_badge }}</span></td>
             <td class="muted small"><span id="ref-{{ row.parameter.pk }}">{{ row.reference_text }}{% if row.assessment.interpretation %}<br><b>{{ row.assessment.interpretation }}</b>{% endif %}</span></td>
-            <td class="small">{% if row.previous %}<span class="{{ row.previous.flag|value_class }}">{{ row.previous.text }}</span> <span class="muted">{{ row.previous.date|date:"d/m/y" }}</span>{% endif %}</td>
+            <td class="small">{% if row.previous %}<a class="prev-link" href="{% url 'patients:evolution' order.patient.pk %}?p={{ row.parameter.pk }}" title="Ver la evolución"><span class="{{ row.previous.flag|value_class }}">{{ row.previous.text }}</span> <span class="muted">{{ row.previous.date|date:"d/m/y" }}</span></a> {{ row.previous_delta|delta }}{% endif %}</td>
           </tr>
         {% empty %}
           <tr><td colspan="6"><div class="alert alert--warn" style="margin:0">{% icon "triangle-alert" %}<span><b>Este examen no tiene parámetros configurados</b> ({{ block.item.test.code }}): no hay nada que cargar. Agréguelos en Configuración → Exámenes, o use el examen del catálogo que ya los tiene.</span></div></td></tr>

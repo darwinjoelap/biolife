@@ -1,7 +1,7 @@
 # ESTADO DEL PROYECTO — Biolife
 
 > Se actualiza al **cerrar cada sesión**. Es el primer archivo que se lee al abrir la siguiente.
-> Mantener bajo 100 líneas: si crece, es que hay historial que pertenece a DECISIONES.md.
+> Mantener bajo 100 líneas: el detalle de fases cerradas va a `HISTORIAL.md`; las decisiones, a DECISIONES.md.
 
 **Última actualización:** 2026-09-28 (cierre del día)
 **Fase actual:** 11d — Tablas auxiliares sin /admin (**completa**, `9640297`; revisión manual pendiente) → siguiente: 11e (pacientes; no iniciar sin pedirlo)
@@ -12,34 +12,10 @@
 
 ## Completado
 
-- [x] Fases 00–08b (hasta `53655ab`): diseño, multi-tenancy, usuarios y roles, configuración,
-  pacientes, catálogo, rangos, fórmulas, perfiles, precios, ficha del examen (ADR-001–020).
-- [x] Fases 08c, 08d y limpieza (`39a4491`, `7ad6be1`): provisión con catálogo, CI, sistema
-  visual, baja de laboratorios demo (ADR-021–023). Verificado: 183 passed; CI en verde.
-- [x] Fase 09 (`9919111`): órdenes, tubos, etiquetas, recepción (ADR-024). Verificado: 211.
-- [x] Fase 10 (`f934aaf`, `bac4352`): captura con cálculo en vivo, marcas alto/bajo/crítico, aviso de
-  críticos, validación que congela referencias, ISI por lote, observaciones por examen
-  (ADR-025/026). Verificado por Darwin: 246 passed, ruff limpio.
-- [x] Fase 11 (hasta `212bb7a`): informe PDF versionado desde contenido congelado,
-  parciales, huella SHA-256, verificación pública por QR, bandeja *Informes*, entrega
-  (ADR-027); firma y sello del bioanalista y QR en cada página, pie con firma de Biolife
-  editable en `public`, Instagram/correo en la cabecera, recotizar órdenes con precio
-  pendiente, avisos de examen sin parámetros, tomar tubo con resultados ya cargados
-  (ADR-028). Verificado por Darwin: 259 passed, ruff limpio.
-- [x] Ajuste de *Muestras por tomar* (`986b830`): etiquetas impresas atenuadas y al final
-  con quién/cuándo, imprimir desde la fila, sin columna de pago, se actualiza sola cada
-  20 s (roadmap 09, «Ajuste posterior»). Verificado por Darwin: 260 passed.
-- [x] Fase 11b (`852c3f4`): datos del laboratorio, usuarios con clave temporal, varios
-  roles por usuario, tabla de roles, mi perfil con firma y sello, rol Auxiliar de toma,
-  menú según rol (ADR-029). Verificado por Darwin: accounts.0006, 269 passed, ruff limpio.
-- [x] Fase 11c (`656ed95`): exámenes, parámetros, rangos/críticos con probador,
-  observaciones, perfiles, precios en tabla editable, ajuste masivo, copia de listas y
-  tasa de cambio, sin /admin; permisos por rol y nada se borra (ADR-030). Verificado
-  por Darwin: 276 passed, ruff limpio.
-- [x] Fase 11d (`9640297`): tablas auxiliares sin /admin (secciones, unidades, métodos,
-  listas de opciones, observaciones generales, tubos, lotes, monedas, descuentos) con motor
-  genérico en `core`; lotes también bioanalista y técnico, monedas y descuentos también
-  facturación; moneda base fija (ADR-031). Verificado por Darwin: 287 passed, ruff limpio.
+- [x] Fases 00–11d (hasta `9640297`, 2026-09-28): base multi-tenant, catálogo, rangos,
+  fórmulas, precios, órdenes y tubos, resultados, informe PDF con QR, panel del
+  laboratorio, catálogo y tablas auxiliares sin /admin (ADR-001–031). Verificado por
+  Darwin: 287 passed, ruff limpio. Detalle por fase en `docs/HISTORIAL.md`.
 
 ## Dónde estamos
 
@@ -47,9 +23,11 @@ Base del producto terminada: multi-tenancy, usuarios y roles, configuración del
 pacientes, catálogo con rangos por sexo/edad/condición, motor de fórmulas, perfiles, precios
 multimoneda y el sistema visual. Flujo clínico: recepción, órdenes, tubos y etiquetas
 (Fase 09), resultados cargados y validados (Fase 10) e informe PDF con firma, versiones y
-verificación por QR (Fase 11).
+verificación por QR (Fase 11). El laboratorio ya no necesita `/admin` salvo pacientes
+(Fase 11e).
 
 Local: `demo_uno` → http://demo1.localhost:8000/ (+ `public` en localhost).
+
 ## Pendiente inmediato
 
 1. Revisión manual pendiente (11, 11b, 11c, 11d): crear un examen de prueba con tubo,
@@ -57,14 +35,14 @@ Local: `demo_uno` → http://demo1.localhost:8000/ (+ `public` en localhost).
    *Precios*; entrar como bioanalista, técnico y Auxiliar de toma; firma/sello en *Mi
    perfil*; escanear el QR; marcar una orden entregada; recorrer *Tablas auxiliares*.
    Siguiente fase: 11e (pacientes con evolución), cuando Darwin lo pida.
-2. Cargar precios reales en la lista GENERAL (admin): sin ellos las órdenes quedan con
+2. Cargar precios reales en la lista GENERAL (*Precios*): sin ellos las órdenes quedan con
    monto pendiente.
 3. **No usar en un informe real** ningún `ReferenceRange`/parámetro marcado "PENDIENTE DE
    CONFIRMAR" o "NO CONFIRMADO" (ver ADR-015 y ADR-016), ni el INR sin
    confirmar el ISI (ADR-017/019), hasta que el laboratorio responda.
 4. Confirmar con Angelus los rangos de referencia contradictorios, los rangos
-   pediátricos/neonatales reales, y el detalle geográfico de localidades sin municipio
-   verificado (Cantagallo, Dos Caminos, Las Minas, Píritu).
+   pediátricos/neonatales reales, y el municipio de Cantagallo, Dos Caminos, Las Minas y
+   Píritu (el fixture de localidades se completó sin dato del laboratorio; ver HISTORIAL).
 
 ## Bloqueos
 
@@ -93,32 +71,17 @@ valores marcados como pendientes en vez de esperar la confirmación.
 - [ ] Marca y modelo de los analizadores del laboratorio
 - [ ] Precios de exámenes y perfiles
 
-## Advertencia sobre el fixture de localidades
-
-`apps/masterdata/fixtures/localidades.json` tiene los 21 nombres exactos de
-`04_HALLAZGOS_FORMATOS.md`, pero el estado/municipio de cada uno se completó por
-conocimiento general de geografía venezolana, no por dato del laboratorio. Cantagallo, Dos
-Caminos, Las Minas y Píritu quedaron sin municipio por falta de certeza. Confirmar con el
-laboratorio antes de producción.
-
 ## Notas
 
 - **Antes de producción (Fase 17):** sacar `docs/`, `TASKS.md` y `CLAUDE.md` de git y poner el
   repo privado (privacidad: datos del laboratorio de referencia). Decidido 2026-09-27.
 - Los formatos originales están en el proyecto de Cowork. No re-analizarlos:
   el resumen completo está en `docs/04_HALLAZGOS_FORMATOS.md`.
-- ADRs que conviene leer antes de tocar ciertas zonas: 007–009 (esquemas en
-  django-tenants), 010–011 (`User` propio, `accounts` SHARED+TENANT), 017 (fórmulas),
-  018 (alcance: Angelus es referencia), 019 (perfiles y precios), 020 (rangos y admin por
-  tenant), 021 (provisión con catálogo, CI), 022 (sistema visual y `STORAGES`), 023 (baja de
-  laboratorios demo), 024 (órdenes, tubos y etiquetas), 025
-  (resultados, críticos, ISI), 026 (observaciones por examen), 027 (informe, versiones y QR), 028 (pie del informe y
-  firma de la plataforma), 029 (panel del laboratorio, roles y claves), 030 (catálogo sin /admin).
+- ADRs clave: 007–011 (esquemas, `User` propio), 017–020 (fórmulas, alcance, precios,
+  rangos), 021–024 (provisión, visual, órdenes), 025–028 (resultados, informe, QR),
+  029–031 (panel, catálogo y tablas sin /admin).
 - "7 roles" del índice del roadmap = 6 roles de tenant (esta fase) + `SUPERADMIN_PLATAFORMA`
   como `PlatformUser` en `public` (Fase 12), no un séptimo `Role` de tenant.
-- **Postgres local (máquina de Darwin):** hay 3 instalaciones (16, 17, 18). La base
-  `biolife` del proyecto vive en la instancia **16**, que corre en el puerto **5434**
-  (se cambió de 5432 porque la instancia 18 ya lo ocupaba con otro proyecto). Si
-  `manage.py` da error de autenticación o "no existe la base de datos", verificar primero
-  que el servicio `postgresql-x64-16` esté corriendo y que `.env` apunte a
-  `localhost:5434`.
+- **Postgres local (Darwin):** la base `biolife` está en la instancia **16**, puerto
+  **5434** (hay también 17 y 18). Si `manage.py` falla al conectar, revisar el servicio
+  `postgresql-x64-16` y que `.env` apunte a `localhost:5434`.

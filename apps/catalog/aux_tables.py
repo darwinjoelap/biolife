@@ -64,6 +64,7 @@ def _tube(c):
 register(
     AuxTable(
         key="secciones", title="Secciones", singular="sección", icon="folder", group=GROUP,
+        position=10,
         description="Agrupan los exámenes en el informe y en las listas.",
         form_class=f.SectionForm, queryset=q.sections, get=lambda pk: Section.objects.get(pk=pk),
         new=Section, columns=["Sección", "Código", "Orden", "Exámenes", "Salto de página"],
@@ -76,7 +77,7 @@ register(
         **COMMON, **ADMIN,
     ),
     AuxTable(
-        key="unidades", title="Unidades", singular="unidad", icon="ruler", group=GROUP,
+        key="unidades", title="Unidades", singular="unidad", icon="ruler", group=GROUP, position=10,
         description="Unidades de medida de los parámetros (g/dL, mg/dL, %…).",
         form_class=f.UnitForm, queryset=q.units, get=lambda pk: Unit.objects.get(pk=pk),
         new=Unit, columns=["Símbolo", "Descripción", "Parámetros"],
@@ -87,6 +88,7 @@ register(
     ),
     AuxTable(
         key="metodos", title="Métodos", singular="método", icon="book-open", group=GROUP,
+        position=10,
         description="Método analítico que se imprime bajo el examen.",
         form_class=f.MethodForm, queryset=q.methods, get=lambda pk: Method.objects.get(pk=pk),
         new=Method, columns=["Método", "Descripción", "Exámenes"],
@@ -97,7 +99,7 @@ register(
     ),
     AuxTable(
         key="opciones", title="Listas de opciones", singular="lista de opciones",
-        icon="list", group=GROUP,
+        icon="list", group=GROUP, position=10,
         description="Valores de los resultados codificados (NEGATIVO, POSITIVO ++…).",
         form_class=f.OptionSetForm, queryset=q.option_sets,
         get=lambda pk: CodedOptionSet.objects.get(pk=pk), new=CodedOptionSet,
@@ -111,7 +113,7 @@ register(
     ),
     AuxTable(
         key="observaciones", title="Observaciones generales", singular="observación",
-        icon="message-square", group=GROUP,
+        icon="message-square", group=GROUP, position=10,
         description="Observaciones para todos los exámenes o para una sección. Las de un "
                     "examen se editan en su ficha.",
         form_class=f.GeneralObservationForm, queryset=q.general_observations,
@@ -128,7 +130,7 @@ register(
     ),
     AuxTable(
         key="tubos", title="Tubos y envases", singular="tubo", icon="test-tube",
-        group=GROUP_LAB,
+        group=GROUP_LAB, position=20,
         description="Tubos de toma: color, aditivo y orden de extracción.",
         form_class=f.ContainerForm, queryset=q.containers,
         get=lambda pk: ContainerType.objects.get(pk=pk), new=ContainerType,
@@ -144,7 +146,7 @@ register(
     ),
     AuxTable(
         key="lotes", title="Lotes de reactivos", singular="lote", icon="droplet",
-        group=GROUP_LAB,
+        group=GROUP_LAB, position=20,
         description="Lote vigente de cada reactivo con sus datos de cálculo (ISI del INR).",
         form_class=f.LotForm, queryset=q.lots, get=lambda pk: ReagentLot.objects.get(pk=pk),
         new=ReagentLot, columns=["Lote", "Reactivo", "Marca", "ISI", "Vence", "Vigente"],

@@ -1,0 +1,26 @@
+{% extends "base_tenant.html" %}
+{% load ui %}
+{% block page_title_text %}Agregar representante{% endblock %}
+{% block crumbs %}<a href="{% url 'patients:list' %}">Pacientes</a> / <a href="{% url 'patients:detail' patient.pk %}">{{ patient.first_name }} {{ patient.last_name }}</a>{% endblock %}
+{% block page_title %}Agregar representante{% endblock %}
+{% block content %}
+<form method="post" novalidate class="card">
+  {% csrf_token %}
+  <div class="card__body form-grid">
+    {% field form.document_type "col-2" %}
+    {% field form.document_number "col-3" %}
+    {% field form.first_name "col-3" %}
+    {% field form.last_name "col-4" %}
+    {% field form.phone "col-3" %}
+    {% field form.relationship "col-3" %}
+    {% field form.relationship_detail "col-3" %}
+    <div class="field col-3"><label class="row" style="gap:8px;font-weight:500;margin-top:24px">{{ form.is_primary }} {{ form.is_primary.label }}</label></div>
+  </div>
+  <div class="actionbar">
+    <span class="muted small">Si ya existe un representante con ese documento se reutiliza (p. ej. la madre de varios hermanos).</span>
+    <span class="spacer"></span>
+    <a class="btn btn--ghost" href="{% url 'patients:detail' patient.pk %}">Cancelar</a>
+    <button class="btn btn--primary" type="submit">{% icon "save" %} Agregar</button>
+  </div>
+</form>
+{% endblock %}

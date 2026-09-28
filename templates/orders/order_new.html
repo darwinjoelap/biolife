@@ -11,7 +11,7 @@
 {{ selected|json_script:"selected-items" }}
 <form method="post" novalidate id="order-form"
       x-data="orderPicker({ items: JSON.parse(document.getElementById('selected-items').textContent),
-                            patient: {% if patient %}{ id: '{{ patient.pk }}', name: '{{ patient.first_name|escapejs }} {{ patient.last_name|escapejs }}', meta: '{% if patient.document_number %}{{ patient.document_type }}-{{ patient.document_number }}{% else %}Sin documento{% endif %} · {{ patient.get_sex_display }} · {{ patient_age|escapejs }}' }{% else %}null{% endif %} })"
+                            patient: {% if patient %}{ id: '{{ patient.pk }}', name: '{{ patient.first_name|escapejs }} {{ patient.last_name|escapejs }}', meta: '{% if patient.document_number %}{{ patient.document_type }}-{{ patient.document_number }}{% else %}Sin documento{% endif %} · {{ patient.get_sex_display }} · {{ patient_age|escapejs }}', antecedents: '{% for a in patient.active_antecedents %}{{ a.antecedent.name|escapejs }}{% if not forloop.last %}, {% endif %}{% endfor %}' }{% else %}null{% endif %} })"
       hx-post="{% url 'orders:preview' %}" hx-trigger="load, change delay:250ms, items-changed"
       hx-target="#summary" hx-sync="this:replace">
   {% csrf_token %}
@@ -29,7 +29,8 @@
           <template x-if="patient">
             <div class="patient-card">
               <span class="avatar">{% icon "user" %}</span>
-              <div><strong x-text="patient.name"></strong><small x-text="patient.meta"></small></div>
+              <div><strong x-text="patient.name"></strong><small x-text="patient.meta"></small>
+                <small x-show="patient.antecedents" class="antecedent-line">{% icon "activity" %} <span x-text="patient.antecedents"></span></small></div>
               <span class="spacer" style="flex:1"></span>
               <button type="button" class="btn btn--sm btn--ghost" @click="patient = null">Cambiar</button>
             </div>

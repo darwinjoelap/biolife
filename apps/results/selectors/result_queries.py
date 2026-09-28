@@ -6,8 +6,8 @@ from apps.results.services.value_parsing import format_value
 
 
 def previous_values(*, patient, parameters, exclude_order) -> dict:
-    """{parameter_id: {"text", "flag", "date"}} con el último valor VALIDADO del paciente
-    en otra orden (para comparar al cargar)."""
+    """{parameter_id: {"text", "flag", "date", "numeric"}} con el último valor VALIDADO
+    del paciente en otra orden (para comparar al cargar)."""
     values = (
         ResultValue.objects.filter(
             parameter__in=parameters, result__status=Result.Status.VALIDADO,
@@ -21,7 +21,8 @@ def previous_values(*, patient, parameters, exclude_order) -> dict:
     for value in values:
         if value.parameter_id not in found:
             found[value.parameter_id] = {"text": format_value(value), "flag": value.flag,
-                                         "date": value.result.validated_at}
+                                         "date": value.result.validated_at,
+                                         "numeric": value.value_numeric}
     return found
 
 

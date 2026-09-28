@@ -73,6 +73,15 @@ class Row:
         return self.parameter.value_type == VT_CALCULATED
 
     @property
+    def previous_delta(self) -> float | None:
+        """Variación (%) del valor escrito contra el anterior validado (Fase 11e)."""
+        before = (self.previous or {}).get("numeric")
+        now = self.parsed.numeric
+        if before in (None, 0) or now is None:
+            return None
+        return float((now - before) / abs(before) * 100)
+
+    @property
     def is_critical(self) -> bool:
         return self.assessment.flag in ("CRITICO_BAJO", "CRITICO_ALTO")
 

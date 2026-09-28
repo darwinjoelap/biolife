@@ -85,8 +85,9 @@
       <div class="card__head"><h2>{% icon "user" %} Paciente</h2></div>
       <div class="card__body">
         <div class="patient-card" style="margin-bottom:var(--s3)"><span class="avatar">{% icon "user" %}</span>
-          <div><strong>{{ order.patient.first_name }} {{ order.patient.last_name }}</strong>
+          <div><strong><a href="{% url 'patients:detail' order.patient.pk %}">{{ order.patient.first_name }} {{ order.patient.last_name }}</a></strong>
             <small>{% if order.patient.document_number %}{{ order.patient.document_type }}-{{ order.patient.document_number }}{% else %}Sin documento{% endif %} · {{ order.patient.internal_code }}</small></div></div>
+        {% if antecedents %}<div style="margin-bottom:var(--s3)">{% include "patients/_antecedents.html" with removable=False compact=True %}</div>{% endif %}
         <dl class="dl">
           <dt>Edad</dt><dd>{{ patient_age }}</dd>
           <dt>Sexo</dt><dd>{{ order.patient.get_sex_display }}</dd>

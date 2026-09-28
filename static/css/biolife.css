@@ -590,3 +590,39 @@ input[readonly], input:disabled, select:disabled { background: var(--surface-2);
 @media (max-width: 900px) { .aux-cards { grid-template-columns: 1fr; } }
 .field select[multiple] { height: auto; padding: 4px; background-image: none; }
 .field input[type=color] { width: 100%; height: var(--control-h); padding: 2px; border: 1px solid var(--line-strong); border-radius: var(--r-sm); background: var(--surface); }
+
+/* Pacientes: tendencias y evolución (Fase 11e) */
+.chart { display: block; width: 100%; height: auto; }
+.chart-wrap { max-width: 900px; }
+.chart__band { fill: var(--ok); opacity: .13; }
+.chart__grid { stroke: var(--line); stroke-width: 1; }
+.chart__tick { fill: var(--muted); font-size: 11px; font-family: inherit; }
+.chart__line { fill: none; stroke: var(--brand); stroke-width: 2; stroke-linejoin: round; }
+.chart__pt { stroke: var(--surface); stroke-width: 1.5; }
+.chart__pt--ok { fill: var(--brand); }
+.chart__pt--hi { fill: #c2410c; }
+.chart__pt--lo { fill: var(--info); }
+.chart__pt--crit { fill: var(--danger); }
+.spark { display: block; }
+.trends { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: var(--s3); }
+.trend { display: grid; gap: 4px; padding: var(--s3); border: 1px solid var(--line); border-radius: var(--r); color: inherit; text-decoration: none; transition: border-color .15s; }
+.trend:hover { border-color: var(--brand); }
+.trend__head { display: flex; align-items: center; gap: 6px; justify-content: space-between; }
+.trend__body { display: flex; align-items: center; gap: var(--s3); justify-content: space-between; }
+.trend__value { text-align: right; font-size: 18px; font-weight: 650; line-height: 1.2; }
+.trend__value .small { font-weight: 400; }
+.delta { display: inline-flex; align-items: center; gap: 2px; }
+.delta .icon { width: 12px; height: 12px; }
+.delta--up { color: #c2410c; }
+.delta--down { color: var(--info); }
+.legend { display: inline-flex; align-items: center; gap: 6px; color: var(--muted); }
+.legend__band { display: inline-block; width: 16px; height: 10px; background: var(--ok); opacity: .25; border-radius: 2px; }
+.legend__dot { display: inline-block; width: 9px; height: 9px; border-radius: 50%; margin-left: 6px; }
+.legend__dot--hi { background: #c2410c; } .legend__dot--lo { background: var(--info); } .legend__dot--crit { background: var(--danger); }
+.guardian { display: flex; justify-content: space-between; gap: var(--s2); align-items: flex-start; }
+.chip--antecedent { background: var(--warn-soft); border-color: transparent; color: var(--warn); font-weight: 550; padding-right: 10px; }
+.chip--antecedent:has(button) { padding-right: 4px; }
+.chip--antecedent .muted { font-weight: 400; }
+.antecedent-line { display: flex !important; align-items: center; gap: 4px; color: var(--warn) !important; font-weight: 550; }
+.antecedent-line .icon { width: 12px; height: 12px; }
+.prev-link { color: inherit; text-decoration: none; } .prev-link:hover { text-decoration: underline; }

@@ -32,6 +32,7 @@ from apps.orders.services.order_management import (
     requote_pending,
 )
 from apps.orders.services.sample_collection import collect_all, collect_sample, reject_sample
+from apps.patients.selectors.patient_queries import active_antecedents
 from apps.patients.selectors.patient_search import get_patient, search_patients
 from apps.patients.services.patient_age import patient_age_text
 from apps.settings_lab.models import TenantSettings
@@ -164,6 +165,7 @@ def order_detail(request, pk):
         "active_samples": [s for s in samples if s.status != Sample.Status.RECHAZADA],
         "pending": sum(s.status == Sample.Status.PENDIENTE for s in samples),
         "patient_age": patient_age_text(order.patient, as_of=order.ordered_at.date()),
+        "antecedents": active_antecedents(patient=order.patient),
         "editable": order.status in (Order.Status.REGISTRADA, Order.Status.MUESTRA_TOMADA),
         # Marcar tomada se permite aunque ya haya resultados cargados (se cargó antes de
         # registrar la toma); no en una orden anulada o entregada.

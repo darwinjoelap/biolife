@@ -21,7 +21,7 @@ page_actions, content. Los módulos que aún no existen se muestran como "Pronto
       {% if can.reception %}<a class="nav__item {% nav_active request '/ordenes/nueva/' %}" href="{% url 'orders:new' %}">{% icon "plus" %}<span>Nueva orden</span></a>
       <a class="nav__item {% if '/ordenes/' in request.path and '/ordenes/nueva/' not in request.path and request.GET.pendientes != '1' %}is-active{% endif %}" href="{% url 'orders:list' %}">{% icon "clipboard-list" %}<span>Órdenes</span></a>{% elif can.orders %}<a class="nav__item {% if '/ordenes/' in request.path and request.GET.pendientes != '1' %}is-active{% endif %}" href="{% url 'orders:list' %}">{% icon "clipboard-list" %}<span>Órdenes</span></a>{% endif %}
       {% if can.collection or can.orders %}<a class="nav__item {% if request.GET.pendientes == '1' or can.only_collection and '/ordenes/' in request.path %}is-active{% endif %}" href="{% url 'orders:list' %}?pendientes=1">{% icon "test-tube" %}<span>Muestras por tomar</span></a>{% endif %}
-      {% if can.reception %}<a class="nav__item {% nav_active request '/pacientes/' %}" href="{% url 'patients:create' %}">{% icon "user-plus" %}<span>Nuevo paciente</span></a>{% endif %}
+      {% if can.orders %}<a class="nav__item {% nav_active request '/pacientes/' %}" href="{% url 'patients:list' %}">{% icon "users" %}<span>Pacientes</span></a>{% endif %}
       {% if can.results %}<a class="nav__item {% nav_active request '/resultados/' %}" href="{% url 'results:worklist' %}">{% icon "flask-conical" %}<span>Resultados</span></a>{% endif %}
       {% if can.reports %}<a class="nav__item {% nav_active request '/informes/' %}" href="{% url 'reports:worklist' %}">{% icon "file-text" %}<span>Informes</span></a>{% endif %}
       {% if can.admin %}
@@ -38,8 +38,7 @@ page_actions, content. Los módulos que aún no existen se muestran como "Pronto
       <a class="nav__item {% nav_active request '/tablas/' %}" href="{% url 'core:aux-hub' %}">{% icon "table" %}<span>Tablas auxiliares</span></a>
       {% endif %}
       {% if user.is_staff %}
-      <div class="nav__group">Administración (provisional)</div>
-      <a class="nav__item {% nav_active request '/admin/patients/' %}" href="{% url 'admin:patients_patient_changelist' %}">{% icon "users" %}<span>Pacientes (admin)</span></a>
+      <div class="nav__group">Biolife (staff)</div>
       <a class="nav__item {% nav_active request '/estilo/' %}" href="{% url 'core:style-guide' %}">{% icon "palette" %}<span>Guía de estilo</span></a>
       {% endif %}
     </nav>

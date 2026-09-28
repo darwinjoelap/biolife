@@ -1,0 +1,112 @@
+{% extends "base_tenant.html" %}
+{% load ui orders_ui results_ui %}
+{% block page_title_text %}{{ patient.first_name }} {{ patient.last_name }}{% endblock %}
+{% block crumbs %}<a href="{% url 'patients:list' %}">Pacientes</a> / {{ patient.internal_code }}{% endblock %}
+{% block page_title %}{{ patient.first_name }} {{ patient.last_name }}{% endblock %}
+{% block page_actions %}
+  {% if can.reception %}<a class="btn btn--primary" href="{% url 'orders:new' %}?paciente={{ patient.pk }}">{% icon "plus" %} Nueva orden</a>{% endif %}
+  <a class="btn" href="{% url 'patients:evolution' patient.pk %}">{% icon "activity" %} Evolución</a>
+{% endblock %}
+{% block content %}
+<div class="layout-side">
+  <div class="stack">
+    <section class="card">
+      <div class="card__head"><h2>{% icon "activity" %} Tendencias</h2>
+        <span class="muted small">resultados validados</span><span class="spacer"></span>
+        {% if series_count %}<a class="btn btn--sm btn--ghost" href="{% url 'patients:evolution' patient.pk %}">Ver todo ({{ series_count }}) {% icon "chevron-right" %}</a>{% endif %}
+      </div>
+      <div class="card__body">
+        {% if cards %}
+        <div class="trends">
+          {% for c in cards %}
+          <a class="trend" href="{% url 'patients:evolution' patient.pk %}?p={{ c.parameter.pk }}">
+            <div class="trend__head"><b>{{ c.parameter.name }}</b>{% if c.suggested %} <span class="tag tag--brand" title="Lo pide un antecedente">vigilar</span>{% endif %}</div>
+            <div class="muted small">{{ c.parameter.test.name|lower|capfirst }} · {{ c.count }} resultado{{ c.count|pluralize }}</div>
+            <div class="trend__body">
+              {{ c.spark }}
+              <div class="trend__value"><span class="{{ c.last.flag|value_class }}">{{ c.last.text }}</span> <span class="muted small">{{ c.parameter.unit.symbol|default:"" }}</span>
+                <div class="small">{% if c.last.direction == "up" %}<span class="delta delta--up">{% icon "arrow-up" %} {{ c.delta }}</span>{% elif c.last.direction == "down" %}<span class="delta delta--down">{% icon "arrow-down" %} {{ c.delta }}</span>{% endif %} <span class="muted">{{ c.last.when|date:"d/m/y" }}</span></div>
+              </div>
+            </div>
+          </a>
+          {% endfor %}
+        </div>
+        {% else %}
+        <p class="muted small" style="margin:0">Aún no hay parámetros con dos o más resultados validados para ver su tendencia.</p>
+        {% endif %}
+        {% if suggested_without_data %}<p class="muted small" style="margin:var(--s3) 0 0">Sus antecedentes piden vigilar también, sin resultados aún: {% for p in suggested_without_data %}{{ p.name|lower|capfirst }}{% if not forloop.last %}, {% endif %}{% endfor %}.</p>{% endif %}
+      </div>
+    </section>
+
+    <section class="card">
+      <div class="card__head"><h2>{% icon "clipboard-list" %} Órdenes</h2><span class="muted small">{{ orders|length }}{% if orders|length == 100 %}+ (las 100 más recientes){% endif %}</span></div>
+      <div class="card__body card__body--flush table-wrap">
+        <table class="table">
+          <thead><tr><th>Orden</th><th>Fecha</th><th>Exámenes</th><th>Estado</th>{% if can.money %}<th>Cobro</th>{% endif %}</tr></thead>
+          <tbody>
+          {% for o in orders %}
+          <tr style="cursor:pointer" onclick="location.href='{% url 'orders:detail' o.pk %}'">
+            <td style="white-space:nowrap"><a href="{% url 'orders:detail' o.pk %}"><b>{{ o.number }}</b></a></td>
+            <td class="small" style="white-space:nowrap">{{ o.ordered_at|date:"d/m/Y h:i A" }}</td>
+            <td class="small">{% for i in o.items.all|slice:":4" %}{{ i.test.name|lower|capfirst }}{% if not forloop.last %} · {% endif %}{% endfor %}{% if o.items.all|length > 4 %} <span class="muted">+{{ o.items.all|length|add:"-4" }}</span>{% endif %}</td>
+            <td><span class="tag {{ o.status|status_tag }}">{{ o.get_status_display }}</span></td>
+            {% if can.money %}<td>{% if o.status == "ANULADA" %}—{% elif o.is_paid %}<span class="tag tag--ok">Pagada</span>{% else %}<span class="tag tag--warn">Pendiente</span>{% endif %}</td>{% endif %}
+          </tr>
+          {% empty %}<tr><td colspan="5"><div class="empty">{% icon "clipboard-list" %}<h3>Sin órdenes</h3></div></td></tr>{% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </section>
+  </div>
+
+  <aside class="stack">
+    <section class="card">
+      <div class="card__head"><h2>{% icon "user" %} Datos</h2><span class="spacer"></span>
+        {% if can.reception %}<a class="btn btn--sm btn--ghost" href="{% url 'patients:edit' patient.pk %}">Editar</a>{% endif %}</div>
+      <div class="card__body">
+        <dl class="dl">
+          <dt>Documento</dt><dd>{% if patient.document_number %}{{ patient.document_type }}-{{ patient.document_number }}{% else %}Sin documento{% endif %}</dd>
+          <dt>Historia</dt><dd>{{ patient.internal_code }}</dd>
+          <dt>Edad</dt><dd>{{ age }}{% if patient.birth_date %} <span class="muted">({{ patient.birth_date|date:"d/m/Y" }})</span>{% endif %}</dd>
+          <dt>Sexo</dt><dd>{{ patient.get_sex_display }}</dd>
+          <dt>Teléfono</dt><dd>{{ patient.phone|default:"—" }}</dd>
+          <dt>Correo</dt><dd>{{ patient.email|default:"—" }}</dd>
+          <dt>Dirección</dt><dd>{% if patient.locality %}{{ patient.locality.name }}{% if patient.address %} · {% endif %}{% endif %}{{ patient.address|default:"" }}{% if not patient.locality and not patient.address %}—{% endif %}</dd>
+        </dl>
+      </div>
+    </section>
+
+    <section class="card">
+      <div class="card__head"><h2>{% icon "activity" %} Antecedentes</h2></div>
+      <div class="card__body stack" style="gap:var(--s3)">
+        {% include "patients/_antecedents.html" with antecedents=patient.active_antecedents removable=can.reception %}
+        {% if can.reception and antecedent_form.fields.antecedent.queryset.exists %}
+        <form method="post" action="{% url 'patients:antecedent-add' patient.pk %}" class="stack" style="gap:6px">{% csrf_token %}
+          <div class="row" style="gap:6px">{{ antecedent_form.antecedent }}</div>
+          <div class="row" style="gap:6px">{{ antecedent_form.notes }}<button class="btn btn--sm" type="submit">{% icon "plus" %} Agregar</button></div>
+        </form>
+        {% endif %}
+      </div>
+    </section>
+
+    <section class="card">
+      <div class="card__head"><h2>{% icon "users" %} Representantes</h2><span class="spacer"></span>
+        {% if can.reception %}<a class="btn btn--sm btn--ghost" href="{% url 'patients:guardian-add' patient.pk %}">{% icon "plus" %} Agregar</a>{% endif %}</div>
+      <div class="card__body stack" style="gap:var(--s3)">
+        {% for link in patient.active_guardians %}
+        <div class="guardian">
+          <div><b>{{ link.guardian.first_name }} {{ link.guardian.last_name }}</b>{% if link.is_primary %} <span class="tag tag--brand">Principal</span>{% endif %}
+            <div class="muted small">{{ link.get_relationship_display }}{% if link.relationship_detail %} ({{ link.relationship_detail }}){% endif %} · {{ link.guardian.document_type }}-{{ link.guardian.document_number }}{% if link.guardian.phone %} · {{ link.guardian.phone }}{% endif %}</div></div>
+          {% if can.reception %}
+          <div class="row" style="gap:4px">
+            {% if not link.is_primary %}<form method="post" action="{% url 'patients:guardian-action' patient.pk link.pk 'principal' %}">{% csrf_token %}<button class="btn btn--sm btn--ghost">Principal</button></form>{% endif %}
+            <form method="post" action="{% url 'patients:guardian-action' patient.pk link.pk 'retirar' %}">{% csrf_token %}<button class="btn btn--sm btn--ghost" title="Ya no es su representante">Retirar</button></form>
+          </div>
+          {% endif %}
+        </div>
+        {% empty %}<span class="muted small">{% if patient.is_minor and not patient.document_number %}<span class="value-alto">Menor sin documento: debe tener un representante.</span>{% else %}Sin representantes.{% endif %}</span>{% endfor %}
+      </div>
+    </section>
+  </aside>
+</div>
+{% endblock %}

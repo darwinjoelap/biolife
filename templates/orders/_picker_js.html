@@ -12,7 +12,7 @@
         this.changed();
       },
       remove(item) { this.items = this.items.filter((i) => i !== item); this.changed(); },
-      pickPatient(d) { this.patient = { id: d.id, name: d.name, meta: d.meta }; },
+      pickPatient(d) { this.patient = { id: d.id, name: d.name, meta: d.meta, antecedents: d.antecedents || '' }; },
       changed() {
         this.$nextTick(() => this.$root.dispatchEvent(new Event("items-changed", { bubbles: true })));
       },

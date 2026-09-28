@@ -121,3 +121,8 @@ def canonical(payload: dict) -> bytes:
 
 def content_hash(payload: dict) -> str:
     return hashlib.sha256(canonical(payload)).hexdigest()
+
+
+def lab_info() -> dict:
+    """Datos del laboratorio para otros documentos (p. ej. la evolución, Fase 11e)."""
+    return _lab(TenantSettings.get_solo())

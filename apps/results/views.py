@@ -21,6 +21,7 @@ from apps.orders.selectors.order_queries import (
     results_worklist_counts,
 )
 from apps.orders.services.order_progress import update_clinical_data
+from apps.patients.selectors.patient_queries import active_antecedents
 from apps.patients.services.patient_age import patient_age_text
 from apps.results.forms import (
     ClinicalDataForm,
@@ -57,6 +58,7 @@ def _render_capture(request, order, sheet, status=200):
     return render(request, "results/capture.html", {
         "order": order, "sheet": sheet, "patient_age": patient_age_text(
             order.patient, as_of=order.ordered_at.date()),
+        "antecedents": active_antecedents(patient=order.patient),
         "can_validate": can_validate_results(request.user),
         "clinical_form": ClinicalDataForm(initial={
             "weight_kg": order.weight_kg, "height_cm": order.height_cm,

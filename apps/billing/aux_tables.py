@@ -31,7 +31,7 @@ def _validity(d):
 
 register(
     AuxTable(
-        key="monedas", title="Monedas", singular="moneda", icon="coins", group=GROUP,
+        key="monedas", title="Monedas", singular="moneda", icon="coins", group=GROUP, position=30,
         description="Monedas de las listas de precios. La base no cambia.",
         form_class=CurrencyForm, queryset=q.currencies,
         get=lambda pk: Currency.objects.get(pk=pk), new=Currency,
@@ -47,7 +47,7 @@ register(
     ),
     AuxTable(
         key="descuentos", title="Descuentos", singular="descuento", icon="percent",
-        group=GROUP,
+        group=GROUP, position=30,
         description="Descuentos que se ofrecen al registrar una orden.",
         form_class=DiscountForm, queryset=q.discounts,
         get=lambda pk: Discount.objects.get(pk=pk), new=Discount,

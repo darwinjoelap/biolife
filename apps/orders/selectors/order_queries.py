@@ -233,3 +233,14 @@ def collection_worklist(*, query: str = "") -> list[Order]:
     orders.sort(key=lambda o: (o.all_printed, o.priority != Order.Priority.URGENTE,
                                o.ordered_at))
     return orders
+
+
+def patient_orders(*, patient, limit: int = 100) -> list[Order]:
+    """Historial de órdenes del paciente (Fase 11e), la más reciente primero, con sus
+    exámenes."""
+    return list(
+        Order.objects.filter(patient=patient)
+        .prefetch_related(Prefetch("items", queryset=OrderItem.objects.select_related(
+            "test").order_by("order_index")))
+        .order_by("-ordered_at")[:limit]
+    )

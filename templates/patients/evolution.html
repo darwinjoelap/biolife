@@ -1,0 +1,65 @@
+{% extends "base_tenant.html" %}
+{% load ui results_ui %}
+{% block page_title_text %}Evolución · {{ patient.first_name }} {{ patient.last_name }}{% endblock %}
+{% block crumbs %}<a href="{% url 'patients:list' %}">Pacientes</a> / <a href="{% url 'patients:detail' patient.pk %}">{{ patient.first_name }} {{ patient.last_name }}</a>{% endblock %}
+{% block page_title %}Evolución{% endblock %}
+{% block content %}
+<div class="row" style="gap:var(--s3);flex-wrap:wrap">
+  <span><b>{{ patient.first_name }} {{ patient.last_name }}</b> <span class="muted small">{{ age }} · {{ patient.get_sex_display }} · {{ patient.internal_code }}</span></span>
+  {% include "patients/_antecedents.html" with antecedents=patient.active_antecedents removable=False compact=True %}
+</div>
+{% if not series_list %}
+<section class="card"><div class="empty">{% icon "activity" %}<h3>Sin resultados numéricos validados</h3><p>La evolución aparece cuando el paciente tenga resultados validados.</p></div></section>
+{% else %}
+<div class="layout-side">
+  <div class="stack">
+    <section class="card">
+      <form method="get" class="card__head row">
+        <select name="p" onchange="this.form.submit()" aria-label="Parámetro" style="width:min(420px,100%)">
+          {% regroup series_list by parameter.test.name as by_test %}
+          {% for group in by_test %}<optgroup label="{{ group.grouper|lower|capfirst }}">
+            {% for s in group.list %}<option value="{{ s.parameter.pk }}"{% if s.parameter.pk == current.parameter.pk %} selected{% endif %}>{{ s.parameter.name }} ({{ s.points|length }})</option>{% endfor %}
+          </optgroup>{% endfor %}
+        </select>
+        <noscript><button class="btn btn--sm">Ver</button></noscript>
+        <span class="spacer"></span>
+        <span class="legend small"><span class="legend__band"></span> Rango de referencia <span class="legend__dot legend__dot--hi"></span> Alto <span class="legend__dot legend__dot--lo"></span> Bajo <span class="legend__dot legend__dot--crit"></span> Crítico</span>
+      </form>
+      <div class="card__body">
+        <h2 style="margin:0 0 var(--s2)">{{ current.parameter.name }} <span class="muted small">{% if current.parameter.test.name != current.parameter.name %}{{ current.parameter.test.name|lower|capfirst }} · {% endif %}{{ current.parameter.unit.symbol|default:"" }}</span></h2>
+        <div class="chart-wrap">{{ chart }}</div>
+      </div>
+      <div class="card__body card__body--flush table-wrap">
+        <table class="table">
+          <thead><tr><th>Fecha</th><th>Orden</th><th class="num">Valor</th><th>Marca</th><th>Referencia</th><th class="num">Variación</th></tr></thead>
+          <tbody>
+          {% for p, delta in rows %}
+          <tr>
+            <td>{{ p.when|date:"d/m/Y" }}</td>
+            <td style="white-space:nowrap"><a href="{% url 'orders:detail' p.order_id %}">{{ p.order_number }}</a></td>
+            <td class="num"><b class="{{ p.flag|value_class }}">{{ p.text }}</b></td>
+            <td>{{ p.flag|flag_badge|default:"—" }}</td>
+            <td class="small muted">{{ p.reference_text|default:"—" }}</td>
+            <td class="num small">{% if p.direction == "up" %}<span class="delta delta--up">{% icon "arrow-up" %} {{ delta }}</span>{% elif p.direction == "down" %}<span class="delta delta--down">{% icon "arrow-down" %} {{ delta }}</span>{% else %}—{% endif %}</td>
+          </tr>
+          {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </section>
+  </div>
+  <aside class="stack">
+    <form class="card" method="get" action="{% url 'patients:evolution-pdf' patient.pk %}" target="_blank">
+      <div class="card__head"><h2>{% icon "printer" %} PDF para el médico</h2></div>
+      <div class="card__body stack" style="gap:6px;max-height:420px;overflow:auto">
+        {% for s in series_list %}
+        <label class="row small" style="gap:8px"><input type="checkbox" name="p" value="{{ s.parameter.pk }}"{% if s.parameter.pk|stringformat:"s" in pdf_default %} checked{% endif %}> {{ s.parameter.name }} <span class="muted">({{ s.points|length }})</span></label>
+        {% endfor %}
+      </div>
+      <div class="actionbar"><span class="muted small">Un gráfico y su tabla por parámetro.</span><span class="spacer"></span>
+        <button class="btn btn--primary" type="submit">{% icon "download" %} Generar PDF</button></div>
+    </form>
+  </aside>
+</div>
+{% endif %}
+{% endblock %}

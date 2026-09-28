@@ -40,6 +40,7 @@ class AuxTable:
     layout: dict[str, str] = field(default_factory=dict)       # campo -> "col-3"
     note: str = ""                # aviso bajo el formulario
     allow_new: bool = True
+    position: int = 50            # orden de los grupos en el índice (menor primero)
 
 
 def register(*tables: AuxTable) -> None:
@@ -52,9 +53,9 @@ def get_table(key: str) -> AuxTable | None:
 
 
 def visible_tables(user) -> list[tuple[str, list[AuxTable]]]:
-    """Tablas que el usuario puede consultar, agrupadas en el orden de registro."""
+    """Tablas que el usuario puede consultar, agrupadas por `position`."""
     groups: dict[str, list[AuxTable]] = {}
-    for table in REGISTRY.values():
+    for table in sorted(REGISTRY.values(), key=lambda t: t.position):
         if table.can_view(user):
             groups.setdefault(table.group, []).append(table)
     return list(groups.items())
