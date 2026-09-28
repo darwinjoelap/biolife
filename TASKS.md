@@ -9,7 +9,9 @@
 - [ ] **Revisión manual de la Fase 11b** - crear Auxiliar de toma y entrar con él; firma/sello en Mi perfil (checklist en `docs/roadmap/11b_panel_laboratorio.md`)
 - [ ] **Revisión manual de la Fase 11c** - examen de prueba completo, precios y tasa reales, entrar como bioanalista (checklist en `docs/roadmap/11c_catalogo.md`)
 - [ ] **Revisión manual de la Fase 11d** - recorrer Tablas auxiliares, unidad de prueba creada y desactivada, entrar como técnico (checklist en `docs/roadmap/11d_tablas_auxiliares.md`)
-- [ ] **Fase 11e — Pacientes** - lista, ficha, representantes, historial, evolución con gráficos, antecedentes, PDF y valor anterior al cargar (no iniciar sin pedirlo)
+- [ ] **Revisión manual de la Fase 11e** - ficha, evolución y PDF de un paciente con varios resultados validados; antecedente visible al crear su orden (checklist en `docs/roadmap/11e_pacientes.md`)
+- [ ] **Unir pacientes duplicados** - p. ej. los «Sutil, Luis» de prueba en demo_uno; fase por definir
+- [ ] **Fase 12 — SuperAdmin** (no iniciar sin pedirlo)
 - [ ] **Cargar firma, sello, título y colegiatura** - de cada bioanalista (admin → Usuarios → Datos de Biolife); razón social y RIF del laboratorio
 - [ ] **Confirmar valores críticos propuestos** - con el laboratorio (ficha del examen → Valores críticos)
 - [ ] **Caja** - abonos, métodos de pago (efectivo, pago móvil, transferencia, divisas), vuelto; fase propia (ADR-024)
@@ -45,6 +47,8 @@
 - [ ] **Tasa BCV automática y perfiles anidados** - posteriores, ADR-019
 
 ## Done
+
+- [x] ~~Fase 11e — Pacientes: ficha, antecedentes y evolución~~ (2026-09-28) — lista, ficha, representantes, antecedentes, evolución con gráfico SVG, tendencias, PDF (ADR-032); 298 passed; commit `518ba38`
 
 - [x] ~~Fase 11d — Tablas auxiliares sin /admin~~ (2026-09-28) — secciones, unidades, métodos, listas de opciones, observaciones generales, tubos, lotes, monedas y descuentos con motor genérico en core (ADR-031); 287 passed y ruff limpio; commit `9640297`
 

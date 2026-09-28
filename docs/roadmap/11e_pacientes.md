@@ -1,6 +1,6 @@
 # Fase 11e — Pacientes: ficha, historial y evolución
 
-**Estado:** entregada (2026-09-28), pendiente de verificación en la máquina de Darwin.
+**Estado:** completa (2026-09-28, `518ba38`).
 
 **Depende de:** 11d · **Criterio de salida:** el paciente se busca, edita y consulta sin
 `/admin`, y el laboratorio ve la evolución de sus resultados en el tiempo.
@@ -46,10 +46,10 @@
 
 ## Verificación en la máquina de Darwin
 
-- [ ] `migrate_schemas` (aplica `patients.0002` y `0003`), `check`, `makemigrations --check`.
-- [ ] `pytest -q` → 298 passed · `ruff check .` limpio.
-- [ ] Abrir un paciente con varias órdenes validadas: tendencias, evolución y PDF.
-- [ ] Agregar un antecedente y verlo al crear una orden nueva para ese paciente.
+- [x] `migrate_schemas` (aplicó `patients.0002` y `0003` en public y demo_uno), `check`, `makemigrations --check` → No changes detected.
+- [x] `pytest -q` → 298 passed · `ruff check .` limpio. Commit `518ba38`.
+- [ ] (por confirmar) Abrir un paciente con varias órdenes validadas: tendencias, evolución y PDF.
+- [ ] (por confirmar) Agregar un antecedente y verlo al crear una orden nueva para ese paciente.
 
 ## No incluye
 

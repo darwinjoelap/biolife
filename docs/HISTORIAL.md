@@ -33,6 +33,11 @@
   listas de opciones, observaciones generales, tubos, lotes, monedas, descuentos) con motor
   genérico en `core`; lotes también bioanalista y técnico, monedas y descuentos también
   facturación; moneda base fija (ADR-031). Verificado por Darwin: 287 passed, ruff limpio.
+- [x] Fase 11d (`9640297`): tablas auxiliares sin /admin (ADR-031). Verificado: 287 passed.
+- [x] Fase 11e (`518ba38`): pacientes sin /admin (lista, ficha, representantes,
+  historial), antecedentes con parámetros a vigilar, evolución con gráfico SVG propio,
+  tendencias, PDF para el médico, variación del valor anterior al cargar (ADR-032).
+  Verificado por Darwin: migraciones patients.0002/0003, 298 passed, ruff limpio.
 
 ## Advertencia sobre el fixture de localidades
 
