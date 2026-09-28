@@ -8,6 +8,7 @@ urlpatterns = [
     path("", views.order_list, name="list"),
     path("nueva/", views.order_new, name="new"),
     path("resumen-del-dia/", views.day_summary_partial, name="day-summary"),
+    path("por-tomar/tabla/", views.collection_table, name="collection-table"),
     path("nueva/resumen/", views.order_preview, name="preview"),
     path("buscar/examenes/", views.orderables_search, name="search-orderables"),
     path("buscar/pacientes/", views.patients_search, name="search-patients"),

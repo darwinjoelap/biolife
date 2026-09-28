@@ -6,7 +6,7 @@ import datetime
 from django.db.models import Count, Prefetch, Q, QuerySet
 from django.utils import timezone
 
-from apps.orders.models import Order, OrderItem, Sample
+from apps.orders.models import LabelPrint, Order, OrderItem, Sample
 
 
 def _day_bounds(day: datetime.date):
@@ -193,3 +193,43 @@ def report_order_facts(*, order: Order) -> dict:
     first_taken = (order.samples.filter(status=Sample.Status.TOMADA)
                    .order_by("collected_at").values_list("collected_at", flat=True).first())
     return {"pending_tests": pending, "collected_at": first_taken}
+
+
+# Muestras por tomar (lista de trabajo de la toma) ----------------------------------------
+def collection_worklist(*, query: str = "") -> list[Order]:
+    """Órdenes con tubos por tomar para la pantalla del auxiliar. Cada orden trae:
+    `pending` (tubos por tomar), `printed` (cuántos de ésos ya tienen etiqueta impresa),
+    `pending_ids`, `last_print` (la impresión más reciente: quién y cuándo) y
+    `all_printed`. Primero las que nadie ha atendido (urgentes y más antiguas arriba);
+    las que ya tienen todas sus etiquetas impresas, al final."""
+    orders = list(
+        Order.objects.filter(samples__status=Sample.Status.PENDIENTE)
+        .exclude(status=Order.Status.ANULADA).select_related("patient")
+        .annotate(item_count=Count("items", distinct=True)).distinct()
+    )
+    query = query.strip()
+    if query:
+        needle = query.lower()
+        orders = [o for o in orders if needle in " ".join((
+            o.number, o.patient.first_name, o.patient.last_name,
+            o.patient.document_number or "", o.patient.internal_code)).lower()]
+    by_id = {o.pk: o for o in orders}
+    for order in orders:
+        order.pending_ids, order.printed, order.last_print = [], 0, None
+    for sample in (Sample.objects.filter(order_id__in=by_id, status=Sample.Status.PENDIENTE)
+                   .annotate(print_count=Count("prints")).order_by("sequence")):
+        order = by_id[sample.order_id]
+        order.pending_ids.append(sample.pk)
+        order.printed += sample.print_count > 0
+    for label in (LabelPrint.objects.filter(sample__order_id__in=by_id,
+                                            sample__status=Sample.Status.PENDIENTE)
+                  .select_related("created_by").order_by("-created_at")):
+        order = by_id[label.sample.order_id]
+        if order.last_print is None:
+            order.last_print = label
+    for order in orders:
+        order.pending = len(order.pending_ids)
+        order.all_printed = order.pending > 0 and order.printed == order.pending
+    orders.sort(key=lambda o: (o.all_printed, o.priority != Order.Priority.URGENTE,
+                               o.ordered_at))
+    return orders

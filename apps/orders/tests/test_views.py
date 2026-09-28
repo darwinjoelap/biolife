@@ -85,6 +85,23 @@ class ReceptionViewsTests(TenantTestCase):
         assert order.status == Order.Status.ANULADA
         assert "anulada" in response.content.decode()
 
+    def test_muestras_por_tomar_marca_las_impresas_y_las_manda_al_final(self):
+        self._post_order()
+        first = Order.objects.get()
+        self._post_order(priority="NORMAL")
+        second = Order.objects.exclude(pk=first.pk).get()
+
+        html = self.client.get("/ordenes/?pendientes=1").content.decode()
+        assert "Sin imprimir" in html and "Por cobrar" not in html  # sin columna de pago
+        assert 'hx-trigger="every 20s' in html
+        assert html.index(first.number) < html.index(second.number)  # urgente primero
+
+        ids = "&".join(f"muestra={s.pk}" for s in first.samples.all())
+        self.client.get(f"/ordenes/{first.pk}/etiquetas.pdf?{ids}")
+        table = self.client.get("/ordenes/por-tomar/tabla/").content.decode()
+        assert "is-printed" in table and "Impresas" in table
+        assert table.index(second.number) < table.index(first.number)  # impresa, al final
+
     def test_marcar_tomada_despues_de_cargar_resultados(self):
         self._post_order()
         order = Order.objects.get()

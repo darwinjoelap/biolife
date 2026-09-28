@@ -1,0 +1,24 @@
+{% load ui %}{% if orders %}
+<table class="table collection">
+  <thead><tr><th>N.º</th><th>Registrada</th><th>Paciente</th><th class="num">Exámenes</th><th class="num">Tubos por tomar</th><th>Etiquetas</th><th></th></tr></thead>
+  <tbody>
+    {% for o in orders %}
+    <tr class="{% if o.all_printed %}is-printed{% endif %}" style="cursor:pointer" onclick="location.href='{% url 'orders:detail' o.pk %}'">
+      <td class="num"><a href="{% url 'orders:detail' o.pk %}"><b>{{ o.number }}</b></a>{% if o.priority == "URGENTE" %} <span class="tag tag--info">Urgente</span>{% endif %}</td>
+      <td class="num">{{ o.ordered_at|date:"d/m h:i A" }}</td>
+      <td>{{ o.patient.last_name }}, {{ o.patient.first_name }} <span class="muted small">{% if o.patient.document_number %}{{ o.patient.document_type }}-{{ o.patient.document_number }}{% endif %}</span></td>
+      <td class="num">{{ o.item_count }}</td>
+      <td class="num"><b>{{ o.pending }}</b></td>
+      <td class="small">{% if o.last_print %}
+        <span class="tag {% if o.all_printed %}tag--ok{% else %}tag--warn{% endif %}">{% if o.all_printed %}Impresas{% else %}{{ o.printed }} de {{ o.pending }}{% endif %}</span>
+        {{ o.last_print.created_by.get_full_name|default:o.last_print.created_by|default:"—" }} · {{ o.last_print.created_at|date:"h:i A" }}
+        {% else %}<span class="muted">Sin imprimir</span>{% endif %}</td>
+      <td class="num">{% if can_print %}<a class="btn btn--sm {% if o.all_printed %}btn--ghost{% endif %}" href="{% url 'orders:labels' o.pk %}?{% for id in o.pending_ids %}muestra={{ id }}{% if not forloop.last %}&amp;{% endif %}{% endfor %}" target="_blank" rel="noopener" title="Imprimir las etiquetas de los tubos por tomar" onclick="event.stopPropagation(); setTimeout(function(){ htmx.trigger('#collection', 'refresh'); }, 2500)">{% icon "printer" %}{% if o.all_printed %} Reimprimir{% else %} Imprimir{% endif %}</a>{% endif %}</td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+{% else %}
+<div class="empty">{% icon "test-tube" %}<h3>{% if query %}Sin resultados{% else %}No hay muestras por tomar{% endif %}</h3>
+  <p class="small"><a href="{% url 'orders:new' %}">Registrar una orden</a></p></div>
+{% endif %}

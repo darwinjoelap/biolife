@@ -1,0 +1,29 @@
+{% extends "base_tenant.html" %}
+{% load ui %}
+{% block page_title_text %}Muestras por tomar{% endblock %}
+{% block crumbs %}Recepción{% endblock %}
+{% block page_title %}Muestras por tomar{% endblock %}
+{% block page_actions %}
+  <a class="btn btn--primary" href="{% url 'orders:new' %}">{% icon "plus" %} Nueva orden</a>
+{% endblock %}
+{% block content %}
+<section class="card">
+  <form method="get" class="card__head row" role="search">
+    <input type="hidden" name="pendientes" value="1">
+    <span class="muted small">{% icon "rotate-ccw" %} Se actualiza sola cada 20 s · las filas atenuadas ya tienen sus etiquetas impresas</span>
+    <span class="spacer"></span>
+    <label class="picker__input" style="width:min(360px,100%)">
+      <span class="sr-only">Buscar</span>{% icon "scan-line" %}
+      <input type="search" name="q" value="{{ query }}" placeholder="Escanee el tubo o busque orden, cédula, nombre…">
+    </label>
+    {% if query %}<a class="btn btn--ghost" href="?pendientes=1">Ver todas</a>{% endif %}
+  </form>
+  {# Se refresca cada 20 s (sólo si la pestaña está visible) y justo después de imprimir. #}
+  <div id="collection" class="card__body card__body--flush table-wrap"
+       hx-get="{% url 'orders:collection-table' %}?q={{ query|urlencode }}"
+       hx-trigger="every 20s [document.visibilityState === 'visible'], refresh, visibilitychange[document.visibilityState === 'visible'] from:document"
+       hx-swap="innerHTML">
+    {% include "orders/_collection_table.html" %}
+  </div>
+</section>
+{% endblock %}

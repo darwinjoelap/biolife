@@ -543,3 +543,8 @@ input[readonly], input:disabled, select:disabled { background: var(--surface-2);
 /* Verificación pública del informe (Fase 11) */
 .auth__card.verify { width: min(460px, 100%); padding: var(--s2); }
 .verify__logo { max-height: 56px; max-width: 180px; object-fit: contain; align-self: flex-start; }
+
+/* Muestras por tomar: pacientes con todas sus etiquetas ya impresas (otro auxiliar los atiende) */
+.collection tr.is-printed td { opacity: .5; }
+.collection tr.is-printed:hover td { opacity: .85; }
+.collection td:nth-child(1), .collection td:nth-child(2) { white-space: nowrap; }
