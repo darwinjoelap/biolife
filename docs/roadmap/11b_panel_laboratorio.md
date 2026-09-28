@@ -1,5 +1,7 @@
 # Fase 11b — Panel del laboratorio (configuración sin /admin)
 
+**Estado:** completa (2026-09-28, `852c3f4`).
+
 **Depende de:** 11 · **Criterio de salida:** el administrador de un laboratorio configura
 sus datos, usuarios y roles desde pantallas propias con el estilo de Biolife, sin `/admin`.
 
@@ -40,12 +42,12 @@ sus datos, usuarios y roles desde pantallas propias con el estilo de Biolife, si
 
 ## Verificación en la máquina de Darwin
 
-- [ ] `migrate_schemas` (accounts.0006: crea el rol en los laboratorios existentes).
-- [ ] `pytest -q` · `ruff check .`
-- [ ] Crear un usuario Auxiliar de toma, entrar con él (otro navegador o ventana
+- [x] `migrate_schemas` (accounts.0006: crea el rol en los laboratorios existentes).
+- [x] `pytest -q` → 269 passed · `ruff check .` limpio. Commit `852c3f4`.
+- [ ] (por confirmar) Crear un usuario Auxiliar de toma, entrar con él (otro navegador o ventana
   privada), cambiar la clave, revisar que sólo ve *Muestras por tomar*.
-- [ ] *Mi perfil*: cargar firma y sello; emitir un informe y verlos en cada página.
-- [ ] *Datos del laboratorio*: cambiar Instagram o logo y verlo en un informe nuevo.
+- [ ] (por confirmar) *Mi perfil*: cargar firma y sello; emitir un informe y verlos en cada página.
+- [ ] (por confirmar) *Datos del laboratorio*: cambiar Instagram o logo y verlo en un informe nuevo.
 
 ## No incluye
 

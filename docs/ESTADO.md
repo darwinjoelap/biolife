@@ -4,7 +4,7 @@
 > Mantener bajo 100 líneas: si crece, es que hay historial que pertenece a DECISIONES.md.
 
 **Última actualización:** 2026-09-28 (cierre del día)
-**Fase actual:** 11b — Panel del laboratorio (**construida**, pendiente de verificar en la máquina de Darwin) → siguiente: 11c (catálogo sin /admin)
+**Fase actual:** 11b — Panel del laboratorio (**completa**, `852c3f4`; revisión manual pendiente) → siguiente: 11c (catálogo sin /admin; no iniciar sin pedirlo)
 **Repositorio:** https://github.com/darwinjoelap/biolife (rama `main`, CI en GitHub Actions)
 **Responsable:** Darwin
 
@@ -29,9 +29,9 @@
 - [x] Ajuste de *Muestras por tomar* (`986b830`): etiquetas impresas atenuadas y al final
   con quién/cuándo, imprimir desde la fila, sin columna de pago, se actualiza sola cada
   20 s (roadmap 09, «Ajuste posterior»). Verificado por Darwin: 260 passed.
-- [~] Fase 11b (sin commit): datos del laboratorio, usuarios con clave temporal, varios
+- [x] Fase 11b (`852c3f4`): datos del laboratorio, usuarios con clave temporal, varios
   roles por usuario, tabla de roles, mi perfil con firma y sello, rol Auxiliar de toma,
-  menú según rol (ADR-029).
+  menú según rol (ADR-029). Verificado por Darwin: accounts.0006, 269 passed, ruff limpio.
 
 ## Dónde estamos
 
@@ -44,10 +44,10 @@ verificación por QR (Fase 11).
 Local: `demo_uno` → http://demo1.localhost:8000/ (+ `public` en localhost).
 ## Pendiente inmediato
 
-1. Verificar la Fase 11b (checklist en `docs/roadmap/11b_panel_laboratorio.md`): migrar
-   `accounts.0006`, tests, crear un Auxiliar de toma y entrar con él, cargar firma/sello
-   en *Mi perfil* y emitir un informe. Luego el commit.
-   Pendiente de la 11: escanear el QR con el teléfono y marcar una orden entregada.
+1. Revisión manual pendiente (11 y 11b): crear un Auxiliar de toma y entrar con él
+   (cambio de clave obligatorio, sólo *Muestras por tomar*); cargar firma y sello en
+   *Mi perfil* y emitir un informe; escanear el QR con el teléfono; marcar una orden
+   entregada. Siguiente fase: 11c (catálogo sin /admin), cuando Darwin lo pida.
    Lote de tromboplastina sólo cuando se prueben PT/INR.
 2. Cargar precios reales en la lista GENERAL (admin): sin ellos las órdenes quedan con
    monto pendiente.
