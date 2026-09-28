@@ -11,6 +11,7 @@ from apps.catalog.models import (
     Parameter,
     Profile,
     ProfileTest,
+    ReferenceRange,
     SampleRequirement,
     Section,
     Test,
@@ -176,3 +177,65 @@ def observation_templates_by_test(*, tests: Iterable[Test]) -> dict:
         general = [t for t in templates if t.test_id is None and t.section_id is None]
         result[test.id] = own + section + general
     return result
+
+
+# Pantallas del catálogo (Fase 11c) --------------------------------------------------------
+def catalog_tests(*, query: str = "", section_id: str = "", show_inactive: bool = False):
+    tests = (Test.objects.select_related("section", "method")
+             .prefetch_related("sample_requirements__container_type")
+             .annotate(parameter_count=Count("parameters",
+                                             filter=Q(parameters__is_active=True))))
+    if not show_inactive:
+        tests = tests.filter(is_active=True)
+    if section_id:
+        tests = tests.filter(section_id=section_id)
+    query = query.strip()
+    if query:
+        tests = tests.filter(Q(code__icontains=query) | Q(name__icontains=query))
+    return tests.order_by("-is_active", "section__order_index", "name")
+
+
+def test_detail(*, pk) -> Test:
+    return (Test.objects.select_related("section", "method")
+            .prefetch_related(
+                "sample_requirements__container_type", "parameter_groups",
+                Prefetch("parameters", queryset=Parameter.objects.select_related(
+                    "unit", "group", "option_set").prefetch_related(
+                    Prefetch("reference_ranges",
+                             queryset=ReferenceRange.objects.filter(is_active=True)
+                             .order_by("condition", "sex", "age_min_days")))
+                    .order_by("-is_active", "group__order_index", "order_index")),
+                Prefetch("observation_templates",
+                         queryset=ObservationTemplate.objects.filter(is_active=True)
+                         .order_by("order_index", "text")))
+            .get(pk=pk))
+
+
+def parameter_detail(*, pk) -> Parameter:
+    return Parameter.objects.select_related("test", "unit", "group", "option_set").get(pk=pk)
+
+
+def test_in_use(*, test: Test) -> bool:
+    """Ya se ordenó alguna vez: su código queda fijo."""
+    return test.order_items.exists()
+
+
+def parameter_in_use(*, parameter: Parameter) -> bool:
+    """Ya tiene resultados: su código y tipo de valor quedan fijos."""
+    return parameter.result_values.exists()
+
+
+def catalog_profiles(*, show_inactive: bool = False):
+    profiles = Profile.objects.annotate(test_count=Count("profile_tests"))
+    if not show_inactive:
+        profiles = profiles.filter(is_active=True)
+    return profiles.order_by("-is_active", "order_index", "name")
+
+
+def get_profile(*, pk) -> Profile:
+    return Profile.objects.get(pk=pk)
+
+
+def all_active_tests():
+    return list(Test.objects.filter(is_active=True).select_related("section")
+                .order_by("section__order_index", "name"))

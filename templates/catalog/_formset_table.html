@@ -1,0 +1,17 @@
+{% comment %}Formset como tabla. Variables: fs (formset), fields (lista de nombres), delete (bool).{% endcomment %}
+{{ fs.management_form }}
+{% if fs.non_form_errors %}<div class="alert alert--danger">{{ fs.non_form_errors|join:" " }}</div>{% endif %}
+<div class="table-wrap">
+<table class="table table--form">
+  <thead><tr>{% for f in fs.empty_form.visible_fields %}{% if f.name != "DELETE" %}<th>{{ f.label }}</th>{% endif %}{% endfor %}{% if fs.can_delete %}<th class="center">Quitar</th>{% endif %}</tr></thead>
+  <tbody>
+  {% for form in fs %}
+  <tr>{% for hidden in form.hidden_fields %}{{ hidden }}{% endfor %}
+    {% for f in form.visible_fields %}{% if f.name != "DELETE" %}<td{% if f.errors %} class="has-error"{% endif %}>{{ f }}{% if f.errors %}<span class="error">{{ f.errors|join:" " }}</span>{% endif %}</td>{% endif %}{% endfor %}
+    {% if fs.can_delete %}<td class="center">{% if form.instance.pk %}{{ form.DELETE }}{% endif %}</td>{% endif %}
+  </tr>
+  {% if form.non_field_errors %}<tr><td colspan="9"><span class="error">{{ form.non_field_errors|join:" " }}</span></td></tr>{% endif %}
+  {% endfor %}
+  </tbody>
+</table>
+</div>

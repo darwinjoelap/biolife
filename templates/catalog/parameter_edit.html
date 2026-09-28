@@ -1,0 +1,109 @@
+{% extends "base_tenant.html" %}
+{% load ui %}
+{% block page_title_text %}{% if parameter %}{{ parameter.name }}{% else %}Nuevo parámetro{% endif %}{% endblock %}
+{% block crumbs %}<a href="{% url 'catalog:tests' %}">Exámenes</a> / <a href="{% url 'catalog:test' test.pk %}">{{ test.name }}</a>{% endblock %}
+{% block page_title %}{% if parameter %}{{ parameter.name }} <span class="muted small">{{ parameter.code }}</span>{% else %}Nuevo parámetro de {{ test.name }}{% endif %}{% endblock %}
+{% block content %}
+<form method="post" novalidate class="stack">
+  {% csrf_token %}
+  {% if form.errors %}<div class="alert alert--danger">{% icon "triangle-alert" %}<span>Revise los datos del parámetro.</span></div>{% endif %}
+  <section class="card" x-data="{ vt: '{{ form.value_type.value|default:'NUMERIC' }}' }">
+    <div class="card__head"><h2>{% icon "flask-conical" %} Datos del parámetro</h2></div>
+    <div class="card__body form-grid">
+      {% field form.code "col-3" %}
+      {% field form.name "col-5" %}
+      {% field form.group "col-4" %}
+      <div class="field col-4{% if form.value_type.errors %} has-error{% endif %}">
+        <label for="{{ form.value_type.id_for_label }}">{{ form.value_type.label }} <span class="req">*</span></label>
+        <select name="value_type" id="{{ form.value_type.id_for_label }}" x-model="vt"{% if form.value_type.field.disabled %} disabled{% endif %}>
+          {% for v, l in form.value_type.field.choices %}<option value="{{ v }}"{% if form.value_type.value == v %} selected{% endif %}>{{ l }}</option>{% endfor %}
+        </select>
+        {% if form.value_type.errors %}<span class="error">{{ form.value_type.errors|join:" " }}</span>{% endif %}
+      </div>
+      {% field form.unit "col-2" %}
+      {% field form.decimals "col-2" %}
+      {% field form.order_index "col-2" %}
+      {% field form.instrument_code "col-2" %}
+      <div class="col-12 form-grid" style="padding:0" x-show="['CODED','SEMIQUANTITATIVE','QUALITATIVE','TITER','MULTI_CATALOG'].includes(vt)">{% field form.option_set "col-6" %}</div>
+      <div class="col-12 form-grid" style="padding:0" x-show="vt === 'NUMERIC_CALCULATED'">{% field form.formula "col-12" %}</div>
+      <div class="field col-4"><label class="row" style="gap:8px;font-weight:500">{{ form.is_printable }} {{ form.is_printable.label }}</label></div>
+      <div class="field col-4"><label class="row" style="gap:8px;font-weight:500">{{ form.is_optional }} {{ form.is_optional.label }}</label></div>
+      <div class="field col-4"><label class="row" style="gap:8px;font-weight:500">{{ form.is_active }} {{ form.is_active.label }}</label></div>
+    </div>
+  </section>
+
+  {% if ranges %}
+  <section class="card">
+    <div class="card__head"><h2>{% icon "activity" %} Rangos de referencia y valores críticos</h2><span class="spacer"></span><span class="muted small">Por sexo, edad y condición · «Hasta» no se incluye</span></div>
+    <div class="card__body stack" style="gap:var(--s3)">
+      {{ ranges.management_form }}
+      {% if ranges.non_form_errors %}<div class="alert alert--danger">{% icon "triangle-alert" %}<span>{{ ranges.non_form_errors|join:" " }}</span></div>{% endif %}
+      {% for issue in issues %}<div class="alert {% if issue.level == 'ERROR' %}alert--danger{% else %}alert--warn{% endif %}">{% icon "triangle-alert" %}<span>{{ issue.message }}</span></div>{% endfor %}
+      {% for r in ranges %}
+      <div class="range-card{% if r.instance.pk and not r.instance.is_active %} is-inactive{% endif %}" x-data="{ rt: '{{ r.range_type.value|default:'' }}' }">
+        {% for hidden in r.hidden_fields %}{{ hidden }}{% endfor %}
+        <div class="range-card__head">
+          <strong>{% if r.instance.pk %}{{ r.instance.display_text }}{% else %}Nuevo rango{% endif %}</strong>
+          {% if not r.instance.pk %}<span class="muted small">Complete sólo si quiere agregar uno</span>{% endif %}
+          <span class="spacer"></span>
+          <label class="row small" style="gap:6px">{{ r.is_active }} Activo</label>
+        </div>
+        {% if r.non_field_errors %}<div class="alert alert--danger">{{ r.non_field_errors|join:" " }}</div>{% endif %}
+        <div class="form-grid" style="padding:0">
+          {% field r.sex "col-2" %}{% field r.condition "col-2" %}{% field r.priority "col-2" %}
+          <div class="field col-3"><label>Desde (años · meses · días)</label>
+            <div class="age-inputs">{{ r.desde_anos }}{{ r.desde_meses }}{{ r.desde_dias }}</div></div>
+          <div class="field col-3"><label>Hasta, sin incluir (vacío = sin límite)</label>
+            <div class="age-inputs">{{ r.hasta_anos }}{{ r.hasta_meses }}{{ r.hasta_dias }}</div></div>
+          <div class="field col-3{% if r.range_type.errors %} has-error{% endif %}">
+            <label>{{ r.range_type.label }}</label>
+            <select name="{{ r.range_type.html_name }}" x-model="rt"{% if r.range_type.field.disabled %} disabled{% endif %}>
+              <option value="">—</option>{% for v, l in r.range_type.field.choices %}{% if v %}<option value="{{ v }}"{% if r.range_type.value == v %} selected{% endif %}>{{ l }}</option>{% endif %}{% endfor %}
+            </select>{% if r.range_type.errors %}<span class="error">{{ r.range_type.errors|join:" " }}</span>{% endif %}
+          </div>
+          <div class="form-grid col-9" style="padding:0">
+            <div class="col-3" x-show="['CLOSED','LOWER_BOUND'].includes(rt)">{% field r.low "" %}</div>
+            <div class="col-3" x-show="['CLOSED','UPPER_BOUND'].includes(rt)">{% field r.high "" %}</div>
+            <div class="col-3" x-show="rt === 'TOLERANCE'">{% field r.center "" %}</div>
+            <div class="col-3" x-show="rt === 'TOLERANCE'">{% field r.tolerance "" %}</div>
+            <div class="col-4" x-show="rt === 'QUALITATIVE'">{% field r.expected_option "" %}</div>
+            <div class="col-9" x-show="rt === 'INTERPRETIVE'">{% field r.bands "" %}</div>
+          </div>
+          {% field r.display_text "col-6" %}{% field r.unit "col-2" %}
+          {% field r.critical_low "col-2" %}{% field r.critical_high "col-2" %}
+          {% field r.critical_note "col-6" %}
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+  </section>
+  {% elif not parameter %}
+  <div class="alert alert--info">{% icon "info" %}<span>Guarde el parámetro para agregarle rangos de referencia.</span></div>
+  {% endif %}
+
+  {% if can_edit or clinical_edit and parameter %}
+  <div class="actionbar card">
+    <span class="muted small">{% if can_edit %}Nada se borra: desactive un rango o parámetro que ya no se use.{% else %}Como bioanalista puede cambiar rangos y valores críticos.{% endif %}</span>
+    <span class="spacer"></span>
+    <a class="btn btn--ghost" href="{% url 'catalog:test' test.pk %}">Volver al examen</a>
+    <button class="btn btn--primary" type="submit">{% icon "save" %} Guardar</button>
+  </div>
+  {% endif %}
+</form>
+
+{% if parameter %}
+<section class="card">
+  <div class="card__head"><h2>{% icon "search" %} Probador</h2><span class="muted small">¿Qué rango se imprime para este paciente?</span></div>
+  <form method="get" class="card__body row" style="gap:var(--s3);align-items:flex-end">
+    {% field probe.form.sexo "" %}{% field probe.form.anos "" %}{% field probe.form.meses "" %}{% field probe.form.dias "" %}{% field probe.form.condicion "" %}
+    <button class="btn">{% icon "search" %} Probar</button>
+  </form>
+  {% if probe.explanation %}
+  <div class="card__body" style="padding-top:0">
+    <div class="alert {% if probe.explanation.chosen %}alert--ok{% else %}alert--warn{% endif %}">{% icon "info" %}<span>{{ probe.explanation.summary }}</span></div>
+    <ul class="small">{% for c in probe.explanation.candidates %}<li>{% if c.applies %}<b>{{ c.reference_range.display_text }}</b>{% else %}{{ c.reference_range.display_text }}{% endif %} — {{ c.reason }}</li>{% endfor %}</ul>
+  </div>
+  {% endif %}
+</section>
+{% endif %}
+{% endblock %}

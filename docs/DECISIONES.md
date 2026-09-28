@@ -880,3 +880,36 @@ entra un usuario nuevo sin envío de correos configurado.
 tuplas de roles a permisos (`has_permission`); queda fuera. Invitación por correo y
 recuperación de clave, cuando haya correo (Fase 17). La Fase 12 (SuperAdmin) tendrá la
 pantalla para razón social/RIF.
+
+---
+
+## ADR-030 — Catálogo sin /admin: quién edita qué y nada se borra
+**Fecha:** 2026-09-28 · **Estado:** Aceptada
+
+**Contexto.** El catálogo (exámenes, parámetros, rangos, perfiles, precios) se editaba en
+el `/admin` provisional (ADR-020). El laboratorio necesita pantallas propias y hay que
+fijar quién puede cambiar qué, y qué pasa con lo que ya tiene historial.
+
+**Decisión.**
+- Pantallas en `apps.catalog` (`/catalogo/`) y `apps.billing` (`/precios/`) con la lógica
+  existente: formularios de rangos de la Fase 08b (años/meses/días, solapes, huecos,
+  probador), `validate_formula`/`sync_parameter_dependencies`, `set_profile_tests`,
+  `set_price`/`adjust_prices`/`copy_price_list`/`register_exchange_rate`.
+- Permisos: `CATALOG_EDIT_ROLES` (administrador) estructura; `CLINICAL_EDIT_ROLES`
+  (administrador, bioanalista) rangos, críticos y observaciones; `PRICE_EDIT_ROLES`
+  (administrador, facturación) precios y tasa; `VIEW_ROLES` consultan. Lo que el rol no
+  puede cambiar se muestra deshabilitado y el servidor lo ignora/rechaza (403).
+- **Nada se borra**: exámenes, parámetros, rangos y observaciones se desactivan; se
+  pueden quitar filas de tubos requeridos y grupos sin parámetros. Un precio vacío
+  desactiva el ítem de la lista.
+- **Campos fijos por historial**: código del examen si ya se ordenó; código y tipo de
+  valor del parámetro si tiene resultados (lo demás, p. ej. unidad o decimales, se puede
+  corregir: los informes congelan lo impreso).
+- Ediciones en `AuditLog` (`EXAMEN_GUARDADO`, `PARAMETRO_GUARDADO`, `RANGOS_GUARDADOS`,
+  `OBSERVACIONES_GUARDADAS`, `PERFIL_GUARDADO`).
+- Un perfil al que le falta un examen que alimenta sus cálculos se guarda con aviso
+  (`allow_incomplete`): lo decide el laboratorio.
+
+**Consecuencias.** Las tablas auxiliares siguen en `/admin` hasta la 11d. Los registros
+de admin de exámenes/parámetros/perfiles/precios se conservan para soporte, pero ya no
+están en el menú.

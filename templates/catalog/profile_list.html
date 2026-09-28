@@ -1,0 +1,30 @@
+{% extends "base_tenant.html" %}
+{% load ui %}
+{% block page_title_text %}Perfiles{% endblock %}
+{% block crumbs %}Catálogo{% endblock %}
+{% block page_title %}Perfiles{% endblock %}
+{% block page_actions %}{% if can.catalog_edit %}<a class="btn btn--primary" href="{% url 'catalog:profile-new' %}">{% icon "plus" %} Nuevo perfil</a>{% endif %}{% endblock %}
+{% block content %}
+<section class="card">
+  <form method="get" class="card__head row">
+    <label class="row small" style="gap:6px"><input type="checkbox" name="inactivos" value="1" onchange="this.form.submit()"{% if show_inactive %} checked{% endif %}> Ver inactivos</label>
+    <span class="spacer"></span><span class="muted small">Un perfil agrupa exámenes que se ordenan juntos; su precio se define en Precios</span>
+  </form>
+  <div class="card__body card__body--flush table-wrap">
+    <table class="table">
+      <thead><tr><th>Perfil</th><th>Descripción</th><th class="num">Exámenes</th><th class="num">Orden</th><th>Estado</th></tr></thead>
+      <tbody>
+      {% for p in profiles %}
+      <tr style="cursor:pointer{% if not p.is_active %};opacity:.55{% endif %}" onclick="location.href='{% url 'catalog:profile' p.pk %}'">
+        <td><a href="{% url 'catalog:profile' p.pk %}"><b>{{ p.name }}</b></a> <span class="muted small">{{ p.code }}</span></td>
+        <td class="muted small">{{ p.description|truncatechars:80 }}</td>
+        <td class="num">{{ p.test_count }}</td>
+        <td class="num">{{ p.order_index }}</td>
+        <td>{% if p.is_active %}<span class="tag tag--ok">Activo</span>{% else %}<span class="tag">Inactivo</span>{% endif %}</td>
+      </tr>
+      {% empty %}<tr><td colspan="5"><div class="empty">{% icon "layers" %}<h3>Sin perfiles</h3></div></td></tr>{% endfor %}
+      </tbody>
+    </table>
+  </div>
+</section>
+{% endblock %}

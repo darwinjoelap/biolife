@@ -27,7 +27,7 @@ class PantallasBaseTests(TenantTestCase):
         self.client.force_login(self.staff)
         body = self.client.get("/").content.decode()
         assert 'class="sidebar"' in body and "Hola, Ana" in body
-        assert "Exámenes" in body  # enlaces de configuración para staff
+        assert "Tablas auxiliares" in body  # administración provisional para staff
 
     def test_usuario_sin_staff_no_ve_configuracion_ni_guia(self):
         self.client.force_login(self.tecnico)

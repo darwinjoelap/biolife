@@ -87,6 +87,14 @@ MONEY_ROLES = ("ADMIN_LAB", "RECEPCION", "FACTURACION", "BIOANALISTA", "TECNICO"
                "SOLO_LECTURA")
 
 
+# Catálogo (Fase 11c, ADR-030): todos consultan; la estructura la cambia el administrador;
+# rangos, críticos y observaciones también el bioanalista (criterio clínico); precios y
+# tasa, el administrador y facturación.
+CATALOG_EDIT_ROLES = ADMIN_ROLES
+CLINICAL_EDIT_ROLES = ("ADMIN_LAB", "BIOANALISTA")
+PRICE_EDIT_ROLES = ("ADMIN_LAB", "FACTURACION")
+
+
 def can_manage_lab(user) -> bool:
     """Configura el laboratorio y sus usuarios: rol Administrador (o superusuario)."""
     return user_has_any_role(user, *ADMIN_ROLES)
@@ -110,6 +118,10 @@ def ui_permissions(user) -> dict:
         "results": bool(codes & set(VIEW_ROLES)),
         "reports": bool(codes & set(VIEW_ROLES)),
         "admin": bool(codes & set(ADMIN_ROLES)),
+        "catalog": bool(codes & set(VIEW_ROLES)),
+        "catalog_edit": bool(codes & set(CATALOG_EDIT_ROLES)),
+        "clinical_edit": bool(codes & set(CLINICAL_EDIT_ROLES)),
+        "prices_edit": bool(codes & set(PRICE_EDIT_ROLES)),
         "only_collection": bool(codes) and codes <= {"AUXILIAR_TOMA"},
     }
 
@@ -124,5 +136,8 @@ def role_abilities() -> list[tuple[str, set[str]]]:
         ("Cargar resultados", set(CAPTURE_ROLES)),
         ("Validar resultados", set(VALIDATE_ROLES)),
         ("Emitir y entregar informes", set(RECEPTION_ROLES)),
+        ("Editar exámenes, parámetros y perfiles", set(CATALOG_EDIT_ROLES)),
+        ("Editar rangos, valores críticos y observaciones", set(CLINICAL_EDIT_ROLES)),
+        ("Editar precios y registrar la tasa de cambio", set(PRICE_EDIT_ROLES)),
         ("Configurar el laboratorio, usuarios y roles", set(ADMIN_ROLES)),
     ]

@@ -2,7 +2,7 @@ import datetime
 
 from django.db.models import Q, QuerySet
 
-from apps.billing.models import Currency, Discount, PriceList, PriceListItem
+from apps.billing.models import Currency, Discount, ExchangeRate, PriceList, PriceListItem
 
 
 def valid_price_lists(*, on_date: datetime.date) -> QuerySet[PriceList]:
@@ -52,3 +52,42 @@ def active_currencies() -> QuerySet[Currency]:
 
 def discounts_by_codes(*, codes) -> list[Discount]:
     return list(Discount.objects.filter(code__in=list(codes)))
+
+
+# Pantalla de precios (Fase 11c) ----------------------------------------------------------
+def all_price_lists() -> QuerySet[PriceList]:
+    return PriceList.objects.filter(is_active=True).select_related("currency").order_by(
+        "-is_default", "order_index", "name")
+
+
+def price_list_by_id(*, pk) -> PriceList:
+    return PriceList.objects.select_related("currency").get(pk=pk)
+
+
+def items_by_target(*, price_list: PriceList) -> tuple[dict, dict]:
+    """({test_id: item}, {profile_id: item}) con los precios activos de la lista."""
+    tests, profiles = {}, {}
+    for item in price_list.items.filter(is_active=True):
+        if item.test_id:
+            tests[item.test_id] = item
+        else:
+            profiles[item.profile_id] = item
+    return tests, profiles
+
+
+def base_currency() -> Currency | None:
+    return Currency.objects.filter(is_active=True, is_base=True).first()
+
+
+def latest_rates() -> list[dict]:
+    """Última tasa registrada de la moneda base a cada otra moneda activa."""
+    base = base_currency()
+    if base is None:
+        return []
+    rows = []
+    for currency in Currency.objects.filter(is_active=True).exclude(pk=base.pk):
+        rate = (ExchangeRate.objects.filter(from_currency=base, to_currency=currency,
+                                            is_active=True)
+                .order_by("-effective_date").first())
+        rows.append({"currency": currency, "rate": rate})
+    return rows

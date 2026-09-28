@@ -1,0 +1,82 @@
+{% extends "base_tenant.html" %}
+{% load ui %}
+{% block page_title_text %}{% if profile %}{{ profile.name }}{% else %}Nuevo perfil{% endif %}{% endblock %}
+{% block crumbs %}<a href="{% url 'catalog:profiles' %}">Perfiles</a>{% endblock %}
+{% block page_title %}{% if profile %}{{ profile.name }} <span class="muted small">{{ profile.code }}</span>{% else %}Nuevo perfil{% endif %}{% endblock %}
+{% block content %}
+{{ all_tests_json|json_script:"all-tests" }}
+{{ chosen_json|json_script:"chosen-tests" }}
+<form method="post" novalidate class="stack"
+      x-data="profilePicker()">
+  {% csrf_token %}
+  {% if form.errors %}<div class="alert alert--danger">{% icon "triangle-alert" %}<span>Revise los campos marcados.</span></div>{% endif %}
+  <section class="card">
+    <div class="card__head"><h2>{% icon "layers" %} Datos del perfil</h2></div>
+    <div class="card__body form-grid">
+      {% field form.code "col-3" %}
+      {% field form.name "col-6" %}
+      {% field form.order_index "col-3" %}
+      {% field form.description "col-12" %}
+      <div class="field col-12"><label class="row" style="gap:8px;font-weight:500">{{ form.is_active }} {{ form.is_active.label }}</label></div>
+    </div>
+  </section>
+  <section class="card">
+    <div class="card__head"><h2>{% icon "microscope" %} Exámenes del perfil</h2><span class="spacer"></span><span class="muted small" x-text="items.length + ' examen(es) · en el orden del informe'"></span></div>
+    <div class="card__body layout-side" style="gap:var(--s4)">
+      <div class="pick-list">
+        <template x-for="(t, i) in items" :key="t.id">
+          <div class="pick-item">
+            <input type="hidden" name="tests" :value="t.id">
+            <span class="muted small num" x-text="i + 1"></span>
+            <span><b x-text="t.name"></b> <span class="muted small" x-text="t.code"></span></span>
+            <span class="spacer"></span>
+            {% if can_edit %}
+            <button type="button" class="btn btn--sm btn--ghost btn--icon" @click="move(i, -1)" :disabled="i === 0" aria-label="Subir">{% icon "arrow-up" %}</button>
+            <button type="button" class="btn btn--sm btn--ghost btn--icon" @click="move(i, 1)" :disabled="i === items.length - 1" aria-label="Bajar">{% icon "arrow-down" %}</button>
+            <button type="button" class="btn btn--sm btn--ghost btn--icon" @click="items.splice(i, 1)" aria-label="Quitar">{% icon "x" %}</button>
+            {% endif %}
+          </div>
+        </template>
+        <p class="muted small" x-show="!items.length">Sin exámenes todavía.</p>
+      </div>
+      {% if can_edit %}
+      <div class="stack" style="gap:var(--s2)">
+        <label class="picker__input"><span class="sr-only">Buscar examen</span>{% icon "search" %}
+          <input type="search" x-model="query" placeholder="Agregar examen: código o nombre…"></label>
+        <div class="pick-list" style="max-height:340px;overflow:auto">
+          <template x-for="t in matches()" :key="t.id">
+            <button type="button" class="pick-item" style="cursor:pointer;text-align:left" @click="add(t)">
+              {% icon "plus" %}<span><b x-text="t.name"></b> <span class="muted small" x-text="t.code + ' · ' + t.section"></span></span>
+            </button>
+          </template>
+        </div>
+      </div>
+      {% endif %}
+    </div>
+  </section>
+  {% if can_edit %}
+  <div class="actionbar card">
+    <span class="muted small">El precio del perfil se define en Precios. Desactive el perfil si ya no se ofrece.</span>
+    <span class="spacer"></span>
+    <a class="btn btn--ghost" href="{% url 'catalog:profiles' %}">Volver</a>
+    <button class="btn btn--primary" type="submit">{% icon "save" %} Guardar</button>
+  </div>
+  {% endif %}
+</form>
+<script>
+  function profilePicker() {
+    const all = JSON.parse(document.getElementById('all-tests').textContent);
+    const chosen = JSON.parse(document.getElementById('chosen-tests').textContent);
+    return {
+      items: chosen, query: '',
+      matches() {
+        const q = this.query.trim().toLowerCase();
+        const picked = new Set(this.items.map(t => t.id));
+        return all.filter(t => !picked.has(t.id) && (!q || (t.code + ' ' + t.name).toLowerCase().includes(q))).slice(0, 30);
+      },
+      add(t) { this.items.push(t); this.query = ''; },
+      move(i, d) { const [t] = this.items.splice(i, 1); this.items.splice(i + d, 0, t); },
+    };
+  }
+</script>
+{% endblock %}

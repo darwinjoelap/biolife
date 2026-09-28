@@ -159,3 +159,10 @@ def set_default_price_list(*, price_list: PriceList) -> PriceList:
     price_list.is_default = True
     price_list.save(update_fields=["is_default", "updated_at"])
     return price_list
+
+
+def remove_price(*, price_list: PriceList, test=None, profile=None) -> None:
+    """Quita el precio de un examen o perfil de la lista (queda «sin precio»). Se desactiva,
+    no se borra: las órdenes guardan su propia cotización."""
+    lookup = {"test": test} if test is not None else {"profile": profile}
+    price_list.items.filter(**lookup).update(is_active=False)

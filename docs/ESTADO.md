@@ -4,7 +4,7 @@
 > Mantener bajo 100 líneas: si crece, es que hay historial que pertenece a DECISIONES.md.
 
 **Última actualización:** 2026-09-28 (cierre del día)
-**Fase actual:** 11b — Panel del laboratorio (**completa**, `852c3f4`; revisión manual pendiente) → siguiente: 11c (catálogo sin /admin; no iniciar sin pedirlo)
+**Fase actual:** 11c — Catálogo sin /admin (**construida**, pendiente de verificar en la máquina de Darwin) → siguiente: 11d (tablas auxiliares)
 **Repositorio:** https://github.com/darwinjoelap/biolife (rama `main`, CI en GitHub Actions)
 **Responsable:** Darwin
 
@@ -32,6 +32,9 @@
 - [x] Fase 11b (`852c3f4`): datos del laboratorio, usuarios con clave temporal, varios
   roles por usuario, tabla de roles, mi perfil con firma y sello, rol Auxiliar de toma,
   menú según rol (ADR-029). Verificado por Darwin: accounts.0006, 269 passed, ruff limpio.
+- [~] Fase 11c (sin commit): exámenes, parámetros, rangos/críticos con probador,
+  observaciones, perfiles, precios en tabla editable, ajuste masivo, copia de listas y
+  tasa de cambio, sin /admin; permisos por rol y nada se borra (ADR-030).
 
 ## Dónde estamos
 
@@ -44,10 +47,9 @@ verificación por QR (Fase 11).
 Local: `demo_uno` → http://demo1.localhost:8000/ (+ `public` en localhost).
 ## Pendiente inmediato
 
-1. Revisión manual pendiente (11 y 11b): crear un Auxiliar de toma y entrar con él
-   (cambio de clave obligatorio, sólo *Muestras por tomar*); cargar firma y sello en
-   *Mi perfil* y emitir un informe; escanear el QR con el teléfono; marcar una orden
-   entregada. Siguiente fase: 11c (catálogo sin /admin), cuando Darwin lo pida.
+1. Verificar la Fase 11c (checklist en `docs/roadmap/11c_catalogo.md`), cargar precios
+   reales y la tasa del día en *Precios*, y luego el commit.
+   Revisión manual pendiente de 11/11b: Auxiliar de toma, firma/sello, QR, entregar.
    Lote de tromboplastina sólo cuando se prueben PT/INR.
 2. Cargar precios reales en la lista GENERAL (admin): sin ellos las órdenes quedan con
    monto pendiente.
@@ -105,7 +107,7 @@ laboratorio antes de producción.
   tenant), 021 (provisión con catálogo, CI), 022 (sistema visual y `STORAGES`), 023 (baja de
   laboratorios demo), 024 (órdenes, tubos y etiquetas), 025
   (resultados, críticos, ISI), 026 (observaciones por examen), 027 (informe, versiones y QR), 028 (pie del informe y
-  firma de la plataforma), 029 (panel del laboratorio, roles y claves).
+  firma de la plataforma), 029 (panel del laboratorio, roles y claves), 030 (catálogo sin /admin).
 - "7 roles" del índice del roadmap = 6 roles de tenant (esta fase) + `SUPERADMIN_PLATAFORMA`
   como `PlatformUser` en `public` (Fase 12), no un séptimo `Role` de tenant.
 - **Postgres local (máquina de Darwin):** hay 3 instalaciones (16, 17, 18). La base

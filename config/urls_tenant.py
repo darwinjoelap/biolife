@@ -14,6 +14,8 @@ urlpatterns = [
     path("informes/", include("apps.reports.urls")),
     path("configuracion/laboratorio/", include("apps.settings_lab.urls")),
     path("configuracion/", include("apps.accounts.urls_lab")),
+    path("catalogo/", include("apps.catalog.urls")),
+    path("precios/", include("apps.billing.urls")),
     path("verificar/", include("apps.reports.urls_public")),
     path("admin/", admin.site.urls),
 ]

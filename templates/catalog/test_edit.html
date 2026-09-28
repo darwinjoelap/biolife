@@ -1,0 +1,74 @@
+{% extends "base_tenant.html" %}
+{% load ui %}
+{% block page_title_text %}{% if test %}{{ test.name }}{% else %}Nuevo examen{% endif %}{% endblock %}
+{% block crumbs %}<a href="{% url 'catalog:tests' %}">Exámenes</a>{% endblock %}
+{% block page_title %}{% if test %}{{ test.name }} <span class="muted small">{{ test.code }}</span>{% if not test.is_active %} <span class="tag" style="vertical-align:middle">Inactivo</span>{% endif %}{% else %}Nuevo examen{% endif %}{% endblock %}
+{% block page_actions %}
+  {% if test and can_edit %}<a class="btn btn--primary" href="{% url 'catalog:parameter-new' test.pk %}">{% icon "plus" %} Agregar parámetro</a>{% endif %}
+{% endblock %}
+{% block content %}
+{% if test %}
+<section class="card">
+  <div class="card__head"><h2>{% icon "flask-conical" %} Parámetros</h2><span class="muted small">{{ test.parameters.all|length }} · en orden de informe</span></div>
+  <div class="card__body card__body--flush table-wrap">
+    <table class="table">
+      <thead><tr><th>Parámetro</th><th>Grupo</th><th>Tipo</th><th>Unidad</th><th>Rangos de referencia</th><th></th></tr></thead>
+      <tbody>
+      {% for p in test.parameters.all %}
+      <tr style="cursor:pointer{% if not p.is_active %};opacity:.55{% endif %}" onclick="location.href='{% url 'catalog:parameter' p.pk %}'">
+        <td><a href="{% url 'catalog:parameter' p.pk %}"><b>{{ p.name }}</b></a> <span class="muted small">{{ p.code }}</span>{% if not p.is_printable %} <span class="tag">No se imprime</span>{% endif %}{% if p.is_optional %} <span class="tag">Opcional</span>{% endif %}</td>
+        <td class="muted small">{{ p.group.name|default:"—" }}</td>
+        <td class="small">{{ p.get_value_type_display }}{% if p.formula %}<br><code class="small">{{ p.formula|truncatechars:40 }}</code>{% endif %}</td>
+        <td class="small">{{ p.unit.symbol|default:"—" }}</td>
+        <td class="small">{% for r in p.reference_ranges.all %}<div>{% if r.sex != "ANY" %}{{ r.get_sex_display }} · {% endif %}{% if r.condition != "NINGUNA" %}{{ r.get_condition_display }} · {% endif %}<b>{{ r.display_text }}</b>{% if r.critical_low is not None or r.critical_high is not None %} <span class="tag tag--danger" title="Tiene valores críticos">C</span>{% endif %}</div>{% empty %}{% if p.value_type != "NARRATIVE" %}<span class="muted">Sin rango</span>{% endif %}{% endfor %}</td>
+        <td class="num">{% icon "chevron-right" %}</td>
+      </tr>
+      {% empty %}
+      <tr><td colspan="6"><div class="alert alert--warn" style="margin:0">{% icon "triangle-alert" %}<span>Este examen no tiene parámetros: no se le pueden cargar resultados.{% if can_edit %} <a href="{% url 'catalog:parameter-new' test.pk %}">Agregar el primero</a>.{% endif %}</span></div></td></tr>
+      {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</section>
+{% endif %}
+
+<form method="post" novalidate class="stack">
+  {% csrf_token %}
+  {% if form.errors or form.non_field_errors %}<div class="alert alert--danger">{% icon "triangle-alert" %}<span>Revise los campos marcados.</span></div>{% endif %}
+  <section class="card">
+    <div class="card__head"><h2>{% icon "microscope" %} Datos del examen</h2></div>
+    <div class="card__body form-grid">
+      {% field form.code "col-3" %}
+      {% field form.name "col-6" %}
+      {% field form.section "col-3" %}
+      {% field form.sample_type "col-3" %}
+      {% field form.method "col-3" %}
+      {% field form.process_hours "col-3" %}
+      <div class="field col-3"></div>
+      <div class="field col-4"><label class="row" style="gap:8px;font-weight:500">{{ form.requires_fasting }} {{ form.requires_fasting.label }}</label></div>
+      <div class="field col-4"><label class="row" style="gap:8px;font-weight:500">{{ form.requires_anthropometry }} {{ form.requires_anthropometry.label }}</label><span class="help">{{ form.requires_anthropometry.help_text }}</span></div>
+      <div class="field col-4"><label class="row" style="gap:8px;font-weight:500">{{ form.is_active }} {{ form.is_active.label }}</label></div>
+    </div>
+  </section>
+  <section class="card">
+    <div class="card__head"><h2>{% icon "test-tube" %} Tubos que requiere</h2><span class="muted small">«Toma» sólo para curvas (Basal, 2 h…); «Tubo propio» no lo comparte con otros exámenes</span></div>
+    <div class="card__body">{% include "catalog/_formset_table.html" with fs=reqs %}</div>
+  </section>
+  <section class="card">
+    <div class="card__head"><h2>{% icon "layers" %} Grupos</h2><span class="muted small">Subtítulos dentro del examen (Serie roja, Examen físico…)</span></div>
+    <div class="card__body">{% include "catalog/_formset_table.html" with fs=groups %}</div>
+  </section>
+  <section class="card">
+    <div class="card__head"><h2>{% icon "clipboard-list" %} Observaciones predefinidas de este examen</h2><span class="muted small">Se ofrecen al cargar resultados; <code>__</code> marca un hueco a completar</span></div>
+    <div class="card__body">{% include "catalog/_formset_table.html" with fs=obs %}</div>
+  </section>
+  {% if can_edit or clinical_edit and test %}
+  <div class="actionbar card">
+    <span class="muted small">{% if can_edit %}Nada se borra: desactive el examen si ya no se hace.{% else %}Como bioanalista puede cambiar las observaciones.{% endif %}</span>
+    <span class="spacer"></span>
+    <a class="btn btn--ghost" href="{% url 'catalog:tests' %}">Volver</a>
+    <button class="btn btn--primary" type="submit">{% icon "save" %} Guardar</button>
+  </div>
+  {% endif %}
+</form>
+{% endblock %}

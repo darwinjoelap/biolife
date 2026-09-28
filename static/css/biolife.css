@@ -252,7 +252,7 @@ hr { border: 0; border-top: 1px solid var(--line); margin: var(--s4) 0; }
   display: grid; grid-template-columns: repeat(12, minmax(0, 1fr));
   gap: var(--s3) var(--s4);
 }
-.col-2 { grid-column: span 2; } .col-3 { grid-column: span 3; } .col-4 { grid-column: span 4; }
+.col-1 { grid-column: span 1; } .col-2 { grid-column: span 2; } .col-3 { grid-column: span 3; } .col-4 { grid-column: span 4; }
 .col-5 { grid-column: span 5; } .col-6 { grid-column: span 6; } .col-7 { grid-column: span 7; }
 .col-8 { grid-column: span 8; } .col-9 { grid-column: span 9; } .col-12 { grid-column: span 12; }
 .fieldset-title {
@@ -403,7 +403,7 @@ input[readonly], input:disabled, select:disabled { background: var(--surface-2);
 /* ---------- Adaptación a pantallas pequeñas ---------- */
 @media (max-width: 1100px) {
   .grid-4 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-  .col-2 { grid-column: span 3; } .col-3 { grid-column: span 4; }
+  .col-1 { grid-column: span 2; } .col-2 { grid-column: span 3; } .col-3 { grid-column: span 4; }
 }
 @media (max-width: 820px) {
   .app, .app.is-collapsed { grid-template-columns: 1fr; }
@@ -561,3 +561,20 @@ input[readonly], input:disabled, select:disabled { background: var(--surface-2);
 .image-input { display: grid; gap: 6px; }
 .image-input__preview { height: 64px; display: flex; align-items: center; }
 .image-input__preview img { max-height: 64px; max-width: 220px; object-fit: contain; }
+
+/* Catálogo (Fase 11c) */
+.table--form td { vertical-align: top; padding-top: 6px; padding-bottom: 6px; }
+.table--form input:not([type=checkbox]), .table--form select, .table--form textarea { width: 100%; min-width: 90px; }
+.table--form td.center, .table--form th.center { text-align: center; }
+.mono { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: .85rem; }
+.range-card { border: 1px solid var(--line); border-radius: 10px; padding: var(--s3); display: grid; gap: var(--s3); }
+.range-card.is-inactive { opacity: .6; }
+.range-card__head { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.price-row input { width: 110px; text-align: right; }
+.price-row.is-saved td { background: color-mix(in srgb, var(--ok) 8%, transparent); transition: background 1s; }
+.pick-list { display: grid; gap: 4px; }
+.pick-item { display: flex; align-items: center; gap: 8px; padding: 6px 8px; border: 1px solid var(--line); border-radius: 8px; background: var(--surface); }
+.age-inputs { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; }
+.age-inputs input { width: 100% !important; }
+.pick-item .spacer { flex: 1; }
+.range-card__head .spacer { flex: 1; }

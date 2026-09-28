@@ -1,0 +1,14 @@
+{% load ui %}<tr class="price-row{% if saved %} is-saved{% endif %}"{% if can.prices_edit %} hx-post="{% url 'billing:price' current.pk %}" hx-trigger="change" hx-include="this" hx-vals='{"kind": "{{ kind }}", "id": "{{ obj.pk }}"}' hx-swap="outerHTML"{% endif %}
+    x-data="{ mode: '{{ item.pricing_mode|default:'FIXED' }}' }">
+  <td>{% if kind == "profile" %}<span class="tag tag--brand">Perfil</span> {% endif %}<b>{{ obj.name }}</b> <span class="muted small">{{ obj.code }}</span></td>
+  <td class="muted small">{% if kind == "test" %}{{ obj.section.name|lower|capfirst }}{% elif obj.test_count %}{{ obj.test_count }} exámenes{% endif %}</td>
+  <td>{% if kind == "profile" %}
+    <select name="mode" x-model="mode" style="width:190px"{% if not can.prices_edit %} disabled{% endif %}>
+      {% for v, l in modes %}<option value="{{ v }}"{% if item.pricing_mode == v %} selected{% endif %}>{{ l }}</option>{% endfor %}
+    </select>{% else %}<input type="hidden" name="mode" value="FIXED"><span class="muted small">Precio fijo</span>{% endif %}</td>
+  <td class="num">
+    <span x-show="mode === 'FIXED'"><input name="price" inputmode="decimal" value="{% if item.price is not None %}{{ item.price|floatformat:'2' }}{% endif %}" placeholder="Sin precio" aria-label="Precio de {{ obj.name }}"{% if not can.prices_edit %} disabled{% endif %}> <span class="muted small">{{ current.currency.code }}</span></span>
+    <span x-show="mode !== 'FIXED'" x-cloak><input name="discount" inputmode="decimal" value="{% if item.profile_discount_percent is not None %}{{ item.profile_discount_percent|floatformat:'2' }}{% endif %}" placeholder="0" aria-label="Descuento del perfil" style="width:70px"{% if not can.prices_edit %} disabled{% endif %}> <span class="muted small">% sobre la suma</span></span>
+  </td>
+  <td class="small">{% if error %}<span class="error">{{ error }}</span>{% elif saved %}<span style="color:var(--ok)">{% icon "check" %} Guardado</span>{% elif not item %}<span class="tag tag--warn">Sin precio</span>{% endif %}</td>
+</tr>
