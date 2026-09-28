@@ -2,11 +2,12 @@
 
 ## Active
 
+- [ ] **Verificar y commitear el ajuste de Muestras por tomar** - etiquetas impresas atenuadas, imprimir desde la fila, actualización cada 20 s
+
 - [ ] **Ficha del examen definitiva con el nuevo estilo** - reemplaza al admin provisional (ADR-020/022)
 - [ ] **Cargar precios reales** en la lista GENERAL (admin → Precios y cobro)
-- [ ] **Crear lote de tromboplastina vigente en demo_uno** - admin → Lotes de reactivos, con su ISI (sin él el INR queda vacío)
+- [ ] **Crear lote de tromboplastina vigente en demo_uno** - sólo cuando se pruebe PT/INR; admin → Lotes de reactivos, con su ISI (sin él el INR queda vacío)
 - [ ] **Revisión manual de la Fase 11** - firma/sello/título, logo, RIF; parcial → final; QR; entregar (checklist en `docs/roadmap/11_informe.md`)
-- [ ] **Desactivar el examen HC en demo_uno** - «Hematologia completa» creado a mano sin parámetros ni precio; usar HEM_COMP (la orden 260927-0001 ya se anuló)
 - [ ] **Fase 11b — Panel del laboratorio** - configuración, usuarios, roles, perfil profesional sin /admin (no iniciar sin pedirlo; `docs/roadmap/11b_panel_laboratorio.md`)
 - [ ] **Cargar firma, sello, título y colegiatura** - de cada bioanalista (admin → Usuarios → Datos de Biolife); razón social y RIF del laboratorio
 - [ ] **Confirmar valores críticos propuestos** - con el laboratorio (ficha del examen → Valores críticos)
@@ -43,7 +44,7 @@
 ## Done
 
 - [x] ~~Fase 11 — Informe PDF, firma y QR~~ (2026-09-28) — versiones desde contenido congelado, parciales, huella, verificación por QR, firma y sello en cada página, firma de Biolife editable, recotizar, tomar tubo con resultados (ADR-027/028); 259 passed y ruff limpio en la máquina de Darwin; commit `212bb7a`
-- [x] ~~Anular la orden 260927-0001~~ (2026-09-28) — examen HC sin parámetros
+- [x] ~~Anular la orden 260927-0001 y desactivar el examen HC~~ (2026-09-28) — creado a mano sin parámetros ni precio
 
 - [x] ~~Fase 10 — Captura y validación de resultados~~ (2026-09-27) — cálculo en vivo, marcas y críticos con aviso, validación que congela referencias, ISI por lote, observaciones por examen (ADR-025/026); verificado en la máquina de Darwin (246 passed, ruff limpio); commits `f934aaf` y `bac4352`
 - [x] ~~Fase 09 — Órdenes y muestras~~ (2026-09-27) — número diario, tubos por aditivo, etiquetas PDF con Code 128, toma/rechazo/reemplazo, cotización congelada, pantallas de recepción (ADR-024); 211 passed y flujo completo verificados en la máquina de Darwin; commit `9919111`

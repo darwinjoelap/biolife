@@ -77,3 +77,14 @@ Ejemplo de Darwin — hematología + colesterol + triglicéridos + tiempos de co
   navegador.
 - Precios del laboratorio: la lista GENERAL sigue vacía; las órdenes quedan con monto
   pendiente hasta cargarlos.
+
+## Ajuste posterior (2026-09-28): *Muestras por tomar* para el auxiliar
+
+- [x] Pantalla propia (`orders/collection.html`): sin columna de pago ni total.
+- [x] Etiquetas: cada fila dice si están «Sin imprimir», «1 de 2» o «Impresas», con quién
+  imprimió y a qué hora (`LabelPrint`). Con todas impresas la fila se atenúa y baja al
+  final: arriba quedan los pacientes que nadie ha atendido (urgentes y más antiguos
+  primero). Botón *Imprimir / Reimprimir* en la fila, sólo con los tubos por tomar.
+- [x] Se actualiza sola cada 20 s con htmx (sólo la tabla, sin perder la búsqueda; en
+  pausa si la pestaña está oculta, y al volver a ella) y 2,5 s después de imprimir.
+- [x] Tests: +1.

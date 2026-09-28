@@ -26,6 +26,9 @@
   editable en `public`, Instagram/correo en la cabecera, recotizar órdenes con precio
   pendiente, avisos de examen sin parámetros, tomar tubo con resultados ya cargados
   (ADR-028). Verificado por Darwin: 259 passed, ruff limpio.
+- [~] Ajuste de *Muestras por tomar* (sin commit): etiquetas impresas atenuadas y al
+  final con quién/cuándo, imprimir desde la fila, sin columna de pago, se actualiza sola
+  cada 20 s (roadmap 09, «Ajuste posterior»).
 
 ## Dónde estamos
 
@@ -39,11 +42,12 @@ Local: `demo_uno` → http://demo1.localhost:8000/ (+ `public` en localhost).
 ## Pendiente inmediato
 
 1. Siguiente: Fase 11b — panel del laboratorio (`docs/roadmap/11b_panel_laboratorio.md`),
-   cuando Darwin lo pida. Al abrirla, decidir el alcance (ver «Pendiente de decidir»).
+   cuando Darwin lo pida. Ya decidido: razón social/RIF sólo los edita el SaaS; rol
+   «Auxiliar de toma». Falta decidir qué permisos de rol edita el laboratorio.
    Revisión manual de la 11 aún por confirmar en su máquina: cargar firma/sello/título,
    logo, RIF y razón social; emitir parcial y final; escanear el QR; marcar entregada.
-   En `demo_uno`: desactivar el examen HC (la orden 260927-0001 ya se anuló) y crear el
-   lote de tromboplastina vigente (sin él no hay INR).
+   En `demo_uno`: crear el lote de tromboplastina vigente sólo cuando se hagan PT/INR
+   (sin él el INR queda vacío). Examen HC ya desactivado.
 2. Cargar precios reales en la lista GENERAL (admin): sin ellos las órdenes quedan con
    monto pendiente.
 3. **No usar en un informe real** ningún `ReferenceRange`/parámetro marcado "PENDIENTE DE

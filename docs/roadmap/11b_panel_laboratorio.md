@@ -15,8 +15,13 @@ propias con el estilo de Biolife, sin entrar a `/admin`.
 - Probablemente también la ficha del examen definitiva (TASKS: reemplaza al admin
   provisional) — decidir si entra aquí o en una 11c.
 
+## Decidido (Darwin, 2026-09-28)
+
+- Razón social y RIF (en `tenants.Tenant`, esquema `public`) los edita **sólo el
+  administrador del SaaS**; el laboratorio los ve, no los cambia.
+- Nuevo rol **Auxiliar de toma**: sólo *Muestras por tomar*, imprimir etiquetas y marcar
+  tomadas; no ve cobros ni resultados.
+
 ## Pendiente de decidir
 
-- Si razón social y RIF (hoy en `tenants.Tenant`, esquema `public`) los edita el
-  laboratorio o sólo el SuperAdmin.
 - Qué permisos de rol son editables por el laboratorio.
