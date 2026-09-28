@@ -235,7 +235,8 @@ def build_sheet(order, *, entries: dict | None = None, notes: dict | None = None
                        if not b.sample_taken and b.has_values and not b.result.is_validated]
     if missing_samples:
         sheet.warnings.append("Resultados cargados sin tubo marcado como tomado: "
-                              + ", ".join(missing_samples) + ".")
+                              + ", ".join(missing_samples)
+                              + ". Márquelo en la orden (Ver orden → Tomada).")
     return sheet
 
 

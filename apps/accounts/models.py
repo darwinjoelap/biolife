@@ -11,6 +11,15 @@ class User(AbstractUser):
     professional_license = models.CharField(
         "Nº de colegiatura", max_length=40, blank=True, default=""
     )
+    # Firma del informe (Fase 11, ADR-027): se imprime la de quien validó.
+    professional_title = models.CharField(
+        "Título profesional", max_length=60, blank=True, default="",
+        help_text="Se imprime bajo la firma, p. ej. «Lcda. en Bioanálisis».",
+    )
+    signature_image = models.ImageField("Firma (imagen)", upload_to="firmas/", blank=True,
+                                        null=True)
+    stamp_image = models.ImageField("Sello (imagen)", upload_to="firmas/", blank=True,
+                                    null=True)
 
     class Meta:
         verbose_name = "Usuario"

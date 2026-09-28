@@ -539,3 +539,7 @@ input[readonly], input:disabled, select:disabled { background: var(--surface-2);
 .chip--add { cursor: pointer; padding: 0 10px 0 6px; font: inherit; font-size: var(--fs-xs); color: var(--ink-2); }
 .chip--add:hover { border-color: var(--brand); color: var(--brand); background: var(--brand-soft); }
 .chip--add .icon { width: 12px; height: 12px; }
+
+/* Verificación pública del informe (Fase 11) */
+.auth__card.verify { width: min(460px, 100%); padding: var(--s2); }
+.verify__logo { max-height: 56px; max-width: 180px; object-fit: contain; align-self: flex-start; }

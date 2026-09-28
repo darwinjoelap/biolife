@@ -771,3 +771,79 @@ considera poco práctico.
 **Consecuencias.** Fase 11 imprime cada observación bajo su examen. Si un laboratorio
 quiere además una nota general de la orden, se agrega como campo de la orden, sin mover
 estas.
+
+---
+
+## ADR-027 — Informe versionado desde contenido congelado, verificación por QR
+**Fecha:** 2026-09-27 · **Estado:** Aceptada
+
+**Contexto.** El informe es el documento legal del laboratorio. Debe verse igual siempre,
+no sobrescribirse nunca, permitir parciales y poder verificarse. CLAUDE.md exige que el PDF
+no sea una URL pública sino un token con expiración. `01_MODELO_DATOS` preveía
+`ResultSignature` por resultado y `Report.pdf_url` en Cloudinary.
+
+**Decisión.**
+- `reports.Report` = una versión emitida. Guarda `payload` (todo lo que se imprime, en
+  JSON) y `content_hash` = SHA-256 de su forma canónica; `previous_hash` encadena con la
+  versión anterior. Mismo contenido → no se crea versión; distinto → versión N+1 y la
+  anterior pasa a REEMPLAZADO. Constraint: una vigente por orden.
+- El PDF se **genera siempre desde el payload** con ReportLab (no se guarda): mismo
+  resultado en cualquier momento y ningún archivo clínico en almacenamiento público. Logo,
+  firma y sello se referencian por ruta en el payload; subir una imagen nueva crea otro
+  archivo, así un informe viejo conserva la firma con la que salió.
+- Firma = quien validó cada examen (`Result.validated_by`) con su imagen de firma y sello
+  (`accounts.User`), más la huella del informe. No se crea `ResultSignature`: la
+  validación ya registra quién y cuándo, y la huella cubre el documento entero.
+- Parcial: `kind=PARCIAL` si queda algún examen vigente sin validar; sólo se imprimen los
+  validados y se listan los pendientes.
+- QR → `/verificar/<verification_code>/`, código aleatorio de 22 caracteres por versión.
+  Página pública sin valores clínicos ni nombres de exámenes (iniciales, últimos dígitos de
+  la C.I., orden, versión, firmantes, huella). Descarga del PDF sólo para la versión
+  vigente y hasta `report_link_days` (30 por defecto) desde la emisión: el código es el
+  token y la expiración se controla en el servidor.
+- Entregar = `orders.services.mark_delivered` (sólo con todo validado), que antes emite
+  para que lo entregado sea lo último validado.
+- Diseño propio con el contenido de §11 de los hallazgos; no se copia el formato de
+  Angelus (ADR-018).
+
+**Consecuencias.**
+- Fase 15 (rectificaciones) reemite por `emit_report`: la versión anterior queda
+  reemplazada y su QR lo avisa.
+- Cambiar el diseño del PDF cambia cómo se ven también los informes viejos (el contenido
+  no); si se necesitara el PDF exacto de un día, habría que guardarlo (evaluar en Fase 17
+  con almacenamiento privado).
+- `report_header_html` queda sin uso; `01_MODELO_DATOS` se actualiza (`Report`, sin
+  `ResultSignature`).
+
+---
+
+## ADR-028 — Pie del informe: firma en cada página, firma de la plataforma y texto legal opcional
+**Fecha:** 2026-09-27 · **Estado:** Aceptada
+
+**Contexto.** Revisando el PDF de la Fase 11, Darwin pidió quitar del pie el texto «Los
+resultados requieren firma y sello húmedo…», dejar la línea de verificación y agregar
+debajo una firma de la plataforma («sistema elaborado por Biolife») editable desde el
+administrador del SaaS, además de mostrar Instagram y correo del laboratorio bajo el
+número de orden.
+
+**Decisión.**
+- El pie ya no trae texto legal por defecto: `TenantSettings.report_footer_text` se imprime
+  sólo si el laboratorio lo configuró (sigue congelado en el contenido del informe).
+- Pie: [texto del laboratorio, si hay] · «Verifique este informe escaneando el código QR o
+  en …» · huella · ícono de Biolife + texto de la plataforma.
+- `tenants.PlatformSettings` (esquema `public`, una fila): `report_brand_enabled`,
+  `report_brand_text` (por defecto «Generado con Biolife · Sistema de gestión para
+  laboratorios clínicos»), `report_brand_contact`. Se lee al **generar** el PDF (vía
+  `tenants.services.platform.report_brand`), no se congela: cambiarla no crea versiones.
+- Cabecera: Instagram y correo del laboratorio bajo «Orden N° / Versión»; el teléfono queda
+  a la izquierda con los datos del laboratorio.
+- **Firma en cada página:** la firma y el sello de quien validó (hasta 3 bioanalistas) van
+  en una franja inferior derecha de **todas** las páginas, sobre el pie, y no al final del
+  informe: una hoja suelta sigue firmada. El cuerpo pierde 25 mm de alto por página.
+- Los modelos de `apps.tenants` (laboratorios, planes, suscripciones, plataforma) sólo se
+  ven en el admin de `public` (`PublicOnlyAdmin`), aunque el usuario sea superusuario de
+  un laboratorio.
+
+**Consecuencias.** Los informes ya emitidos conservan el pie con que se congelaron (el
+texto legal viejo sigue en la v1/v2 de las pruebas); al emitir de nuevo sale el pie nuevo.
+La Fase 12 (SuperAdmin) moverá `PlatformSettings` a su propia pantalla.

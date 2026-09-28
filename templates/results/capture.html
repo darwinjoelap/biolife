@@ -5,6 +5,7 @@
 {% block page_title %}Resultados · orden {{ order.number }}{% if order.priority == "URGENTE" %} <span class="tag tag--info" style="vertical-align:middle">Urgente</span>{% endif %}{% endblock %}
 {% block page_actions %}
   <a class="btn" href="{% url 'orders:detail' order.pk %}">{% icon "clipboard-list" %} Ver orden</a>
+  <a class="btn" href="{% url 'reports:order' order.pk %}">{% icon "file-text" %} Informe</a>
 {% endblock %}
 {% block content %}
 <section class="card">
@@ -100,6 +101,8 @@
             <td class="muted small"><span id="ref-{{ row.parameter.pk }}">{{ row.reference_text }}{% if row.assessment.interpretation %}<br><b>{{ row.assessment.interpretation }}</b>{% endif %}</span></td>
             <td class="small">{% if row.previous %}<span class="{{ row.previous.flag|value_class }}">{{ row.previous.text }}</span> <span class="muted">{{ row.previous.date|date:"d/m/y" }}</span>{% endif %}</td>
           </tr>
+        {% empty %}
+          <tr><td colspan="6"><div class="alert alert--warn" style="margin:0">{% icon "triangle-alert" %}<span><b>Este examen no tiene parámetros configurados</b> ({{ block.item.test.code }}): no hay nada que cargar. Agréguelos en Configuración → Exámenes, o use el examen del catálogo que ya los tiene.</span></div></td></tr>
         {% endfor %}
         </tbody>
       </table>

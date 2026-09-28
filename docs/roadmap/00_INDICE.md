@@ -18,7 +18,8 @@ que envejece antes de usarse.
 | 08 | Perfiles y lista de precios | Haiku | 05 | Los 13 perfiles de Angelus cargados |
 | 09 | Órdenes y muestras | Sonnet | 04, 08 | Orden con numeración, estados y código de barras |
 | 10 | Captura y validación de resultados | **Opus** | 07, 09 | Captura con cálculo en vivo, marcado alto/bajo, validación que congela referencias |
-| 11 | Informe PDF, firma y QR | Sonnet | 10 | PDF reproduce el formato de Angelus pixel a pixel |
+| 11 | Informe PDF, firma y QR | Sonnet | 10 | PDF versionado con firma, sello, QR de verificación y observaciones bajo cada examen (diseño propio, ADR-027) |
+| 11b | Panel del laboratorio (configuración, usuarios, roles, perfil profesional) | Sonnet | 11 | El administrador del laboratorio configura todo sin `/admin` |
 | 12 | Panel SuperAdmin SaaS | Sonnet | 01 | Planes, suscripciones, métricas, suspensión |
 | 13 | PWA base y modo lectura offline | Sonnet | 11 | Instalable, consulta órdenes sin conexión |
 | 14 | Escritura offline y sincronización | **Opus** | 13 | Captura offline idempotente, conflictos registrados |
@@ -38,7 +39,8 @@ que envejece antes de usarse.
 > pantallas base (ADR-022), antes de la primera pantalla real de la Fase 09.
 
 > **Avance (2026-09-27):** Fases 01–10 completas y verificadas (último commit `bac4352`, en
-> GitHub). Próxima: **11 — Informe PDF, firma y QR**. El CI se adelantó desde la Fase 17
+> GitHub). **Fase 11 — Informe PDF, firma y QR:** construida (ADR-027), pendiente de
+> verificar en la máquina de Darwin. El CI se adelantó desde la Fase 17
 > (ADR-021); Railway y backups siguen en la 17.
 
 ## Ruta crítica al MVP vendible

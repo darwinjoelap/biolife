@@ -1,0 +1,98 @@
+{% extends "base_tenant.html" %}
+{% load ui orders_ui %}
+{% block page_title_text %}Informe · {{ order.number }}{% endblock %}
+{% block crumbs %}<a href="{% url 'reports:worklist' %}">Informes</a> / <a href="{% url 'orders:detail' order.pk %}">Orden {{ order.number }}</a>{% endblock %}
+{% block page_title %}Informe · orden {{ order.number }} <span class="tag {{ order.status|status_tag }}" style="vertical-align:middle">{{ order.get_status_display }}</span>{% endblock %}
+{% block page_actions %}
+  <a class="btn" href="{% url 'orders:detail' order.pk %}">{% icon "clipboard-list" %} Ver orden</a>
+  {% if not order.is_cancelled %}<a class="btn" href="{% url 'results:capture' order.pk %}">{% icon "flask-conical" %} Resultados</a>{% endif %}
+{% endblock %}
+{% block content %}
+<div class="layout-side">
+  <div class="stack">
+    <section class="card">
+      <div class="card__head"><h2>{% icon "file-text" %} Informe vigente</h2><span class="spacer"></span>
+        {% if current %}{% if current.is_partial %}<span class="tag tag--warn">Parcial</span>{% else %}<span class="tag tag--ok">Final</span>{% endif %}{% endif %}</div>
+      <div class="card__body stack" style="gap:var(--s3)">
+        {% if order.is_cancelled %}
+        <div class="alert alert--danger">{% icon "ban" %}<span>La orden está anulada: no se emiten informes.</span></div>
+        {% elif not current and not outdated %}
+        <p class="muted">Todavía no hay exámenes validados.</p>
+        {% else %}
+          {% if current %}
+          <div class="row" style="gap:var(--s3);align-items:center">
+            <div><strong>Versión {{ current.version }}</strong> <span class="muted small">· emitida {{ current.created_at|date:"d/m/Y h:i A" }} por {{ current.created_by.get_full_name|default:current.created_by|default:"—" }}</span><br>
+              <span class="muted small">{{ current.payload.test_count }} examen(es) · huella <code>{{ current.short_hash }}…</code></span></div>
+            <span class="spacer"></span>
+            <a class="btn btn--primary" href="{% url 'reports:pdf' order.pk current.pk %}" target="_blank" rel="noopener">{% icon "file-text" %} Ver PDF</a>
+            <a class="btn" href="{% url 'reports:pdf' order.pk current.pk %}?descargar=1">{% icon "download" %} Descargar</a>
+          </div>
+          {% endif %}
+          {% if outdated %}
+          <div class="alert alert--warn">{% icon "triangle-alert" %}<span>{% if current %}Hay cambios desde la versión {{ current.version }} (nuevos exámenes validados o datos del laboratorio). Emita la versión {{ current.version|add:1 }}.{% else %}Hay exámenes validados: emita el informe.{% endif %}</span></div>
+          {% endif %}
+          {% if pending_tests %}
+          <p class="small muted">{% icon "info" %} Pendientes por validar ({{ pending_tests|length }}): {{ pending_tests|join:", " }}. El informe sale <b>parcial</b>.</p>
+          {% endif %}
+          <div class="row">
+            {% if outdated %}
+            <form method="post" action="{% url 'reports:emit' order.pk %}">{% csrf_token %}
+              <button class="btn {% if current %}btn{% else %}btn--primary{% endif %}">{% icon "file-text" %} {% if current %}Emitir versión {{ current.version|add:1 }}{% else %}Emitir informe{% endif %}{% if pending_tests %} parcial{% endif %}</button></form>
+            {% endif %}
+            {% if order.status == "VALIDADA" %}
+            <form method="post" action="{% url 'reports:deliver' order.pk %}">{% csrf_token %}
+              <button class="btn btn--primary">{% icon "send" %} Marcar como entregada</button></form>
+            {% elif order.status == "ENTREGADA" %}
+            <span class="muted small">{% icon "circle-check" %} Entregada {{ order.delivered_at|date:"d/m/Y h:i A" }} por {{ order.delivered_by.get_full_name|default:order.delivered_by|default:"—" }}.</span>
+            {% endif %}
+          </div>
+        {% endif %}
+      </div>
+    </section>
+
+    <section class="card">
+      <div class="card__head"><h2>{% icon "layers" %} Versiones</h2><span class="muted small">se conservan todas</span></div>
+      <div class="card__body card__body--flush table-wrap">
+        {% if reports %}
+        <table class="table">
+          <thead><tr><th>Versión</th><th>Tipo</th><th>Estado</th><th>Emitida</th><th>Por</th><th>Huella</th><th></th></tr></thead>
+          <tbody>{% for r in reports %}
+            <tr><td class="num"><b>v{{ r.version }}</b></td>
+              <td>{% if r.is_partial %}<span class="tag tag--warn">Parcial</span>{% else %}<span class="tag tag--ok">Final</span>{% endif %}</td>
+              <td>{% if r.is_current %}<span class="tag tag--ok">Vigente</span>{% else %}<span class="tag">Reemplazado</span>{% endif %}</td>
+              <td class="num" style="white-space:nowrap">{{ r.created_at|date:"d/m/Y h:i A" }}</td>
+              <td>{{ r.created_by.get_full_name|default:r.created_by|default:"—" }}</td>
+              <td><code class="small">{{ r.short_hash }}…</code></td>
+              <td class="num"><a class="btn btn--sm btn--ghost" href="{% url 'reports:pdf' order.pk r.pk %}" target="_blank" rel="noopener" title="Ver PDF">{% icon "file-text" %}</a></td></tr>
+          {% endfor %}</tbody>
+        </table>
+        {% else %}<p class="card__body muted small">Sin informes emitidos.</p>{% endif %}
+      </div>
+    </section>
+  </div>
+
+  <aside class="stack">
+    <section class="card">
+      <div class="card__head"><h2>{% icon "user" %} Paciente</h2></div>
+      <div class="card__body">
+        <div class="patient-card"><span class="avatar">{% icon "user" %}</span>
+          <div><strong>{{ order.patient.first_name }} {{ order.patient.last_name }}</strong>
+            <small>{% if order.patient.document_number %}{{ order.patient.document_type }}-{{ order.patient.document_number }}{% else %}Sin documento{% endif %}{% if order.patient.phone %} · {{ order.patient.phone }}{% endif %}</small></div></div>
+      </div>
+    </section>
+    {% if current %}
+    <section class="card" x-data="{ copied: false }">
+      <div class="card__head"><h2>{% icon "qr-code" %} Verificación</h2></div>
+      <div class="card__body stack" style="gap:var(--s3)">
+        <p class="small muted">El QR del PDF abre esta página pública: confirma que el informe es auténtico (sin mostrar valores) y permite descargarlo hasta el <b>{{ expires_at|date:"d/m/Y" }}</b>.</p>
+        <input readonly value="{{ verify_url }}" aria-label="Enlace de verificación" onclick="this.select()">
+        <div class="row">
+          <button type="button" class="btn btn--sm" @click="navigator.clipboard.writeText('{{ verify_url|escapejs }}'); copied = true; setTimeout(() => copied = false, 1800)">{% icon "copy" %} <span x-text="copied ? 'Copiado' : 'Copiar enlace'">Copiar enlace</span></button>
+          <a class="btn btn--sm btn--ghost" href="{{ verify_url }}" target="_blank" rel="noopener">{% icon "external-link" %} Abrir</a>
+        </div>
+      </div>
+    </section>
+    {% endif %}
+  </aside>
+</div>
+{% endblock %}

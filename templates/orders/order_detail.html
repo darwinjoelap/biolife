@@ -6,7 +6,8 @@
 {% block page_actions %}
   {% if active_samples %}<a class="btn btn--primary" href="{% url 'orders:labels' order.pk %}" target="_blank" rel="noopener">{% icon "printer" %} Imprimir etiquetas ({{ active_samples|length }})</a>{% endif %}
   {% if editable %}<a class="btn" href="{% url 'orders:add' order.pk %}">{% icon "plus" %} Agregar exámenes</a>{% endif %}
-  {% if not order.is_cancelled %}<a class="btn" href="{% url 'results:capture' order.pk %}">{% icon "flask-conical" %} Resultados</a>{% endif %}
+  {% if not order.is_cancelled %}<a class="btn" href="{% url 'results:capture' order.pk %}">{% icon "flask-conical" %} Resultados</a>
+  <a class="btn" href="{% url 'reports:order' order.pk %}">{% icon "file-text" %} Informe</a>{% endif %}
 {% endblock %}
 {% block content %}
 <div class="row only-mobile" style="margin-bottom:var(--s3)">
@@ -21,7 +22,7 @@
     <section class="card">
       <div class="card__head"><h2>{% icon "test-tube" %} Tubos</h2>
         <span class="muted small">en orden de extracción · {{ pending }} por tomar</span><span class="spacer"></span>
-        {% if pending and editable %}
+        {% if pending and can_collect %}
         <form method="post" action="{% url 'orders:collect' order.pk %}">{% csrf_token %}
           <button class="btn btn--sm">{% icon "check" %} Marcar todas tomadas</button></form>
         {% endif %}
@@ -42,7 +43,7 @@
             {% if s.status != "RECHAZADA" %}
             <a class="btn btn--sm btn--ghost" href="{% url 'orders:labels' order.pk %}?muestra={{ s.pk }}" target="_blank" rel="noopener" title="Imprimir esta etiqueta">{% icon "printer" %}</a>
             {% endif %}
-            {% if editable and s.status == "PENDIENTE" %}
+            {% if can_collect and s.status == "PENDIENTE" %}
             <form method="post" action="{% url 'orders:collect' order.pk %}">{% csrf_token %}<input type="hidden" name="muestra" value="{{ s.pk }}">
               <button class="btn btn--sm">{% icon "check" %} Tomada</button></form>
             {% endif %}
@@ -100,6 +101,10 @@
       <div class="card__body stack" style="gap:var(--s3)">
         {% if order.pricing_pending %}
         <div class="alert alert--warn">{% icon "triangle-alert" %}<span>Monto pendiente: faltaban precios ({{ order.quote_snapshot.missing_prices|join:", " }}).</span></div>
+        {% if not order.is_cancelled %}
+        <form method="post" action="{% url 'orders:requote' order.pk %}">{% csrf_token %}<button class="btn" style="width:100%">{% icon "rotate-ccw" %} Recotizar con los precios actuales</button></form>
+        <p class="muted small" style="margin:0">Cargue antes el precio en Configuración → Precios.</p>
+        {% endif %}
         {% else %}
         <table class="lines">{% for line in order.quote_snapshot.lines %}
           <tr><td>{{ line.name }}</td><td class="num">{{ line.amount|floatformat:"2g" }}</td></tr>{% endfor %}</table>
@@ -126,6 +131,7 @@
           {% if order.weight_kg %}<dt>Peso / talla</dt><dd>{{ order.weight_kg }} kg · {{ order.height_cm|default:"—" }} cm</dd>{% endif %}
           {% if order.urine_volume_24h_ml %}<dt>Orina 24 h</dt><dd>{{ order.urine_volume_24h_ml }} mL</dd>{% endif %}
           {% if order.notes %}<dt>Notas</dt><dd>{{ order.notes }}</dd>{% endif %}
+          {% if order.delivered_at %}<dt>Entregada</dt><dd>{{ order.delivered_at|date:"d/m/Y h:i A" }} · {{ order.delivered_by|default:"—" }}</dd>{% endif %}
         </dl>
         {% if editable %}
         <div x-data="{ open: false }" style="margin-top:var(--s3)">

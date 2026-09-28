@@ -5,7 +5,10 @@
 - [ ] **Ficha del examen definitiva con el nuevo estilo** - reemplaza al admin provisional (ADR-020/022)
 - [ ] **Cargar precios reales** en la lista GENERAL (admin → Precios y cobro)
 - [ ] **Crear lote de tromboplastina vigente en demo_uno** - admin → Lotes de reactivos, con su ISI (sin él el INR queda vacío)
-- [ ] **Fase 11** - Informe PDF, firma y QR (no iniciar sin pedirlo)
+- [ ] **Verificar Fase 11** - informe PDF, firma y QR, con los ajustes de pie/cabecera/recotizar (checklist en `docs/roadmap/11_informe.md`), luego commit
+- [ ] **Anular la orden 260927-0001 y desactivar el examen HC** - «Hematologia completa» creado a mano sin parámetros ni precio; usar HEM_COMP
+- [ ] **Fase 11b — Panel del laboratorio** - configuración, usuarios, roles, perfil profesional sin /admin (no iniciar sin pedirlo; `docs/roadmap/11b_panel_laboratorio.md`)
+- [ ] **Cargar firma, sello, título y colegiatura** - de cada bioanalista (admin → Usuarios → Datos de Biolife); razón social y RIF del laboratorio
 - [ ] **Confirmar valores críticos propuestos** - con el laboratorio (ficha del examen → Valores críticos)
 - [ ] **Caja** - abonos, métodos de pago (efectivo, pago móvil, transferencia, divisas), vuelto; fase propia (ADR-024)
 - [ ] **Definir impresora de etiquetas** - modelo y tamaño real; ajustar ancho/alto en Laboratorio (hoy 50 × 25 mm)
@@ -27,6 +30,9 @@
 - [ ] **Confirmar estado/municipio de localidades sin certeza** - Cantagallo, Dos Caminos, Las Minas, Píritu (`apps/masterdata/fixtures/localidades.json`)
 
 ## Someday
+
+- [ ] **Enviar el informe por WhatsApp/correo** - hoy se copia el enlace de verificación (ADR-027)
+- [ ] **Pantalla para que cada bioanalista suba su firma y sello** - hoy desde el admin
 
 - [ ] **Privacidad antes de producción (Fase 17)** - sacar `docs/`, `TASKS.md` y `CLAUDE.md` de git (`git rm -r --cached` + `.gitignore`), repo privado, cambiar las menciones a Angelus en comentarios de `apps/catalog`; evaluar limpiar el historial
 - [ ] **Automatizar creación del tenant `public` + dominio** - como parte del script de despliegue (Fase 17), ver ADR-009

@@ -17,6 +17,7 @@ urlpatterns = [
     path("<uuid:pk>/muestras/<uuid:sample_pk>/rechazar/", views.sample_reject,
          name="reject"),
     path("<uuid:pk>/pagar/", views.order_pay, name="pay"),
+    path("<uuid:pk>/recotizar/", views.order_requote, name="requote"),
     path("<uuid:pk>/anular/", views.order_cancel, name="cancel"),
     path("<uuid:pk>/agregar/", views.order_add, name="add"),
 ]

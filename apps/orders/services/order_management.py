@@ -29,6 +29,43 @@ def _check_editable(order: Order) -> None:
         )
 
 
+def _requote(order: Order, *, tests, profiles):
+    """Cotización de la orden con su misma lista, descuentos y moneda de referencia."""
+    snapshot = order.quote_snapshot or {}
+    on_date = timezone.localdate(order.ordered_at)
+    price_list = (price_list_by_code(code=order.price_list_code) if order.price_list_code
+                  else default_price_list(on_date=on_date))
+    return build_draft(
+        tests=tests, profiles=profiles, price_list=price_list,
+        discounts=discounts_by_codes(codes=[d["code"] for d in snapshot.get("discounts", [])]),
+        reference_currency=(currency_by_code(code=order.converted_currency_code)
+                            if order.converted_currency_code else None),
+        on_date=on_date, authorized=True, weight_kg=order.weight_kg,
+        height_cm=order.height_cm, urine_volume_24h_ml=order.urine_volume_24h_ml,
+    )
+
+
+def requote_pending(*, order: Order) -> list[str]:
+    """Vuelve a cotizar una orden que quedó con **precio pendiente** (se cargaron los
+    precios después de registrarla). Una orden ya cotizada no se toca: su precio está
+    congelado (ADR-024)."""
+    if order.is_cancelled:
+        raise ApplicationError(f"La orden {order.number} está anulada.")
+    if not order.pricing_pending:
+        raise ApplicationError("La orden ya tiene su precio: no se recotiza.")
+    items = list(order.items.exclude(status=OrderItem.Status.ANULADO)
+                 .select_related("test", "profile"))
+    profiles = list({i.profile.id: i.profile for i in items if i.profile}.values())
+    draft = _requote(order, tests=[i.test for i in items if i.profile is None],
+                     profiles=profiles)
+    apply_draft_totals(order, draft)
+    order.save()
+    if order.pricing_pending:
+        missing = ", ".join(order.quote_snapshot.get("missing_prices", []))
+        raise ApplicationError(f"Siguen faltando precios en la lista: {missing}.")
+    return draft.warnings
+
+
 def add_to_order(*, order: Order, tests: Sequence = (), profiles: Sequence = (),
                  user=None) -> list[str]:
     """Agrega exámenes/perfiles, recotiza la orden completa y asigna tubos: los nuevos
@@ -44,19 +81,8 @@ def add_to_order(*, order: Order, tests: Sequence = (), profiles: Sequence = (),
     if not new:
         raise ApplicationError("Los exámenes elegidos ya están en la orden.")
 
-    snapshot = order.quote_snapshot or {}
-    on_date = timezone.localdate(order.ordered_at)
-    price_list = (price_list_by_code(code=order.price_list_code) if order.price_list_code
-                  else default_price_list(on_date=on_date))
-    draft = build_draft(
-        tests=old_tests + [t for t in tests if t.id not in present],
-        profiles=old_profiles + list(profiles), price_list=price_list,
-        discounts=discounts_by_codes(codes=[d["code"] for d in snapshot.get("discounts", [])]),
-        reference_currency=(currency_by_code(code=order.converted_currency_code)
-                            if order.converted_currency_code else None),
-        on_date=on_date, authorized=True, weight_kg=order.weight_kg,
-        height_cm=order.height_cm, urine_volume_24h_ml=order.urine_volume_24h_ml,
-    )
+    draft = _requote(order, tests=old_tests + [t for t in tests if t.id not in present],
+                     profiles=old_profiles + list(profiles))
     previous_total = order.total
     with transaction.atomic():
         start = len(items)
@@ -111,4 +137,21 @@ def cancel_order(*, order: Order, reason: str, user=None) -> Order:
             status=Sample.Status.RECHAZADA, rejection_reason="Orden anulada",
             rejected_at=order.cancelled_at, rejected_by=user,
         )
+    return order
+
+
+def mark_delivered(*, order: Order, user=None) -> Order:
+    """Entrega del informe final (Fase 11): sólo con todos los exámenes validados. Un
+    informe parcial se puede enviar sin marcar la orden como entregada."""
+    if order.is_cancelled:
+        raise ApplicationError(f"La orden {order.number} está anulada.")
+    if order.status == Order.Status.ENTREGADA:
+        return order
+    if order.status != Order.Status.VALIDADA:
+        raise ApplicationError(
+            "Sólo se marca entregada una orden con todos sus exámenes validados.")
+    order.status = Order.Status.ENTREGADA
+    order.delivered_at = timezone.now()
+    order.delivered_by = user
+    order.save(update_fields=["status", "delivered_at", "delivered_by", "updated_at"])
     return order

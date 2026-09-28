@@ -9,7 +9,12 @@ from apps.orders.models import LabelPrint, Order, OrderItem, Sample
 from apps.orders.services.labels import print_labels
 from apps.orders.services.numbering import next_order_number, sample_identifiers
 from apps.orders.services.order_creation import build_draft, create_order
-from apps.orders.services.order_management import add_to_order, cancel_order, mark_paid
+from apps.orders.services.order_management import (
+    add_to_order,
+    cancel_order,
+    mark_paid,
+    requote_pending,
+)
 from apps.orders.services.sample_collection import collect_all, collect_sample, reject_sample
 from apps.orders.tests.factories import catalogo, paciente
 
@@ -81,6 +86,22 @@ class OrderCreationTests(TenantTestCase):
         assert any("no tiene tubo asignado" in w for w in warnings)
         with pytest.raises(ApplicationError, match="precios pendientes"):
             mark_paid(order=order)
+
+        # Se carga el precio después: la orden se recotiza y ya se puede cobrar.
+        with pytest.raises(ApplicationError, match="Siguen faltando"):
+            requote_pending(order=order)
+        from apps.billing.services.price_lists import set_price
+        set_price(price_list=self.c["lista"], test=self.c["tests"]["SIN"], price=D("7"))
+        requote_pending(order=order)
+        order.refresh_from_db()
+        assert not order.pricing_pending and order.total == D("17.00")
+        mark_paid(order=order)
+        with pytest.raises(ApplicationError, match="ya tiene su precio"):
+            requote_pending(order=order)
+
+    def test_avisa_examen_sin_parametros(self):
+        _, warnings = self._order(tests=["HEM"])
+        assert any("Sin parámetros configurados" in w and "Examen HEM" in w for w in warnings)
 
     def test_depuracion_pide_dos_tubos_y_avisa_datos_antropometricos(self):
         order, warnings = self._order(tests=["DEP", "COL"])

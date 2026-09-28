@@ -2,7 +2,7 @@
 aquí, no importando modelos de `apps.catalog` directamente (CLAUDE.md, regla 3)."""
 from collections.abc import Iterable
 
-from django.db.models import Prefetch, Q, QuerySet
+from django.db.models import Count, Prefetch, Q, QuerySet
 
 from apps.catalog.models import (
     CodedOption,
@@ -104,9 +104,18 @@ def search_orderables(*, query: str, limit: int = 12) -> tuple[list[Profile], li
     match = Q(code__icontains=query) | Q(name__icontains=query)
     profiles = list(Profile.objects.filter(match, is_active=True)[:limit])
     tests = list(
-        Test.objects.filter(match, is_active=True).select_related("section")[:limit]
+        Test.objects.filter(match, is_active=True).select_related("section")
+        .annotate(parameter_count=Count("parameters", filter=Q(parameters__is_active=True)))
+        [:limit]
     )
     return profiles, tests
+
+
+def tests_without_parameters(*, tests) -> list[str]:
+    """Nombres de los exámenes sin parámetros activos: no se les puede cargar resultado."""
+    return list(Test.objects.filter(id__in=[t.id for t in tests])
+                .exclude(parameters__is_active=True).order_by("name")
+                .values_list("name", flat=True).distinct())
 
 
 def active_tests_by_ids(*, ids: Iterable) -> list[Test]:

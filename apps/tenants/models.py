@@ -77,3 +77,38 @@ class Subscription(models.Model):
 
     def __str__(self) -> str:
         return f"{self.tenant} — {self.plan} ({self.status})"
+
+
+class PlatformSettings(models.Model):
+    """Configuración de la plataforma Biolife (esquema `public`, una sola fila). La edita
+    el administrador del SaaS en el admin de `public`; los laboratorios no la ven.
+
+    Fase 11 (ADR-027): la firma de la plataforma al pie de cada informe PDF."""
+
+    report_brand_enabled = models.BooleanField(
+        "Mostrar la firma de Biolife en los informes", default=True)
+    report_brand_text = models.CharField(
+        "Texto al pie del informe", max_length=160,
+        default="Generado con Biolife · Sistema de gestión para laboratorios clínicos")
+    report_brand_contact = models.CharField(
+        "Contacto de Biolife (opcional)", max_length=160, blank=True, default="",
+        help_text="Teléfono, Instagram o web; se imprime junto al texto.")
+
+    class Meta:
+        verbose_name = "Configuración de la plataforma"
+        verbose_name_plural = "Configuración de la plataforma"
+
+    def __str__(self) -> str:
+        return "Configuración de la plataforma"
+
+    def save(self, *args, **kwargs):
+        self.pk = 1
+        super().save(*args, **kwargs)
+
+    def delete(self, *args, **kwargs):
+        return None
+
+    @classmethod
+    def get_solo(cls) -> "PlatformSettings":
+        obj, _ = cls.objects.get_or_create(pk=1)
+        return obj

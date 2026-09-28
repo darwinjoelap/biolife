@@ -3,8 +3,8 @@
 > Se actualiza al **cerrar cada sesión**. Es el primer archivo que se lee al abrir la siguiente.
 > Mantener bajo 100 líneas: si crece, es que hay historial que pertenece a DECISIONES.md.
 
-**Última actualización:** 2026-09-27 (cierre del día)
-**Fase actual:** 10 — Resultados (**completa y verificada**, `f934aaf` + `bac4352`) → siguiente: 11 (informe PDF, firma y QR)
+**Última actualización:** 2026-09-27 (Fase 11)
+**Fase actual:** 11 — Informe PDF, firma y QR (**en verificación** con ajustes de Darwin) → siguiente: 11b (panel del laboratorio)
 **Repositorio:** https://github.com/darwinjoelap/biolife (rama `main`, CI en GitHub Actions)
 **Responsable:** Darwin
 
@@ -20,19 +20,30 @@
 - [x] Fase 10 (`f934aaf`, `bac4352`): captura con cálculo en vivo, marcas alto/bajo/crítico, aviso de
   críticos, validación que congela referencias, ISI por lote, observaciones por examen
   (ADR-025/026). Verificado por Darwin: 246 passed, ruff limpio.
+- [~] Fase 11 (sin commit): informe PDF versionado desde contenido congelado, parciales,
+  firma + sello por bioanalista, huella SHA-256, QR a página pública de verificación,
+  bandeja *Informes*, entrega (ADR-027). Verificado por Darwin: migraciones, 256 passed,
+  ruff limpio. Ajustes tras su revisión (ADR-028): pie nuevo con firma de Biolife
+  editable en `public`, Instagram/correo en la cabecera, recotizar órdenes con precio
+  pendiente, avisos de examen sin parámetros.
 
 ## Dónde estamos
 
 Base del producto terminada: multi-tenancy, usuarios y roles, configuración del laboratorio,
 pacientes, catálogo con rangos por sexo/edad/condición, motor de fórmulas, perfiles, precios
 multimoneda y el sistema visual. Flujo clínico: recepción, órdenes, tubos y etiquetas
-(Fase 09) y resultados cargados y validados (Fase 10). Falta el informe PDF (Fase 11).
+(Fase 09), resultados cargados y validados (Fase 10) e informe PDF con firma, versiones y
+verificación por QR (Fase 11, por verificar).
 
 Local: `demo_uno` → http://demo1.localhost:8000/ (+ `public` en localhost).
 ## Pendiente inmediato
 
-1. Siguiente: Fase 11 (informe PDF, firma y QR: cada observación debajo de su examen).
-   En `demo_uno`, crear el lote de tromboplastina vigente con su ISI (sin él no hay INR).
+1. Terminar de verificar la Fase 11 (checklist en `docs/roadmap/11_informe.md`): migrar
+   `tenants.0002`, tests; anular la orden 260927-0001 (examen HC sin parámetros) y
+   desactivar ese examen; cargar
+   firma/sello/título en su usuario y logo, RIF y razón social del laboratorio, emitir un
+   parcial y un final, escanear el QR, marcar entregada. Luego el commit.
+   Sigue pendiente el lote de tromboplastina vigente en `demo_uno` (sin él no hay INR).
 2. Cargar precios reales en la lista GENERAL (admin): sin ellos las órdenes quedan con
    monto pendiente.
 3. **No usar en un informe real** ningún `ReferenceRange`/parámetro marcado "PENDIENTE DE
@@ -88,7 +99,8 @@ laboratorio antes de producción.
   018 (alcance: Angelus es referencia), 019 (perfiles y precios), 020 (rangos y admin por
   tenant), 021 (provisión con catálogo, CI), 022 (sistema visual y `STORAGES`), 023 (baja de
   laboratorios demo), 024 (órdenes, tubos y etiquetas), 025
-  (resultados, críticos, ISI), 026 (observaciones por examen).
+  (resultados, críticos, ISI), 026 (observaciones por examen), 027 (informe, versiones y QR), 028 (pie del informe y
+  firma de la plataforma).
 - "7 roles" del índice del roadmap = 6 roles de tenant (esta fase) + `SUPERADMIN_PLATAFORMA`
   como `PlatformUser` en `public` (Fase 12), no un séptimo `Role` de tenant.
 - **Postgres local (máquina de Darwin):** hay 3 instalaciones (16, 17, 18). La base

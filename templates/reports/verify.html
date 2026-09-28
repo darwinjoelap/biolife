@@ -1,0 +1,38 @@
+{% extends "base.html" %}
+{% load ui %}
+{% block title %}Verificación de informe · {{ payload.lab.legal_name|default:payload.lab.name }}{% endblock %}
+{% block body %}
+<main class="auth">
+  <div class="card auth__card verify">
+    <div class="card__body stack" style="gap:var(--s4)">
+      {% if tenant_settings.logo %}<img src="{{ tenant_settings.logo.url }}" alt="" class="verify__logo">{% endif %}
+      <div>
+        <p class="muted small" style="margin:0">{{ payload.lab.legal_name|default:payload.lab.name }}{% if payload.lab.rif %} · RIF {{ payload.lab.rif }}{% endif %}</p>
+        <h1 style="margin:.2rem 0 0;font-size:1.25rem">Verificación de informe</h1>
+      </div>
+      {% if report.is_current %}
+      <div class="alert alert--ok">{% icon "shield-check" %}<span><b>Informe auténtico.</b> Emitido por este laboratorio y vigente.</span></div>
+      {% else %}
+      <div class="alert alert--warn">{% icon "triangle-alert" %}<span><b>Informe auténtico pero reemplazado.</b> Existe una versión más reciente{% if current %} (versión {{ current.version }}, {{ current.created_at|date:"d/m/Y" }}){% endif %}. Solicítela al laboratorio.</span></div>
+      {% endif %}
+      <dl class="dl">
+        <dt>Paciente</dt><dd>{{ payload.patient.first_name|slice:":1" }}. {{ payload.patient.last_name|slice:":1" }}.{% if payload.patient.document %} · C.I. ···{{ payload.patient.document|slice:"-3:" }}{% endif %}</dd>
+        <dt>Orden</dt><dd>{{ payload.order.number }}</dd>
+        <dt>Versión</dt><dd>{{ report.version }} · {% if report.is_partial %}Parcial{% else %}Final{% endif %}</dd>
+        <dt>Emitido</dt><dd>{{ report.created_at|date:"d/m/Y h:i A" }}</dd>
+        <dt>Exámenes</dt><dd>{{ payload.test_count }}</dd>
+        {% if payload.signers %}<dt>Validado por</dt><dd>{% for s in payload.signers %}{{ s.name }}{% if s.license %} ({{ s.license }}){% endif %}{% if not forloop.last %}; {% endif %}{% endfor %}</dd>{% endif %}
+        <dt>Huella</dt><dd><code class="small" style="word-break:break-all">{{ report.content_hash }}</code></dd>
+      </dl>
+      {% if can_download %}
+      <a class="btn btn--primary" href="{% url 'verify:pdf' report.verification_code %}">{% icon "download" %} Descargar PDF</a>
+      <p class="muted small" style="margin:0">Descarga disponible hasta el {{ expires_at|date:"d/m/Y" }}.</p>
+      {% elif report.is_current %}
+      <p class="muted small" style="margin:0">El plazo para descargar este informe venció el {{ expires_at|date:"d/m/Y" }}. Solicite una copia al laboratorio.</p>
+      {% endif %}
+      <p class="muted small" style="margin:0">Por privacidad, esta página no muestra resultados. Compare la huella con la impresa al pie del informe.</p>
+      {% if payload.lab.phone or payload.lab.instagram %}<p class="small" style="margin:0">{{ payload.lab.phone }}{% if payload.lab.phone and payload.lab.instagram %} · {% endif %}{% if payload.lab.instagram %}@{{ payload.lab.instagram|cut:"@" }}{% endif %}</p>{% endif %}
+    </div>
+  </div>
+</main>
+{% endblock %}

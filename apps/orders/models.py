@@ -104,6 +104,12 @@ class Order(TenantBaseModel):
         related_name="+", verbose_name="Cobrada por",
     )
 
+    delivered_at = models.DateTimeField("Entregada el", null=True, blank=True)
+    delivered_by = models.ForeignKey(
+        "accounts.User", on_delete=models.SET_NULL, null=True, blank=True,
+        related_name="+", verbose_name="Entregada por",
+    )
+
     cancelled_at = models.DateTimeField("Anulada el", null=True, blank=True)
     cancelled_by = models.ForeignKey(
         "accounts.User", on_delete=models.SET_NULL, null=True, blank=True,

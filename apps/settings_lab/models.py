@@ -67,6 +67,12 @@ class TenantSettings(models.Model):
     label_height_mm = models.PositiveSmallIntegerField(
         "Alto de etiqueta (mm)", default=25
     )
+    # Informe (Fase 11, ADR-027)
+    report_link_days = models.PositiveSmallIntegerField(
+        "Días que el PDF se puede descargar desde el QR", default=30,
+        help_text="Pasado este plazo, la página de verificación sigue confirmando el "
+                  "informe pero ya no permite descargarlo.",
+    )
     label_extra_for_order = models.BooleanField(
         "Etiqueta extra para la hoja de la orden", default=False,
         help_text="Imprime una etiqueta más, con el número de orden, para pegar en la "

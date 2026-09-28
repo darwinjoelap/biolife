@@ -46,7 +46,8 @@ def order_list(*, day: datetime.date | None = None, status: str = "", query: str
 
 def order_detail(*, pk) -> Order:
     return (
-        Order.objects.select_related("patient", "created_by", "paid_by", "cancelled_by")
+        Order.objects.select_related("patient", "created_by", "paid_by", "cancelled_by",
+                                     "delivered_by")
         .prefetch_related(
             Prefetch("items", queryset=OrderItem.objects.select_related(
                 "test", "test__section", "profile").order_by("order_index")),
@@ -153,3 +154,42 @@ def results_worklist_counts() -> dict:
     items = OrderItem.objects.exclude(order__status=Order.Status.ANULADA)
     return {key: items.filter(status__in=statuses).count()
             for key, statuses in WORKLIST_STATUSES.items() if key != "validados"}
+
+
+# Informes (Fase 11) -------------------------------------------------------------------
+REPORT_TABS = ("listas", "parciales", "entregadas")
+
+
+def orders_for_reports(*, tab: str = "listas", query: str = "") -> QuerySet[Order]:
+    """Bandeja de informes: *listas* (todo validado, sin entregar), *parciales* (algún
+    examen validado y otros pendientes) y *entregadas* (las últimas 200)."""
+    orders = Order.objects.select_related("patient").exclude(status=Order.Status.ANULADA)
+    query = query.strip()
+    if query:
+        orders = orders.filter(
+            Q(number__icontains=query) | Q(patient__document_number__icontains=query)
+            | Q(patient__first_name__icontains=query)
+            | Q(patient__last_name__icontains=query))
+    if tab == "entregadas":
+        return orders.filter(status=Order.Status.ENTREGADA).order_by("-delivered_at")[:200]
+    if tab == "parciales":
+        return (orders.filter(items__status=OrderItem.Status.VALIDADO)
+                .exclude(status__in=(Order.Status.VALIDADA, Order.Status.ENTREGADA))
+                .distinct().order_by("ordered_at"))
+    return orders.filter(status=Order.Status.VALIDADA).order_by("ordered_at")
+
+
+def report_tab_counts() -> dict:
+    return {tab: orders_for_reports(tab=tab).count() for tab in ("listas", "parciales")}
+
+
+def report_order_facts(*, order: Order) -> dict:
+    """Datos de la orden que el informe necesita y que no son resultados: exámenes aún
+    sin validar (informe parcial) y primera toma de muestra."""
+    pending = list(
+        order.items.exclude(status__in=(OrderItem.Status.VALIDADO, OrderItem.Status.ANULADO))
+        .order_by("test__section__order_index", "order_index")
+        .values_list("test__name", flat=True))
+    first_taken = (order.samples.filter(status=Sample.Status.TOMADA)
+                   .order_by("collected_at").values_list("collected_at", flat=True).first())
+    return {"pending_tests": pending, "collected_at": first_taken}

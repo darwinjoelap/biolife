@@ -21,7 +21,11 @@ from django.utils import timezone
 
 from apps.billing.services.exchange import get_exchange_rate, round_money
 from apps.billing.services.quoting import Quote, quote
-from apps.catalog.selectors.catalog_queries import calculation_input_tests, profile_tests
+from apps.catalog.selectors.catalog_queries import (
+    calculation_input_tests,
+    profile_tests,
+    tests_without_parameters,
+)
 from apps.core.exceptions import ApplicationError
 from apps.orders.models import Order, OrderItem
 from apps.orders.services.numbering import next_order_number
@@ -133,6 +137,10 @@ def _quote_into(draft, *, tests, profiles, price_list, discounts, on_date, autho
 
 def _clinical_warnings(tests, *, weight_kg, height_cm, urine_volume_24h_ml) -> list[str]:
     warnings = []
+    empty = tests_without_parameters(tests=tests)
+    if empty:
+        warnings.append("Sin parámetros configurados (no se podrán cargar resultados): "
+                        + ", ".join(empty) + ". Revise el examen en el catálogo.")
     anthropometric = [t.name for t in tests if t.requires_anthropometry]
     if anthropometric and not (weight_kg and height_cm and urine_volume_24h_ml):
         warnings.append(

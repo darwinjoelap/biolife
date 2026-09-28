@@ -104,6 +104,8 @@ require_second_validation  bool, default False
 # lleva apps.orders: se eliminaron order_number_prefix/order_number_next.
 label_width_mm · label_height_mm   default 50 × 25
 label_extra_for_order              bool, default False
+# Informe (Fase 11, ADR-027)
+report_link_days      default 30   # días que el QR permite descargar el PDF
 ```
 
 ### `Role` / `Membership`
@@ -351,7 +353,8 @@ cancelled_at N · cancelled_by N · cancel_reason     # anular, nunca borrar
 ```
 > Peso, talla y volumen de orina viven en la **orden**, no en el paciente: cambian entre
 > visitas y la depuración de creatinina debe calcularse con los del día de la muestra.
-> Pendiente (Fases 13–14): `client_mutation_id`, `sync_version`; `delivered_at` (Fase 11).
+> `delivered_at` · `delivered_by`: entrega del informe final (Fase 11).
+> Pendiente (Fases 13–14): `client_mutation_id`, `sync_version`.
 
 ### `OrderItem`
 ```
@@ -432,24 +435,21 @@ version int
 > Un resultado validado **jamás** se edita. Se crea un `Result` nuevo, el original pasa a
 > `RECTIFICADO`, y el informe se reemite con versión incrementada.
 
-### `ResultSignature`
+### `Report` (apps.reports) — Fase 11, ADR-027
 ```
-id PK · result FK→Result (o report FK)
-signed_by FK→User · signed_at
-payload_hash  char(64)        # SHA-256 del contenido firmado
-previous_hash char(64) N      # cadena
-signature_image N · stamp_image N     # Cloudinary
-professional_license          # nº de colegiatura del bioanalista
+id PK · order FK · version int · kind ENUM: PARCIAL | FINAL
+status ENUM: VIGENTE | REEMPLAZADO · replaced_at N
+payload JSONB                 # todo lo impreso: laboratorio, paciente, orden, exámenes
+                              # validados (valor, marca, referencia, observación), firmantes
+content_hash char(64)         # SHA-256 del payload canónico
+previous_hash char(64)        # cadena con la versión anterior
+verification_code U           # token del QR (/verificar/<código>/)
+created_at · created_by       # emisión
+UNIQUE (order, version) · UNIQUE (order) WHERE status = VIGENTE
 ```
-
-### `Report`
-```
-id PK · order FK · version int
-pdf_url (Cloudinary, authenticated) · generated_at · generated_by FK→User
-access_token U [idx]          # verificación por QR
-content_hash char(64)
-UNIQUE (order, version)
-```
+> El PDF no se guarda: se genera desde `payload`. La firma es quien validó cada examen
+> (`Result.validated_by`) con `User.signature_image`, `stamp_image`, `professional_title` y
+> `professional_license`; no existe `ResultSignature` (ADR-027).
 
 ---
 
@@ -491,7 +491,7 @@ TENANT
   Patient ──N:M(PatientGuardian)── Guardian
   Patient ──1:N── Order ──1:N── OrderItem ──1:1── Result ──1:N── ResultValue
                     │                                  │
-                    ├──1:N── Sample                    ├──1:N── ResultSignature
+                    ├──1:N── Sample                    │
                     └──1:N── Report                    └──1:1── ResultAmendment
 
   Section ──1:N── Test ──1:N── ParameterGroup ──1:N── Parameter

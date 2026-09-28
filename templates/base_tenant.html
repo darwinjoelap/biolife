@@ -23,7 +23,7 @@ page_actions, content. Los módulos que aún no existen se muestran como "Pronto
       <a class="nav__item {% if request.GET.pendientes == '1' %}is-active{% endif %}" href="{% url 'orders:list' %}?pendientes=1">{% icon "test-tube" %}<span>Muestras por tomar</span></a>
       <a class="nav__item {% nav_active request '/pacientes/' %}" href="{% url 'patients:create' %}">{% icon "user-plus" %}<span>Nuevo paciente</span></a>
       <a class="nav__item {% nav_active request '/resultados/' %}" href="{% url 'results:worklist' %}">{% icon "flask-conical" %}<span>Resultados</span></a>
-      <span class="nav__item is-disabled" aria-disabled="true">{% icon "file-text" %}<span>Informes</span><em class="tag">Pronto</em></span>
+      <a class="nav__item {% nav_active request '/informes/' %}" href="{% url 'reports:worklist' %}">{% icon "file-text" %}<span>Informes</span></a>
       {% if user.is_staff %}
       <a class="nav__item {% nav_active request '/admin/patients/' %}" href="{% url 'admin:patients_patient_changelist' %}">{% icon "users" %}<span>Pacientes (admin)</span></a>
       <div class="nav__group">Configuración</div>

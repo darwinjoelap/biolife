@@ -17,7 +17,12 @@ from apps.orders.models import Order, Sample
 from apps.orders.selectors import order_queries as q
 from apps.orders.services.labels import print_labels
 from apps.orders.services.order_creation import build_draft, create_order
-from apps.orders.services.order_management import add_to_order, cancel_order, mark_paid
+from apps.orders.services.order_management import (
+    add_to_order,
+    cancel_order,
+    mark_paid,
+    requote_pending,
+)
 from apps.orders.services.sample_collection import collect_all, collect_sample, reject_sample
 from apps.patients.selectors.patient_search import get_patient, search_patients
 from apps.patients.services.patient_age import patient_age_text
@@ -135,6 +140,9 @@ def order_detail(request, pk):
         "pending": sum(s.status == Sample.Status.PENDIENTE for s in samples),
         "patient_age": patient_age_text(order.patient, as_of=order.ordered_at.date()),
         "editable": order.status in (Order.Status.REGISTRADA, Order.Status.MUESTRA_TOMADA),
+        # Marcar tomada se permite aunque ya haya resultados cargados (se cargó antes de
+        # registrar la toma); no en una orden anulada o entregada.
+        "can_collect": order.status not in (Order.Status.ANULADA, Order.Status.ENTREGADA),
     })
 
 
@@ -200,6 +208,15 @@ def sample_reject(request, pk, sample_pk):
 def order_pay(request, pk):
     return _run(request, pk, lambda o: mark_paid(order=o, user=request.user).number,
                 "Orden {result} marcada como pagada.")
+
+
+@role_required(*RECEPTION_ROLES)
+@require_POST
+def order_requote(request, pk):
+    def requote(order):
+        requote_pending(order=order)
+        return order.number
+    return _run(request, pk, requote, "Orden {result} recotizada con los precios actuales.")
 
 
 @role_required(*RECEPTION_ROLES)

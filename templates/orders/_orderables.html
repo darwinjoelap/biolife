@@ -8,7 +8,7 @@
 <button type="button" class="option" :class="{ 'is-selected': has('tests', '{{ t.pk }}') }"
         @click="add($el.dataset)" data-kind="tests" data-id="{{ t.pk }}" data-code="{{ t.code }}" data-name="{{ t.name }}">
   {% icon "microscope" %}<span>{{ t.name }}</span><span class="option__code">{{ t.code }}</span>
-  <span class="option__meta">{{ t.section.name|lower|capfirst }}</span>
+  <span class="option__meta">{% if not t.parameter_count %}<span class="tag tag--warn" title="No tiene parámetros: no se podrán cargar resultados">Sin parámetros</span> {% endif %}{{ t.section.name|lower|capfirst }}</span>
 </button>
 {% endfor %}{% if not profiles and not tests %}
 <div class="option" style="cursor:default">{% icon "info" %}<span class="muted">Sin coincidencias.</span></div>

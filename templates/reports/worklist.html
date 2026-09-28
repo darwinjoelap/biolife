@@ -1,0 +1,42 @@
+{% extends "base_tenant.html" %}
+{% load ui orders_ui %}
+{% block page_title_text %}Informes{% endblock %}
+{% block crumbs %}Laboratorio{% endblock %}
+{% block page_title %}Informes{% endblock %}
+{% block content %}
+<section class="card">
+  <div class="card__head row">
+    <a class="btn {% if tab == 'listas' %}btn--primary{% else %}btn--ghost{% endif %}" href="?tab=listas">{% icon "circle-check" %} Listas para entregar <b>{{ counts.listas }}</b></a>
+    <a class="btn {% if tab == 'parciales' %}btn--primary{% else %}btn--ghost{% endif %}" href="?tab=parciales">{% icon "file-text" %} Parciales <b>{{ counts.parciales }}</b></a>
+    <a class="btn {% if tab == 'entregadas' %}btn--primary{% else %}btn--ghost{% endif %}" href="?tab=entregadas">{% icon "send" %} Entregadas</a>
+    <span class="spacer"></span>
+    <form method="get" class="row" role="search">
+      <input type="hidden" name="tab" value="{{ tab }}">
+      <label class="picker__input" style="width:260px"><span class="sr-only">Buscar</span>{% icon "search" %}
+        <input type="search" name="q" value="{{ query }}" placeholder="Orden, cédula o nombre…"></label>
+    </form>
+  </div>
+  <div class="card__body card__body--flush table-wrap">
+    {% if rows %}
+    <table class="table">
+      <thead><tr><th>Orden</th><th>Registrada</th><th>Paciente</th><th>Estado</th><th>Informe vigente</th><th></th></tr></thead>
+      <tbody>
+      {% for order, report in rows %}
+      <tr style="cursor:pointer" onclick="location.href='{% url 'reports:order' order.pk %}'">
+        <td class="num"><a href="{% url 'reports:order' order.pk %}"><b>{{ order.number }}</b></a>{% if order.priority == "URGENTE" %} <span class="tag tag--info">Urgente</span>{% endif %}</td>
+        <td class="num">{{ order.ordered_at|date:"d/m h:i A" }}</td>
+        <td>{{ order.patient.last_name }}, {{ order.patient.first_name }}</td>
+        <td><span class="tag {{ order.status|status_tag }}">{{ order.get_status_display }}</span></td>
+        <td>{% if report %}v{{ report.version }} · {% if report.is_partial %}<span class="tag tag--warn">Parcial</span>{% else %}<span class="tag tag--ok">Final</span>{% endif %} <span class="muted small">{{ report.created_at|date:"d/m h:i A" }}</span>{% else %}<span class="muted">Sin emitir</span>{% endif %}</td>
+        <td class="num">{% if report %}<a class="btn btn--sm btn--ghost" href="{% url 'reports:pdf' order.pk report.pk %}" target="_blank" rel="noopener" onclick="event.stopPropagation()" title="Ver PDF">{% icon "file-text" %}</a>{% endif %}</td>
+      </tr>
+      {% endfor %}
+      </tbody>
+    </table>
+    {% else %}
+    <div class="empty">{% icon "file-text" %}<h3>{% if tab == "parciales" %}Sin informes parciales{% elif tab == "entregadas" %}Sin entregas{% else %}Nada listo para entregar{% endif %}</h3>
+      <p class="muted">{% if tab == "listas" %}Aquí aparecen las órdenes con todos sus exámenes validados.{% endif %}</p></div>
+    {% endif %}
+  </div>
+</section>
+{% endblock %}

@@ -85,6 +85,17 @@ class ReceptionViewsTests(TenantTestCase):
         assert order.status == Order.Status.ANULADA
         assert "anulada" in response.content.decode()
 
+    def test_marcar_tomada_despues_de_cargar_resultados(self):
+        self._post_order()
+        order = Order.objects.get()
+        Order.objects.filter(pk=order.pk).update(status=Order.Status.RESULTADOS_CARGADOS)
+        html = self.client.get(f"/ordenes/{order.pk}/").content.decode()
+        assert "Marcar todas tomadas" in html
+        self.client.post(f"/ordenes/{order.pk}/tomar/")
+        assert not order.samples.filter(status=Sample.Status.PENDIENTE).exists()
+        order.refresh_from_db()
+        assert order.status == Order.Status.RESULTADOS_CARGADOS  # no retrocede
+
     def test_lector_de_codigo_de_barras_va_directo_a_la_orden(self):
         order, _ = create_order(patient=self.patient, tests=[self.t["HEM"]],
                                 price_list=self.c["lista"])
