@@ -3,8 +3,8 @@
 > Se actualiza al **cerrar cada sesión**. Es el primer archivo que se lee al abrir la siguiente.
 > Mantener bajo 100 líneas: si crece, es que hay historial que pertenece a DECISIONES.md.
 
-**Última actualización:** 2026-09-27 (Fase 11)
-**Fase actual:** 11 — Informe PDF, firma y QR (**en verificación** con ajustes de Darwin) → siguiente: 11b (panel del laboratorio)
+**Última actualización:** 2026-09-28 (cierre del día)
+**Fase actual:** 11 — Informe PDF, firma y QR (**completa**, `212bb7a`) → siguiente: 11b (panel del laboratorio; no iniciar sin pedirlo)
 **Repositorio:** https://github.com/darwinjoelap/biolife (rama `main`, CI en GitHub Actions)
 **Responsable:** Darwin
 
@@ -20,12 +20,12 @@
 - [x] Fase 10 (`f934aaf`, `bac4352`): captura con cálculo en vivo, marcas alto/bajo/crítico, aviso de
   críticos, validación que congela referencias, ISI por lote, observaciones por examen
   (ADR-025/026). Verificado por Darwin: 246 passed, ruff limpio.
-- [~] Fase 11 (sin commit): informe PDF versionado desde contenido congelado, parciales,
-  firma + sello por bioanalista, huella SHA-256, QR a página pública de verificación,
-  bandeja *Informes*, entrega (ADR-027). Verificado por Darwin: migraciones, 256 passed,
-  ruff limpio. Ajustes tras su revisión (ADR-028): pie nuevo con firma de Biolife
+- [x] Fase 11 (hasta `212bb7a`): informe PDF versionado desde contenido congelado,
+  parciales, huella SHA-256, verificación pública por QR, bandeja *Informes*, entrega
+  (ADR-027); firma y sello del bioanalista y QR en cada página, pie con firma de Biolife
   editable en `public`, Instagram/correo en la cabecera, recotizar órdenes con precio
-  pendiente, avisos de examen sin parámetros.
+  pendiente, avisos de examen sin parámetros, tomar tubo con resultados ya cargados
+  (ADR-028). Verificado por Darwin: 259 passed, ruff limpio.
 
 ## Dónde estamos
 
@@ -33,17 +33,17 @@ Base del producto terminada: multi-tenancy, usuarios y roles, configuración del
 pacientes, catálogo con rangos por sexo/edad/condición, motor de fórmulas, perfiles, precios
 multimoneda y el sistema visual. Flujo clínico: recepción, órdenes, tubos y etiquetas
 (Fase 09), resultados cargados y validados (Fase 10) e informe PDF con firma, versiones y
-verificación por QR (Fase 11, por verificar).
+verificación por QR (Fase 11).
 
 Local: `demo_uno` → http://demo1.localhost:8000/ (+ `public` en localhost).
 ## Pendiente inmediato
 
-1. Terminar de verificar la Fase 11 (checklist en `docs/roadmap/11_informe.md`): migrar
-   `tenants.0002`, tests; anular la orden 260927-0001 (examen HC sin parámetros) y
-   desactivar ese examen; cargar
-   firma/sello/título en su usuario y logo, RIF y razón social del laboratorio, emitir un
-   parcial y un final, escanear el QR, marcar entregada. Luego el commit.
-   Sigue pendiente el lote de tromboplastina vigente en `demo_uno` (sin él no hay INR).
+1. Siguiente: Fase 11b — panel del laboratorio (`docs/roadmap/11b_panel_laboratorio.md`),
+   cuando Darwin lo pida. Al abrirla, decidir el alcance (ver «Pendiente de decidir»).
+   Revisión manual de la 11 aún por confirmar en su máquina: cargar firma/sello/título,
+   logo, RIF y razón social; emitir parcial y final; escanear el QR; marcar entregada.
+   En `demo_uno`: desactivar el examen HC (la orden 260927-0001 ya se anuló) y crear el
+   lote de tromboplastina vigente (sin él no hay INR).
 2. Cargar precios reales en la lista GENERAL (admin): sin ellos las órdenes quedan con
    monto pendiente.
 3. **No usar en un informe real** ningún `ReferenceRange`/parámetro marcado "PENDIENTE DE

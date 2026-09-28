@@ -1,5 +1,7 @@
 # Fase 11 — Informe PDF, firma y QR
 
+**Estado:** completa (2026-09-28, `212bb7a`).
+
 **Depende de:** 10 · **Criterio de salida:** informe PDF con cabecera, exámenes por sección
 con la observación de cada uno **debajo de su examen**, firmas de quienes validaron, QR de
 verificación y versiones que nunca se sobrescriben.
@@ -74,12 +76,12 @@ verificación y versiones que nunca se sobrescriben.
 
 - [x] `migrate_schemas` (accounts.0005, orders.0003, reports.0001, settings_lab.0005) y
   256 passed, ruff limpio (primera entrega).
-- [ ] `migrate_schemas` (tenants.0002) y `pytest` de nuevo.
-- [ ] `pytest -q` · `ruff check .`
-- [ ] Admin → Usuarios → su usuario: título, colegiatura, imagen de firma y de sello (PNG
+- [x] `migrate_schemas` (tenants.0002); 258 passed y, con los últimos ajustes, 259 passed ·
+  ruff limpio. Commit `212bb7a` (2026-09-28).
+- [ ] (por confirmar) Admin → Usuarios → su usuario: título, colegiatura, imagen de firma y de sello (PNG
   con fondo transparente se ve mejor). Admin → Laboratorio: logo, teléfono, dirección,
   Instagram; Admin → tenant: razón social y RIF.
-- [ ] Una orden con parte validada → *Informe* → emitir (parcial) → ver PDF. Validar el
+- [ ] (por confirmar) Una orden con parte validada → *Informe* → emitir (parcial) → ver PDF. Validar el
   resto → emitir versión 2 (final) → la v1 queda reemplazada. Escanear el QR con el
   teléfono (en local sólo abre si el teléfono resuelve `demo1.localhost`; si no, abrir el
   enlace *Verificación* en el navegador). Marcar entregada.
