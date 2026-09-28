@@ -829,8 +829,8 @@ número de orden.
 **Decisión.**
 - El pie ya no trae texto legal por defecto: `TenantSettings.report_footer_text` se imprime
   sólo si el laboratorio lo configuró (sigue congelado en el contenido del informe).
-- Pie: [texto del laboratorio, si hay] · «Verifique este informe escaneando el código QR o
-  en …» · huella · ícono de Biolife + texto de la plataforma.
+- Pie: [texto del laboratorio, si hay] · enlace de verificación · ícono de Biolife + texto
+  de la plataforma (el QR y la huella suben a la franja de firmas).
 - `tenants.PlatformSettings` (esquema `public`, una fila): `report_brand_enabled`,
   `report_brand_text` (por defecto «Generado con Biolife · Sistema de gestión para
   laboratorios clínicos»), `report_brand_contact`. Se lee al **generar** el PDF (vía
@@ -838,8 +838,10 @@ número de orden.
 - Cabecera: Instagram y correo del laboratorio bajo «Orden N° / Versión»; el teléfono queda
   a la izquierda con los datos del laboratorio.
 - **Firma en cada página:** la firma y el sello de quien validó (hasta 3 bioanalistas) van
-  en una franja inferior derecha de **todas** las páginas, sobre el pie, y no al final del
-  informe: una hoja suelta sigue firmada. El cuerpo pierde 25 mm de alto por página.
+  en una franja inferior de **todas** las páginas, a la derecha, y no al final del
+  informe: una hoja suelta sigue firmada. En la misma franja, a la izquierda, el QR con
+  «Verifique este informe» y la huella. Debajo de una línea fina: el enlace de
+  verificación y, al final, el ícono de Biolife con su texto y «Página X de Y».
 - Los modelos de `apps.tenants` (laboratorios, planes, suscripciones, plataforma) sólo se
   ven en el admin de `public` (`PublicOnlyAdmin`), aunque el usuario sea superusuario de
   un laboratorio.

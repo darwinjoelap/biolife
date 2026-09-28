@@ -57,7 +57,9 @@ verificación y versiones que nunca se sobrescriben.
   `public` → *Configuración de la plataforma* (ADR-028).
 - [x] Instagram y correo del laboratorio bajo el número de orden en la cabecera.
 - [x] Firma y sello del bioanalista en **cada página** (franja inferior derecha, sobre el
-  pie), en lugar de un bloque al final. Un examen largo (uroanálisis) ahora se parte entre
+  pie), en lugar de un bloque al final. El QR sube a esa franja, a la izquierda, a la
+  altura de la firma; el pie queda más bajo con el enlace y la firma de Biolife con un
+  ícono más grande. Un examen largo (uroanálisis) ahora se parte entre
   páginas repitiendo su título, en vez de saltar entero a la página siguiente.
 - [x] Orden con precio pendiente: botón **Recotizar con los precios actuales** (sólo si
   quedó pendiente; una orden cotizada no se toca). Antes no había forma de cobrarla.

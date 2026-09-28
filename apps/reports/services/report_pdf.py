@@ -42,8 +42,9 @@ from apps.tenants.services.platform import report_brand
 PAGE_W, PAGE_H = letter
 MARGIN = 14 * mm
 HEADER_H = 64 * mm   # desde el borde superior hasta el inicio del cuerpo
-FOOTER_H = 36 * mm   # pie: texto de verificación, QR y firma de la plataforma
-SIGN_H = 25 * mm     # franja de firmas, en cada página, sobre el pie
+FOOTER_H = 22 * mm   # pie: enlace de verificación y firma de la plataforma
+SIGN_H = 27 * mm     # franja de cada página: QR a la izquierda, firmas a la derecha
+QR_SIZE = 23 * mm
 BODY_BOTTOM = FOOTER_H + SIGN_H
 BODY_W = PAGE_W - 2 * MARGIN
 COLS = [BODY_W * 0.38, BODY_W * 0.19, BODY_W * 0.13, BODY_W * 0.30]
@@ -304,7 +305,8 @@ class _NumberedCanvas(pdf_canvas.Canvas):
             self.__dict__.update(state)
             self.setFont("Helvetica", 7)
             self.setFillColor(MUTED)
-            self.drawString(MARGIN, 8 * mm, f"Página {self._pageNumber} de {total}")
+            self.drawRightString(PAGE_W - MARGIN, 5.8 * mm,
+                                 f"Página {self._pageNumber} de {total}")
             super().showPage()
         super().save()
 
@@ -443,23 +445,25 @@ class _Decor:
                                    f"Condición: {order['condition']}")
 
     def _signatures(self, canvas):
-        """Firma y sello de cada bioanalista que validó, en la franja inferior derecha de
-        **todas** las páginas (hasta 3, de derecha a izquierda)."""
+        """Franja inferior de **todas** las páginas: QR de verificación a la izquierda y
+        firma y sello de cada bioanalista que validó a la derecha (hasta 3)."""
+        self._qr(canvas)
         if not self.signers:
             return
-        cell_w = 58 * mm
-        line_y = FOOTER_H + 9 * mm   # línea de firma
         right = PAGE_W - MARGIN
+        free = BODY_W - QR_SIZE - 45 * mm  # lo que queda a la derecha del QR y su texto
+        cell_w = min(58 * mm, free / len(self.signers))
+        line_y = FOOTER_H + 9 * mm   # línea de firma
         for index, (signer, sign, stamp) in enumerate(self.signers):
             x1 = right - (index + 1) * cell_w
             center = x1 + cell_w / 2
             if stamp is not None:  # sello a la derecha, puede montarse sobre la firma
-                w, h = _fit(stamp, 17 * mm, 17 * mm)
+                w, h = _fit(stamp, min(17 * mm, cell_w * 0.32), 17 * mm)
                 canvas.drawImage(stamp, x1 + cell_w - w - 1 * mm, line_y - 2 * mm,
                                  width=w, height=h, mask="auto")
             if sign is not None:
-                w, h = _fit(sign, 36 * mm, 13 * mm)
-                canvas.drawImage(sign, center - w / 2 - 6 * mm, line_y + 0.5 * mm,
+                w, h = _fit(sign, cell_w * 0.62, 13 * mm)
+                canvas.drawImage(sign, center - w / 2 - cell_w * 0.1, line_y + 0.5 * mm,
                                  width=w, height=h, mask="auto")
             canvas.setStrokeColor(INK)
             canvas.setLineWidth(0.5)
@@ -472,41 +476,63 @@ class _Decor:
             if detail:
                 canvas.setFont("Helvetica", 6.6)
                 canvas.setFillColor(MUTED)
-                canvas.drawCentredString(center, line_y - 6.2 * mm, detail[:60])
+                size = _fit_font(canvas, detail, "Helvetica", cell_w - 4 * mm, 6.6)
+                canvas.setFont("Helvetica", size)
+                canvas.drawCentredString(center, line_y - 6.2 * mm, detail)
+
+    def _qr(self, canvas):
+        widget = QrCodeWidget(self.verify_url, barLevel="M")
+        x1, y1, x2, y2 = widget.getBounds()
+        drawing = Drawing(QR_SIZE, QR_SIZE, transform=[QR_SIZE / (x2 - x1), 0, 0,
+                                                       QR_SIZE / (y2 - y1), 0, 0])
+        drawing.add(widget)
+        bottom = FOOTER_H + 2 * mm
+        renderPDF.draw(drawing, canvas, MARGIN - 1.5 * mm, bottom)
+        note = Paragraph(
+            "<b>Verifique este informe</b><br/>Escanee el código con la cámara del "
+            f"teléfono.<br/>Huella SHA-256:<br/>{self.report.short_hash}…",
+            ST["footer"])
+        _, height = note.wrap(42 * mm, QR_SIZE)
+        note.drawOn(canvas, MARGIN + QR_SIZE + 1 * mm, bottom + (QR_SIZE - height) / 2)
 
     def _footer(self, canvas):
         lab = self.payload["lab"]
-        qr_size = 22 * mm
-        base = 12 * mm
-        widget = QrCodeWidget(self.verify_url, barLevel="M")
-        x1, y1, x2, y2 = widget.getBounds()
-        drawing = Drawing(qr_size, qr_size, transform=[qr_size / (x2 - x1), 0, 0,
-                                                       qr_size / (y2 - y1), 0, 0])
-        drawing.add(widget)
-        renderPDF.draw(drawing, canvas, PAGE_W - MARGIN - qr_size, base - 2 * mm)
-
+        rule_y = FOOTER_H - 1 * mm
         canvas.setStrokeColor(RULE)
         canvas.setLineWidth(0.5)
-        canvas.line(MARGIN, FOOTER_H - 3 * mm, PAGE_W - MARGIN, FOOTER_H - 3 * mm)
-        text_w = BODY_W - qr_size - 4 * mm
+        canvas.line(MARGIN, rule_y, PAGE_W - MARGIN, rule_y)
         parts = []
         if lab.get("footer"):  # texto propio del laboratorio, si lo configuró
             parts.append(escape(lab["footer"]).replace("\n", "<br/>"))
-        parts.append(
-            f"Verifique este informe escaneando el código QR o en {escape(self.verify_url)}"
-            f"<br/>Huella SHA-256: {self.report.short_hash}…")
-        if self.brand.get("enabled") and self.brand.get("text"):
-            brand = escape(self.brand["text"])
-            if self.brand.get("contact"):
-                brand += " · " + escape(self.brand["contact"])
-            icon = _brand_icon()
-            if icon:
-                brand = (f'<img src="{icon}" width="8" height="8" valign="-1.5"/>'
-                         f"&nbsp;{brand}")
-            parts.append(f'<font color="#9ca3af">{brand}</font>')
+        parts.append(f"También puede verificarlo en {escape(self.verify_url)}")
         para = Paragraph("<br/>".join(parts), ST["footer"])
-        _, height = para.wrap(text_w, FOOTER_H)
-        para.drawOn(canvas, MARGIN, FOOTER_H - 5 * mm - height)
+        _, height = para.wrap(BODY_W, FOOTER_H)
+        para.drawOn(canvas, MARGIN, rule_y - 1.8 * mm - height)
+        self._brand(canvas)
+
+    def _brand(self, canvas):
+        """Firma de la plataforma: ícono de Biolife y su texto, abajo a la izquierda."""
+        if not (self.brand.get("enabled") and self.brand.get("text")):
+            return
+        text = self.brand["text"]
+        if self.brand.get("contact"):
+            text += " · " + self.brand["contact"]
+        x, y = MARGIN, 5.8 * mm
+        icon = _brand_icon()
+        if icon:
+            size = 5.2 * mm
+            canvas.drawImage(ImageReader(icon), x, y - 1.3 * mm, width=size, height=size,
+                             mask="auto")
+            x += size + 1.6 * mm
+        canvas.setFont("Helvetica-Bold", 8)
+        canvas.setFillColor(colors.HexColor("#1B5FA8"))
+        head, _, tail = text.partition(" · ")
+        canvas.drawString(x, y, head)
+        if tail:
+            x += canvas.stringWidth(head + " ", "Helvetica-Bold", 8)
+            canvas.setFont("Helvetica", 7.5)
+            canvas.setFillColor(MUTED)
+            canvas.drawString(x, y, "· " + tail)
 
 
 def render_report_pdf(report, *, verify_url: str) -> bytes:
