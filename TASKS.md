@@ -7,7 +7,7 @@
 - [ ] **Crear lote de tromboplastina vigente en demo_uno** - sólo cuando se pruebe PT/INR; admin → Lotes de reactivos, con su ISI (sin él el INR queda vacío)
 - [ ] **Revisión manual de la Fase 11** - firma/sello/título, logo, RIF; parcial → final; QR; entregar (checklist en `docs/roadmap/11_informe.md`)
 - [ ] **Revisión manual de la Fase 11b** - crear Auxiliar de toma y entrar con él; firma/sello en Mi perfil (checklist en `docs/roadmap/11b_panel_laboratorio.md`)
-- [ ] **Verificar Fase 11c — Catálogo sin /admin** - checklist en `docs/roadmap/11c_catalogo.md`, luego commit
+- [ ] **Revisión manual de la Fase 11c** - examen de prueba completo, precios y tasa reales, entrar como bioanalista (checklist en `docs/roadmap/11c_catalogo.md`)
 - [ ] **Fase 11d — Tablas auxiliares sin /admin** - tubos, lotes, unidades, métodos, secciones, opciones, monedas, descuentos (no iniciar sin pedirlo)
 - [ ] **Cargar firma, sello, título y colegiatura** - de cada bioanalista (admin → Usuarios → Datos de Biolife); razón social y RIF del laboratorio
 - [ ] **Confirmar valores críticos propuestos** - con el laboratorio (ficha del examen → Valores críticos)
@@ -44,6 +44,8 @@
 - [ ] **Tasa BCV automática y perfiles anidados** - posteriores, ADR-019
 
 ## Done
+
+- [x] ~~Fase 11c — Catálogo sin /admin~~ (2026-09-28) — exámenes, parámetros, rangos y críticos con probador, observaciones, perfiles, precios y tasa (ADR-030); 276 passed; commit `656ed95`
 
 - [x] ~~Fase 11b — Panel del laboratorio~~ (2026-09-28) — datos del laboratorio, usuarios con clave temporal, varios roles, tabla de roles, mi perfil, rol Auxiliar de toma (ADR-029); 269 passed; commit `852c3f4`
 

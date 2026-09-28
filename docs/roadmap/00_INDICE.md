@@ -40,8 +40,8 @@ que envejece antes de usarse.
 > provisional). **Fases 08c y 08d (agregadas):** consolidación (ADR-021) y estilo visual y
 > pantallas base (ADR-022), antes de la primera pantalla real de la Fase 09.
 
-> **Avance (2026-09-28):** Fases 01–11 y 11b completas (último commit `852c3f4`).
-> **11c** (catálogo sin `/admin`) construida, por verificar; luego **11d**. El CI se adelantó desde la Fase 17
+> **Avance (2026-09-28):** Fases 01–11, 11b y 11c completas (último commit `656ed95`).
+> Próxima: **11d** (tablas auxiliares sin `/admin`). El CI se adelantó desde la Fase 17
 > (ADR-021); Railway y backups siguen en la 17.
 
 ## Ruta crítica al MVP vendible

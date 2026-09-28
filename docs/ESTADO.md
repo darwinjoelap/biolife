@@ -4,7 +4,7 @@
 > Mantener bajo 100 líneas: si crece, es que hay historial que pertenece a DECISIONES.md.
 
 **Última actualización:** 2026-09-28 (cierre del día)
-**Fase actual:** 11c — Catálogo sin /admin (**construida**, pendiente de verificar en la máquina de Darwin) → siguiente: 11d (tablas auxiliares)
+**Fase actual:** 11c — Catálogo sin /admin (**completa**, `656ed95`; revisión manual pendiente) → siguiente: 11d (tablas auxiliares; no iniciar sin pedirlo)
 **Repositorio:** https://github.com/darwinjoelap/biolife (rama `main`, CI en GitHub Actions)
 **Responsable:** Darwin
 
@@ -32,9 +32,10 @@
 - [x] Fase 11b (`852c3f4`): datos del laboratorio, usuarios con clave temporal, varios
   roles por usuario, tabla de roles, mi perfil con firma y sello, rol Auxiliar de toma,
   menú según rol (ADR-029). Verificado por Darwin: accounts.0006, 269 passed, ruff limpio.
-- [~] Fase 11c (sin commit): exámenes, parámetros, rangos/críticos con probador,
+- [x] Fase 11c (`656ed95`): exámenes, parámetros, rangos/críticos con probador,
   observaciones, perfiles, precios en tabla editable, ajuste masivo, copia de listas y
-  tasa de cambio, sin /admin; permisos por rol y nada se borra (ADR-030).
+  tasa de cambio, sin /admin; permisos por rol y nada se borra (ADR-030). Verificado
+  por Darwin: 276 passed, ruff limpio.
 
 ## Dónde estamos
 
@@ -47,10 +48,11 @@ verificación por QR (Fase 11).
 Local: `demo_uno` → http://demo1.localhost:8000/ (+ `public` en localhost).
 ## Pendiente inmediato
 
-1. Verificar la Fase 11c (checklist en `docs/roadmap/11c_catalogo.md`), cargar precios
-   reales y la tasa del día en *Precios*, y luego el commit.
-   Revisión manual pendiente de 11/11b: Auxiliar de toma, firma/sello, QR, entregar.
-   Lote de tromboplastina sólo cuando se prueben PT/INR.
+1. Revisión manual pendiente (11, 11b, 11c): crear un examen de prueba con tubo,
+   parámetro y rango, ordenarlo y cargarle resultado; cargar precios reales y la tasa en
+   *Precios*; entrar como bioanalista y como Auxiliar de toma; firma/sello en *Mi
+   perfil*; escanear el QR; marcar una orden entregada.
+   Siguiente fase: 11d (tablas auxiliares sin /admin), cuando Darwin lo pida.
 2. Cargar precios reales en la lista GENERAL (admin): sin ellos las órdenes quedan con
    monto pendiente.
 3. **No usar en un informe real** ningún `ReferenceRange`/parámetro marcado "PENDIENTE DE

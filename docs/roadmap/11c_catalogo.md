@@ -1,5 +1,7 @@
 # Fase 11c — Catálogo sin /admin (exámenes, rangos, perfiles, precios)
 
+**Estado:** completa (2026-09-28, `656ed95`).
+
 **Depende de:** 11b · **Criterio de salida:** el laboratorio mantiene su catálogo del día
 a día (exámenes, parámetros, rangos y críticos, observaciones, perfiles, precios y tasa)
 desde pantallas propias, sin `/admin`.
@@ -40,11 +42,11 @@ desde pantallas propias, sin `/admin`.
 
 ## Verificación en la máquina de Darwin
 
-- [ ] `pytest -q` · `ruff check .` (no hay migraciones).
-- [ ] Crear un examen de prueba con su tubo, un parámetro numérico y un rango; ordenarlo y
+- [x] `pytest -q` → 276 passed · `ruff check .` limpio (sin migraciones). Commit `656ed95`.
+- [ ] (por confirmar) Crear un examen de prueba con su tubo, un parámetro numérico y un rango; ordenarlo y
   cargarle resultado.
-- [ ] En *Precios*: cargar precios reales en la lista GENERAL y registrar la tasa del día.
-- [ ] Entrar como bioanalista: puede cambiar rangos/críticos/observaciones y no el resto.
+- [ ] (por confirmar) En *Precios*: cargar precios reales en la lista GENERAL y registrar la tasa del día.
+- [ ] (por confirmar) Entrar como bioanalista: puede cambiar rangos/críticos/observaciones y no el resto.
 
 ## No incluye
 
