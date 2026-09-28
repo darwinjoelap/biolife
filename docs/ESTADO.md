@@ -4,7 +4,7 @@
 > Mantener bajo 100 líneas: si crece, es que hay historial que pertenece a DECISIONES.md.
 
 **Última actualización:** 2026-09-28 (cierre del día)
-**Fase actual:** 11c — Catálogo sin /admin (**completa**, `656ed95`; revisión manual pendiente) → siguiente: 11d (tablas auxiliares; no iniciar sin pedirlo)
+**Fase actual:** 11d — Tablas auxiliares sin /admin (**completa**, `9640297`; revisión manual pendiente) → siguiente: 11e (pacientes; no iniciar sin pedirlo)
 **Repositorio:** https://github.com/darwinjoelap/biolife (rama `main`, CI en GitHub Actions)
 **Responsable:** Darwin
 
@@ -36,6 +36,10 @@
   observaciones, perfiles, precios en tabla editable, ajuste masivo, copia de listas y
   tasa de cambio, sin /admin; permisos por rol y nada se borra (ADR-030). Verificado
   por Darwin: 276 passed, ruff limpio.
+- [x] Fase 11d (`9640297`): tablas auxiliares sin /admin (secciones, unidades, métodos,
+  listas de opciones, observaciones generales, tubos, lotes, monedas, descuentos) con motor
+  genérico en `core`; lotes también bioanalista y técnico, monedas y descuentos también
+  facturación; moneda base fija (ADR-031). Verificado por Darwin: 287 passed, ruff limpio.
 
 ## Dónde estamos
 
@@ -48,11 +52,11 @@ verificación por QR (Fase 11).
 Local: `demo_uno` → http://demo1.localhost:8000/ (+ `public` en localhost).
 ## Pendiente inmediato
 
-1. Revisión manual pendiente (11, 11b, 11c): crear un examen de prueba con tubo,
+1. Revisión manual pendiente (11, 11b, 11c, 11d): crear un examen de prueba con tubo,
    parámetro y rango, ordenarlo y cargarle resultado; cargar precios reales y la tasa en
-   *Precios*; entrar como bioanalista y como Auxiliar de toma; firma/sello en *Mi
-   perfil*; escanear el QR; marcar una orden entregada.
-   Siguiente fase: 11d (tablas auxiliares sin /admin), cuando Darwin lo pida.
+   *Precios*; entrar como bioanalista, técnico y Auxiliar de toma; firma/sello en *Mi
+   perfil*; escanear el QR; marcar una orden entregada; recorrer *Tablas auxiliares*.
+   Siguiente fase: 11e (pacientes con evolución), cuando Darwin lo pida.
 2. Cargar precios reales en la lista GENERAL (admin): sin ellos las órdenes quedan con
    monto pendiente.
 3. **No usar en un informe real** ningún `ReferenceRange`/parámetro marcado "PENDIENTE DE

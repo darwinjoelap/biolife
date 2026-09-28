@@ -1,6 +1,6 @@
 # Fase 11d — Tablas auxiliares sin /admin
 
-**Estado:** entregada (2026-09-28), pendiente de verificación en la máquina de Darwin.
+**Estado:** completa (2026-09-28, `9640297`).
 
 **Depende de:** 11c · **Criterio de salida:** el laboratorio mantiene sus tablas de
 apoyo (secciones, unidades, métodos, listas de opciones, observaciones generales, tubos,
@@ -44,11 +44,11 @@ el `/admin` de pacientes, hasta la Fase 11e.
 
 ## Verificación en la máquina de Darwin
 
-- [ ] `python manage.py check` y `makemigrations --check` (no hay migraciones).
-- [ ] `pytest -q` → 287 passed · `ruff check .` limpio.
-- [ ] Recorrer *Tablas auxiliares*: abrir cada tabla, crear una unidad de prueba y
+- [x] `check` sin problemas y `makemigrations --check` → No changes detected.
+- [x] `pytest -q` → 287 passed · `ruff check .` limpio. Commit `9640297`.
+- [ ] (por confirmar) Recorrer *Tablas auxiliares*: abrir cada tabla, crear una unidad de prueba y
   desactivarla; crear el lote de tromboplastina (con ISI) si se va a probar PT/INR.
-- [ ] Entrar como técnico: consulta todo y sólo guarda lotes.
+- [ ] (por confirmar) Entrar como técnico: consulta todo y sólo guarda lotes.
 
 ## No incluye
 
